@@ -6,3 +6,6 @@ ChangeLog
 TAGS
 *~
 vendor/.git
+/.project
+/.buildpath
+/.settings/
