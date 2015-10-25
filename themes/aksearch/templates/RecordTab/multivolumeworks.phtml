@@ -1,0 +1,45 @@
+<?php
+    // Set page title (for HTML head-tag):
+    $this->headTitle($this->translate('volumes') . ': ' . $this->driver->getBreadcrumb());
+    
+	$isMultiVolumeWork = $this->driver->tryMethod('isMultiVolumeWork');
+	$isSeries = $this->driver->tryMethod('isSeries');
+	
+
+	if ($isMultiVolumeWork) {
+		$volumes = $this->driver->tryMethod('getChildRecords');
+	}
+	
+	if ($isSeries) {
+		$volumes = $this->driver->tryMethod('getSerialVolumes');
+	}
+
+	if ($volumes != null) {
+		
+		echo "<table class = 'table' cellpadding='2' cellspacing='0' border='0'>";
+			echo "<thead>";
+				echo "<th width='100%'>".$this->transEsc('Title')."</th>";
+				echo "<th width='100'>".$this->transEsc('volumeNo')."</th>";
+				echo "<th width='145'>".$this->transEsc('Year of Publication')."</th>";
+			echo "</thead>";
+			echo "<tbody>";
+			foreach ($volumes as $volumeID => $volumeRecord) {
+				
+				// Translation:
+				$volumeTitle = ($volumeRecord["volumeTitle"] == null) 				? $this->transEsc('n. A.')	: $this->escapeHtml(str_replace(array("<", ">"), "", $volumeRecord["volumeTitle"]));
+				$volumeNo = ($volumeRecord["volumeNo"] == null) 		? $this->transEsc('n. A.')	: $this->escapeHtml($volumeRecord["volumeNo"]);
+				$volumePublishDate = ($volumeRecord["volumePublishDate"] == null) 	? $this->transEsc('n. A.')	: $this->escapeHtml($volumeRecord["volumePublishDate"]);
+				
+				echo "<tr>";
+					echo "<td><a href='".$this->recordLink()->getUrl().$volumeID."/Holdings'>".$volumeTitle."</a></td>";
+					echo "<td><a href='".$this->recordLink()->getUrl().$volumeID."/Holdings'>".$volumeNo."</a></td>";
+					echo "<td><a href='".$this->recordLink()->getUrl().$volumeID."/Holdings'>".$volumePublishDate."</a></td>";
+				echo "</tr>";
+			}
+			echo "</tbody>";
+		echo "</table>";
+		
+	} else {
+		echo $this->transEsc('No child records found');
+	}
+?>

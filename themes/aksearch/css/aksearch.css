@@ -1,0 +1,179 @@
+/* ################################################################################################################################## */
+/* ##################################### OVERRIDING ORIGINAL CSS WITH SOME MODIFICATIONS- BEGIN ##################################### */
+/* ################################################################################################################################## */
+
+body {
+	line-height: 1.42857143;
+	color: #333;
+	background-color: #fff;
+	font-family: Tahoma,sans-serif;
+	font-size: 13px;
+}
+
+a {
+	text-decoration: none;
+	color: #1079a5
+}
+
+.form-control {
+	display: block;
+	width: 100%;
+	height: 34px;
+	padding: 6px 12px;
+	font-size: 14px;
+	line-height: 1.42857143;
+	color: #555;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid #ccc;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+	-webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s
+}
+
+.btn {
+	display: inline-block;
+	margin-bottom: 0;
+	font-weight: normal;
+	text-align: center;
+	vertical-align: middle;
+	cursor: pointer;
+	background-image: none;
+	white-space: nowrap;
+	font-size: 14px;
+	border-radius: 0px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	border: 0px solid transparent;
+	height: 24px;
+	line-height: 25px;
+	margin: 1px 0 0;
+	padding: 0px 6px 6px 6px;
+	
+}
+
+.btn:hover, .btn:focus {
+	text-decoration: none;
+	color: #f4f4f2;
+}
+
+.btn-primary {
+	color: #333 !important;
+	background-color: #fff !important;
+	border-color: #e0e0e0 !important;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary {
+	background-color: #fff !important;
+	border-color: #e0e0e0 !important;
+	color: #333 !important;
+}
+
+.btn-link {
+	font-weight: normal;
+	cursor: pointer;
+	border-radius: 0;
+	color: #f4f4f2;
+}
+
+.btn-link:hover, .btn-link:focus {
+	text-decoration: underline;
+	background-color: transparent;
+}
+
+.navbar-brand {
+	float: left;
+	font-size: 18px;
+	line-height: 20px;
+	background:url("../images/akwien/akwien_logo.png") no-repeat scroll left center transparent;
+	height:65px;
+    width:130px;
+    margin-top: 15px;
+}
+
+.navbar-form {
+	border-top: 1px solid transparent;
+	border-bottom: 1px solid transparent;
+	-webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+
+.modal-backdrop {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: #000
+}
+
+.twitter-typeahead {
+	background: none;
+	border-radius: 0;
+	vertical-align: middle;
+}
+
+/* ################################################################################################################################## */
+/* ###################################### OVERRIDING ORIGINAL CSS WITH SOME MODIFICATIONS- END ###################################### */
+/* ################################################################################################################################## */
+
+
+
+
+/* ###################################################################################################### */
+/* ##################################### AK BIBLIOTHEK WIEN - BEGIN ##################################### */
+/* ###################################################################################################### */
+
+.akSearchbox {
+	background: none repeat scroll 0 0 #be0021;
+}
+
+.akSearchbox input[type="text"], .akSearchbox #searchForm_type {
+	background: none repeat scroll 0 0 #fff;
+    border: 0 none;
+    color: #666666;
+    font-size: 1em;
+    height: 24px;
+    line-height: 25px;
+    margin: 1px 0 0 0;
+    padding: 0 5px 0 8px;
+    border-radius: 0px;
+}
+
+.akSearchbox label {
+	color: #f4f4f2;
+}
+
+#searchForm_lookfor {
+	background-color: #fff !important;
+	vertical-align: middle !important;
+}
+
+#advSearchForm .group {
+	margin-bottom: 5px;
+	padding: 10px;
+	background-color: #edecea;
+}
+
+#advSearchForm .col-sm-9 .row {
+	margin-left: 0;
+}
+
+.slider.slider-horizontal {
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+@media ( max-width : 767px) {
+	.btn {
+		margin-top: 5px;
+	}
+}
+
+/* ###################################################################################################### */
+/* ###################################### AK BIBLIOTHEK WIEN - END ###################################### */
+/* ###################################################################################################### */

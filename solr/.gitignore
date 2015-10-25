@@ -3,3 +3,5 @@ alphabetical_browse
 */spellchecker
 */spellShingle
 */tlog
+*/conf/_rest_managed.json
+/logs/

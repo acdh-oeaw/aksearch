@@ -1,0 +1,72 @@
+<?
+// Set page title (for HTML head-tag):
+$this->headTitle($this->translate('Journal') . ': ' . $this->driver->getBreadcrumb());
+?>
+
+<?php
+
+$journalHoldingsArrays = $this->driver->getJournalHoldings();
+$noOfHolingSublibs = count($journalHoldingsArrays);
+
+echo '<br/><b>'.$this->transEsc('journalHoldingsText').'</b><br /><br />';
+
+foreach ($journalHoldingsArrays as $journalHoldingsArray) {
+	
+	echo '<table class="table table-striped" style="width: auto;">';
+		
+		if ($noOfHolingSublibs > 1) {
+			if (isset($journalHoldingsArray['sublib'])) {
+				echo '<tr>';
+				echo '<th colspan="2" style="text-align: center;">'.$journalHoldingsArray['sublib'].'</th>';
+				echo '</tr>';
+			}
+		}
+		
+		
+		if (isset($journalHoldingsArray['holding'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">'.$this->transEsc('journalHoldings').'</th>';
+			echo '<td width="99%">'.$journalHoldingsArray['holding'].'</td>';
+			echo '</tr>';
+		}
+		
+		if (isset($journalHoldingsArray['gaps'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">'.$this->transEsc('gaps').'</th>';
+			echo '<td width="99%">'.$journalHoldingsArray['gaps'].'</td>';
+			echo '</tr>';
+		}
+		
+		if (isset($journalHoldingsArray['location'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">'.$this->transEsc('Location').'</th>';
+			echo '<td width="99%">'.$journalHoldingsArray['location'].'</td>';
+			echo '</tr>';
+		}
+		
+		if (isset($journalHoldingsArray['shelfmark'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">'.$this->transEsc('Call Number').'</th>';
+			echo '<td width="99%">'.$journalHoldingsArray['shelfmark'].'</td>';
+			echo '</tr>';
+		}
+		
+		if (isset($journalHoldingsArray['comment'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">'.$this->transEsc('comment').'</th>';
+			echo '<td width="99%">'.$journalHoldingsArray['comment'].'</td>';
+			echo '</tr>';
+		}
+		
+	echo '</table>';
+	
+	if ($noOfHolingSublibs > 1) {
+		echo '<hr />';
+	}
+	
+}
+
+
+
+
+?>
