@@ -1,14 +1,7 @@
-[![Build Status](https://travis-ci.org/vufind-org/vufind.svg?branch=master)](https://travis-ci.org/vufind-org/vufind)
-VuFind
-======
+AkSearch
+========
 
-Introduction
-------------
-VuFind is an open source discovery environment for searching a collection of
-records.  To learn more, visit http://vufind.org.
-
-
-Installation
-------------
-
-See online documentation at http://vufind.org/wiki/vufind2:installation_notes
+Documentation
+-------------
+Documentation is in german language only!
+See: http://emedien.arbeiterkammer.at/wiki/doku.php?id=aksearch
