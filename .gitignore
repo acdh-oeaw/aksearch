@@ -9,3 +9,4 @@ vendor/.git
 /.project
 /.buildpath
 /.settings/
+/import/solrmarc.log*
