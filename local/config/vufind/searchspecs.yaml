@@ -157,6 +157,10 @@ Author:
     - author_fuller^50
     - author2
     - author_additional
+    - author_additional_NameGnd_txt_mv
+    - corporateAuthorName_txt
+    - corporateAuthor2Name_txt_mv
+    - corporateAuthor2NameGnd_txt_mv
   QueryFields:
     author:
       - [onephrase, 350]
@@ -174,6 +178,23 @@ Author:
       - [onephrase, 100]
       - [and, 50]
       - [or, ~]
+    author_additional_NameGnd_txt_mv:
+      - [onephrase, 100]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthorName_txt:
+      - [onephrase, 350]
+      - [and, 200]
+      - [or, 100]
+    corporateAuthor2Name_txt_mv:
+      - [onephrase, 100]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthor2NameGnd_txt_mv:
+      - [onephrase, 100]
+      - [and, 50]
+      - [or, ~]
+    
 
 ISN:
   DismaxFields:
@@ -344,6 +365,12 @@ AllFields:
     - series2^30
     - author^300
     - author_fuller^150
+    - author2^100
+    - author_additional^100
+    - author_additional_NameGnd_txt_mv^100
+    - corporateAuthorName_txt^300
+    - corporateAuthor2Name_txt_mv^100
+    - corporateAuthor2NameGnd_txt_mv^100
     - contents^10
     - topic_unstemmed^550
     - topic^500
@@ -377,49 +404,57 @@ AllFields:
         - [and, 200]
       title_new:
         - [and, 100]
-    series:
-      - [and, 50]
-    series2:
-      - [and, 30]
-    author:
-      - [onephrase, 300]
-      - [and, 250]
-    author_fuller:
-      - [onephrase, 150]
-      - [and, 125]
-    author2:
-      - [and, 50]
-    author_additional:
-      - [and, 50]
-    contents:
-      - [and, 10]
-    topic_unstemmed:
-      - [onephrase, 550]
-      - [and, 500]
-    topic:
-      - [onephrase, 500]
-    geographic:
-      - [onephrase, 300]
-    genre:
-      - [onephrase, 300]
-    allfields_unstemmed:
-      - [or, 10]
-    fulltext_unstemmed:
-      - [or, 10]
-    allfields:
-      - [or, ~]
-    fulltext:
-      - [or, ~]
-    description:
-      - [or, ~]
-    isbn:
-      - [onephrase, ~]
-    issn:
-      - [onephrase, ~]
-    acNo_txt:
-      - [onephrase, ~]
-    sysNo_txt:
-      - [onephrase, ~]
+      series:
+        - [and, 50]
+      series2:
+        - [and, 30]
+      author:
+        - [onephrase, 300]
+        - [and, 250]
+      author_fuller:
+        - [onephrase, 150]
+        - [and, 125]
+      author2:
+        - [and, 50]
+      author_additional:
+        - [and, 50]
+      author_additional_NameGnd_txt_mv:
+        - [and, 50]
+      corporateAuthorName_txt:
+        - [and, 250]
+      corporateAuthor2Name_txt_mv:
+        - [and, 50]
+      corporateAuthor2NameGnd_txt_mv:
+        - [and, 50]    
+      contents:
+        - [and, 10]
+      topic_unstemmed:
+        - [onephrase, 550]
+        - [and, 500]
+      topic:
+        - [onephrase, 500]
+      geographic:
+        - [onephrase, 300]
+      genre:
+        - [onephrase, 300]
+      allfields_unstemmed:
+        - [or, 10]
+      fulltext_unstemmed:
+        - [or, 10]
+      allfields:
+        - [or, ~]
+      fulltext:
+        - [or, ~]
+      description:
+        - [or, ~]
+      isbn:
+        - [onephrase, ~]
+      issn:
+        - [onephrase, ~]
+      acNo_txt:
+        - [onephrase, ~]
+      sysNo_txt:
+        - [onephrase, ~]
 #  ExactSettings:
 #    DismaxFields:
 #      - title_full_unstemmed^600
