@@ -69,6 +69,7 @@ class Aleph extends AlephDefault {
 		if ($auth) {
 			$url = $this->appendQueryString($url, array('user_name' => $this->wwwuser, 'user_password' => $this->wwwpasswd));
 		}
+
 		$result = $this->doHTTPRequest($url);
 		if ($result->error) {
 			if ($this->debug_enabled) {
@@ -398,6 +399,86 @@ class Aleph extends AlephDefault {
 		return $subLibName;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @see \VuFind\ILS\Driver\Aleph::getNewItems()
+	 */
+	public function getNewItems($page, $limit, $daysOld, $fundId = null)
+	{
+		// Start request of new items from Aleph X-Services interface only if the user didn't request it with the same parameters in the same session:
+		if (!isset($_SESSION['aksNewItems']) || !isset($_SESSION['aksNewItemsDaysOld']) || $_SESSION['aksNewItemsDaysOld'] != $daysOld) {
+			$_SESSION['aksNewItems'] = $this->getNewItemsArray($page, $limit, $daysOld, $fundId = null);
+			$_SESSION['aksNewItemsDaysOld'] = $daysOld;
+		}
+		
+		return $_SESSION['aksNewItems'];
+	}
+	
+	
+	/**
+	 * Getting new items from Aleph X-Services interface
+	 * 
+	 * @param int $page				Page number of results to retrieve (counting starts at 1)
+	 * @param int $limit			The size of each page of results to retrieve
+	 * @param int $daysOld			The maximum age of records to retrieve in days (max. 30)
+	 * @param int $fundId			Optional fund ID to use for limiting results (use a value returned by getFunds, or exclude for no limit); note that "fund" may be a misnomer - if funds are not an appropriate way to limit your new item results, you can return a different set of values from getFunds. The important thing is that this parameter supports an ID returned by getFunds, whatever that may mean.
+	 * @return array				Associative array with 'count' and 'results' keys
+	 */
+	public function getNewItemsArray($page, $limit, $daysOld, $fundId = null)
+    {
+    	$newItems = null;
+    	
+    	$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
+    	$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
+
+		// Execute search:		
+		$xFindParams = ['request' => 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP', 'base' => 'AKW01'];
+		$findResult = $this->doXRequest('find', $xFindParams, false);
+		$setNumber = $findResult->set_number;
+		$noEntries = (int)$findResult->no_entries;
+		
+		if ($noEntries > 0) {
+			
+			// Set the "count" value for the return array
+			$newItems = ['count' => $noEntries, 'results' => []];
+
+			$from = 1; // Initial "from" value for the "present" request on Aleph X-Services
+			$until = 100; // Initial "until" value for the "present" request on Aleph X-Services
+			
+			while ($until <= $noEntries) {
+				
+				// Get results and add them to the return array
+				$xPresentParams = ['set_entry' => $from.'-'.$until, 'set_number' => $setNumber];
+				$presentResult = $this->doXRequest('present', $xPresentParams, false);
+				$getSysNos = $presentResult->xpath('//doc_number');
+				
+				if (!empty($getSysNos)) {
+					foreach ($getSysNos as $key => $sysNo) {
+						$newItems['results'][] = ['id' => (string)$sysNo];
+					}
+				}
+				
+				// If "until" is as high as the no. of entries found, we are in the last loop and can break now.
+				if ($until == $noEntries) {
+					break;
+				}
+				
+				// Set values to get the next 100 results
+				$from = $from + 100;
+				$until = $until + 100;
+				
+				// "until" may not be higher than the no. of entries found, otherwise we get an error from Aleph
+				if ($until > $noEntries) {
+					$until = $noEntries;
+				}
+			}
+		}
+		
+		return $newItems;
+    }
+    
+    
 	/* ################################################################################################## */
 	/* ########################################## AkSearch End ########################################## */
 	/* ################################################################################################## */
