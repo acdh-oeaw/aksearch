@@ -24,8 +24,7 @@
         <? else: ?>
           <? $summAuthor = str_replace(array('<', '>'), "", $this->driver->getPrimaryAuthor()); if (!empty($summAuthor)): ?>
           <?=$this->transEsc('by')?>
-          <a
-					href="<?=$this->record($this->driver)->getLink('author', $summAuthor)?>"><?
+          <a href="<?=$this->record($this->driver)->getLink('author', $summAuthor)?>"><?
 										$summHighlightedAuthor = str_replace(array('<', '>'), "", $this->driver->getHighlightedAuthor());
 										echo ! empty($summHighlightedAuthor) ? $this->highlight($summHighlightedAuthor) : $this->escapeHtml($summAuthor);
 										?></a>
@@ -86,11 +85,11 @@
       <? if(!$this->driver->isCollection()): ?>
         <? if ($snippet = $this->driver->getHighlightedSnippet()): ?>
           <? if (!empty($snippet['caption'])): ?>
-            <strong><?=$this->transEsc($snippet['caption']) ?>:</strong> ';
+            <br /><strong><?=$this->transEsc($snippet['caption']) ?>:</strong>
           <? endif; ?>
           <? if (!empty($snippet['snippet'])): ?>
             <span class="quotestart">&#8220;</span>...<?=str_replace(array('&lt;', '&gt;'), "", $this->highlight($snippet['snippet'])) ?>...<span
-				class="quoteend">&#8221;</span><br />
+				class="quoteend">&#8221;</span>
           <? endif; ?>
         <? endif; ?>
       <? endif; ?>
@@ -138,7 +137,6 @@
           <? endif; ?>
         <? endif; ?>
       </div>
-	  <br />
       <?
 						/*
 						 * We need to find out if we're supposed to display an OpenURL link ($openUrlActive),
@@ -158,16 +156,13 @@
         <? endif; ?>
         <?
 							
-							if (! is_array($urls))
-								$urls = array();
-							if (! $this->driver->isCollection()) :
-								foreach ($urls as $current) :
-									?>
-              <a
-				href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>"
-				class="fulltext" target="new"><i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($current['desc'])?></a><br />
-          <? endforeach; ?>
-        <? endif; ?>
+		if (!is_array($urls))
+			$urls = array();
+				if (!$this->driver->isCollection()) :
+					foreach ($urls as $current) : ?>
+              			<br /><a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new"><i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($current['desc'])?></a>
+          			<? endforeach; ?>
+        		<? endif; ?>
       <? endif; ?>
 
       <?=str_replace('class="', 'class="label label-info ', $this->record($this->driver)->getFormatList())?>
