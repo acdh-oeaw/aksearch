@@ -32,6 +32,8 @@ a {
 	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s
 }
 
+
+/* BUTTONS - GENERAL */
 .btn {
 	display: inline-block;
 	margin-bottom: 0;
@@ -55,21 +57,19 @@ a {
 	
 }
 
-.btn:hover, .btn:focus {
-	text-decoration: none;
-	color: #f4f4f2;
+.btn-primary, .btn-default {
+	font-weight: bold;
+	color: #fff;
+	background-color: #333;
+	border-color: #e0e0e0;
 }
 
-.btn-primary {
-	color: #333 !important;
-	background-color: #fff !important;
-	border-color: #e0e0e0 !important;
-}
-
-.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary {
-	background-color: #fff !important;
-	border-color: #e0e0e0 !important;
-	color: #333 !important;
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary,
+.btn-default:hover, .btn-default:focus, .btn-default:active {
+	background-color: #be0021;
+	border-color: #333;
+	color: #fff;
+	outline: none;
 }
 
 .btn-link {
@@ -83,6 +83,26 @@ a {
 	text-decoration: underline;
 	background-color: transparent;
 }
+
+/* BUTTONS - DEFAULT SEARCHFORM */
+#searchForm .btn-primary, #searchForm .btn-primary:hover, #searchForm .btn-primary:focus {
+	background-color: #fff;
+	text-decoration: none;
+	color: #333;
+}
+
+#searchForm .btn-link {
+	background-color: none;
+	text-decoration: none;
+	color: #fff;
+	outline: none;
+}
+
+#searchForm .btn-link:hover {
+	text-decoration: underline;
+}
+
+
 
 .navbar-brand {
 	float: left;
@@ -121,6 +141,18 @@ a {
 	margin-bottom: 18px;
 }
 
+#advSearchForm .row .col-sm-9 .row fieldset {
+	margin-top: 20px;
+}
+
+#advSearchForm .row .col-sm-9 .row fieldset .slider-container {
+	margin-bottom: 10px;
+}
+
+.slider-container .slider-handle {
+	background: #1079a5 none repeat scroll 0 0;
+    border: 1px solid #1079a5;
+}
 /* ################################################################################################################################## */
 /* ###################################### OVERRIDING ORIGINAL CSS WITH SOME MODIFICATIONS - END ##################################### */
 /* ################################################################################################################################## */
