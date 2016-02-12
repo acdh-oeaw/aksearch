@@ -11,11 +11,9 @@
     <? if ($cover = $this->record($this->driver)->getCover('result-list', 'medium', $this->recordLink()->getUrl($this->driver))): ?>
       <div class="col-sm-2 col-xs-3 left"><?=$cover ?></div>
     <? endif ?>
-    <div
-			class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
+    <div class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
 			<div>
-				<a href="<?=$this->recordLink()->getUrl($this->driver)?>"
-					class="title">
+				<a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
           <?=str_replace(array('&lt;', '&gt;'), "", $this->record($this->driver)->getTitleHtml())?>
         </a>
 			</div>
@@ -140,7 +138,7 @@
           <? endif; ?>
         <? endif; ?>
       </div>
-
+	  <br />
       <?
 						/*
 						 * We need to find out if we're supposed to display an OpenURL link ($openUrlActive),
@@ -155,7 +153,7 @@
 						if ($openUrlActive || ! empty($urls)) :
 							?>
         <? if ($openUrlActive): ?>
-          <br />
+          
           <?=$openUrl->renderTemplate()?>
         <? endif; ?>
         <?
