@@ -153,6 +153,8 @@
 # These searches use Dismax when possible:
 Author:
   DismaxFields:
+    - author_de^100
+    - author_wildcard^100
     - author^100
     - author_fuller^50
     - author2
@@ -162,6 +164,14 @@ Author:
     - corporateAuthor2Name_txt_mv
     - corporateAuthor2NameGnd_txt_mv
   QueryFields:
+    author_de:
+      - [onephrase, 350]
+      - [and, 200]
+      - [or, 100]
+    author_wildcard:
+      - [onephrase, 350]
+      - [and, 200]
+      - [or, 100]
     author:
       - [onephrase, 350]
       - [and, 200]
@@ -299,16 +309,23 @@ JournalTitle:
 
 Title:
   DismaxFields:
+    - title_de^500
+    - title_wildcard^500
     - title_short^500
     - title_full_unstemmed^450
     - title_full^400
     - title^300
     - title_alt^200
+    - title_sub^200
     - title_new^100
     - title_old
     - series^100
     - series2
   QueryFields:
+    title_de:
+      - [onephrase, 500]
+    title_wildcard:
+      - [onephrase, 500]
     title_short:
       - [onephrase, 500]
     title_full_unstemmed:
@@ -320,6 +337,8 @@ Title:
       - [onephrase, 300]
       - [and, 250]
     title_alt:
+      - [and, 200]
+    title_sub:
       - [and, 200]
     title_new:
       - [and, 100]
@@ -355,6 +374,8 @@ Series:
 
 AllFields:
   DismaxFields:
+    - title_de^750
+    - title_wildcard^750
     - title_short^750
     - title_full_unstemmed^600
     - title_full^400
@@ -363,6 +384,8 @@ AllFields:
     - title_new^100
     - series^50
     - series2^30
+    - author_de^300
+    - author_wildcard^300
     - author^300
     - author_fuller^150
     - author2^100
@@ -390,6 +413,10 @@ AllFields:
       0:
         - OR
         - 50
+      title_de:
+        - [onephrase, 750]
+      title_wildcard:
+        - [onephrase, 750]
       title_short:
         - [onephrase, 750]
       title_full_unstemmed:
@@ -408,6 +435,12 @@ AllFields:
         - [and, 50]
       series2:
         - [and, 30]
+      author_de:
+        - [onephrase, 300]
+        - [and, 250]
+      author_wildcard:
+        - [onephrase, 300]
+        - [and, 250]
       author:
         - [onephrase, 300]
         - [and, 250]
