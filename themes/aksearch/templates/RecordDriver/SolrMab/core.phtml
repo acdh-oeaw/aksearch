@@ -157,7 +157,7 @@
       	<th><?=$this->transEsc('Authors')?>: </th>
       	<td>
       	 <? foreach($authors as $author): ?>
-            <a property="author" href="<?=$this->record($this->driver)->getLink('author', $author)?>"><?=$this->escapeHtml($author)?></a><br/>
+            <a property="author" href="<?=$this->record($this->driver)->getLink('author', $author)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $author))?></a><br/>
          <? endforeach; ?>
         </td>
       </tr>
@@ -168,7 +168,7 @@
       	<th><?=$this->transEsc('Corporate Author')?>: </th>
       	<td>
       	 <? foreach($corporateAuthors as $corporateAuthor): ?>
-         	<a property="creator" href="<?=$this->url('search-results')?>?lookfor=%22<?=urlencode($corporateAuthor)?>&type=AllFields&limit=20"><?=$this->escapeHtml($corporateAuthor)?></a><br />
+         	<a property="creator" href="<?=$this->url('search-results')?>?lookfor=%22<?=urlencode($corporateAuthor)?>&type=AllFields&limit=20"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $corporateAuthor))?></a><br />
          <? endforeach; ?>
         </td>
       </tr>

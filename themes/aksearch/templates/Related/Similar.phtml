@@ -10,7 +10,7 @@
           <?=$this->escapeHtml(str_replace(array("<", ">"), "", $data->getTitle()))?>
         </a>
         <? $author = $data->getPrimaryAuthor(); if (!empty($author)): ?>
-          <br/><?=$this->transEsc('by')?>: <?=$this->escapeHtml($author);?>
+          <br/><?=$this->transEsc('by')?>: <?=$this->escapeHtml(str_replace(array('<', '>'), "", $author));?>
         <? endif; ?>
         <? $pubDates = $data->getPublicationDates(); if (!empty($pubDates)): ?>
           <br/><?=$this->transEsc('Published')?>: (<?=$this->escapeHtml($pubDates[0])?>)
