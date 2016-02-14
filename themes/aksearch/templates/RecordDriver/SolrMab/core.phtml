@@ -80,7 +80,7 @@
         <th><?=$this->transEsc('New Title')?>: </th>
         <td>
           <? foreach($nextTitles as $field): ?>
-            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml($field)?></a><br/>
+            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field))?></a><br/>
           <? endforeach; ?>
         </td>
       </tr>
@@ -91,7 +91,7 @@
         <th><?=$this->transEsc('Previous Title')?>: </th>
         <td>
           <? foreach($prevTitles as $field): ?>
-            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml($field)?></a><br/>
+            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field))?></a><br/>
           <? endforeach; ?>
         </td>
       </tr>
@@ -194,7 +194,7 @@
       	<th><?=$this->transEsc('Publisher')?>: </th>
       	<td>
       	 <? foreach($pubNames as $pubName): ?>
-            <span property="name"><?=$this->escapeHtml($pubName)?></span><br/>
+            <span property="name"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $pubName))?></span><br/>
          <? endforeach; ?>
         </td>
         
@@ -204,7 +204,7 @@
       <? $pubPlace = $this->driver->getPublicationPlace(); if (!empty($pubPlace)): ?>
       <tr>
       	<th><?=$this->transEsc('place')?>: </th>
-      	<td><span property="publicationPlace"><?=$this->escapeHtml($pubPlace)?></span></td>
+      	<td><span property="publicationPlace"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $pubPlace))?></span></td>
       </tr>
       <? endif; ?>
       
@@ -234,7 +234,7 @@
       <? $edition = $this->driver->getEdition(); if (!empty($edition)): ?>
       <tr>
         <th><?=$this->transEsc('Edition')?>: </th>
-        <td property="bookEdition"><?=$this->escapeHtml($edition)?></td>
+        <td property="bookEdition"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $edition))?></td>
       </tr>
       <? endif; ?>
 
@@ -249,14 +249,14 @@
                name.  We should account for both cases to maximize compatibility. */?>
             <? if (is_array($field)): ?>
               <? if (!empty($field['name'])): ?>
-                <a href="<?=$this->record($this->driver)->getLink('series', $field['name'])?>"><?=$this->escapeHtml($field['name'])?></a>
+                <a href="<?=$this->record($this->driver)->getLink('series', $field['name'])?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field['name']))?></a>
                 <? if (!empty($field['number'])): ?>
                   <?=$this->escapeHtml($field['number'])?>
                 <? endif; ?>
                 <br/>
               <? endif; ?>
             <? else: ?>
-              <a href="<?=$this->record($this->driver)->getLink('series', $field)?>"><?=$this->escapeHtml($field)?></a><br/>
+              <a href="<?=$this->record($this->driver)->getLink('series', $field)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field))?></a><br/>
             <? endif; ?>
           <? endforeach; ?>
         </td>
@@ -274,7 +274,7 @@
             <? $i = 0; foreach ($field as $subfield): ?>
               <?=($i++ == 0) ? '' : ' &gt; '?>
               <? $subject = trim($subject . ' ' . $subfield); ?>
-              <a class="backlink" title="<?=$this->escapeHtmlAttr($subject)?>" href="<?=$this->record($this->driver)->getLink('subject', $subject)?>" rel="nofollow"><?=trim($this->escapeHtml($subfield))?></a>
+              <a class="backlink" title="<?=$this->escapeHtmlAttr($subject)?>" href="<?=$this->record($this->driver)->getLink('subject', $subject)?>" rel="nofollow"><?=trim($this->escapeHtml(str_replace(array("<", ">"), "", $subfield)))?></a>
             <? endforeach; ?>
           </div>
           <? endforeach; ?>
