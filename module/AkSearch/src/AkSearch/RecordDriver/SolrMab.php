@@ -56,6 +56,64 @@ class SolrMab extends SolrDefault {
     
     
     /**
+     * These Solr fields should NEVER be used for snippets.  (We exclude author
+     * and title because they are already covered by displayed fields; we exclude
+     * spelling because it contains lots of fields jammed together and may cause
+     * glitchy output; we exclude ID because random numbers are not helpful).
+     * 
+     * Addition for AkSearch: we exclude title_de, title_wildcard, author_de and author_wildcard too
+     *
+     * @var array
+     */
+    protected $forbiddenSnippetFields = [
+    		'author', 'author-letter', 'title', 'title_short', 'title_full',
+    		'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
+    		'ctrlnum',
+    		'title_de', 'title_wildcard', 'author_de', 'author_wildcard'
+    ];
+    
+    
+    /**
+     * Pick one line from the highlighted text (if any) to use as a snippet.
+     *
+     * @return mixed False if no snippet found, otherwise associative array
+     * with 'snippet' and 'caption' keys.
+     */
+    public function getHighlightedSnippet()
+    {    	
+    	// Only process snippets if the setting is enabled:
+    	if ($this->snippet) {
+    		// First check for preferred fields:
+    		foreach ($this->preferredSnippetFields as $current) {
+    			if (isset($this->highlightDetails[$current][0])) {
+    				return [
+    						'snippet' => $this->highlightDetails[$current][0],
+    						'caption' => $this->getSnippetCaption($current)
+    				];
+    			}
+    		}
+    
+    		// No preferred field found, so try for a non-forbidden field:
+    		if (isset($this->highlightDetails)
+    				&& is_array($this->highlightDetails)
+    				) {
+    					foreach ($this->highlightDetails as $key => $value) {
+    						if (!in_array($key, $this->forbiddenSnippetFields)) {
+    							return [
+    									'snippet' => $value[0],
+    									'caption' => $this->getSnippetCaption($key)
+    							];
+    						}
+    					}
+    				}
+    	}
+    
+    	// If we got this far, no snippet was found:
+    	return false;
+    }
+    
+    
+    /**
      * Get text that can be displayed to represent this record in breadcrumbs.
      *
      * @return string: Breadcrumb text to represent this record.
