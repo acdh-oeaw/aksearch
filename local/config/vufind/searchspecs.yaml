@@ -206,18 +206,63 @@ Author:
       - [or, ~]
     
 
-ISN:
-  DismaxFields:
-    - isbn
-    - issn
-  QueryFields:
-    issn:
-      - [and, 100]
-      - [or, ~]
-    isbn:
-      - [and, 100]
-      - [or, ~]
+# ISN original search specs:
+#ISN:
+#  DismaxFields:
+#    - isbn
+#    - issn
+#  QueryFields:
+#    issn:
+#      - [and, 100]
+#      - [or, ~]
+#    isbn:
+#      - [and, 100]
+#      - [or, ~]
 
+
+# ISN search for AkSearch (enables search with or without dash incl. wildcard searches
+# Examples for searches: 3205005*, 3-205-005*, 3-205-00549-X and 320500549X
+ISN:      
+  CustomMunge:
+    isbn_exact:
+      # Strip whitespace and quotes:
+      - [preg_replace, '/[ "]/', ""]
+      # Strip dashes
+      - [preg_replace, '/\-/', ""]
+      # Strip pre-existing trailing asterisks:
+      - [preg_replace, "/\*+$/", ""]
+    isbn_fuzzy:
+      # Strip whitespace and quotes:
+      - [preg_replace, '/[ "]/', ""]
+      # Strip dashes
+      - [preg_replace, '/\-/', ""]
+      # Strip pre-existing trailing asterisks, then add a new one:
+      - [preg_replace, "/\*+$/", ""]
+      - [append, "*"]
+    issn_exact:
+      # Strip whitespace and quotes:
+      - [preg_replace, '/[ "]/', ""]
+      # Strip dashes
+      - [preg_replace, '/\-/', ""]
+      # Strip pre-existing trailing asterisks:
+      - [preg_replace, "/\*+$/", ""]
+    issn_fuzzy:
+      # Strip whitespace and quotes:
+      - [preg_replace, '/[ "]/', ""]
+      # Strip dashes
+      - [preg_replace, '/\-/', ""]
+      # Strip pre-existing trailing asterisks, then add a new one:
+      - [preg_replace, "/\*+$/", ""]
+      - [append, "*"]      
+  QueryFields:
+    isbn:
+      - [isbn_exact, 1000]
+      - [isbn_fuzzy, ~]
+    issn:
+      - [issn_exact, 1000]
+      - [issn_fuzzy, ~]
+      
+      
 Subject:
   DismaxFields:
     - topic_unstemmed^150
@@ -309,9 +354,9 @@ JournalTitle:
 
 Title:
   DismaxFields:
-#    - title_de^500
-    - title_wildcard^500
     - title_short^500
+#    - title_de^500
+    - title_wildcard^450
     - title_full_unstemmed^450
     - title_full^400
     - title^300
@@ -322,12 +367,12 @@ Title:
     - series^100
     - series2
   QueryFields:
+    title_short:
+      - [onephrase, 500]
 #    title_de:
 #      - [onephrase, 500]
     title_wildcard:
-      - [onephrase, 500]
-    title_short:
-      - [onephrase, 500]
+      - [onephrase, 450]
     title_full_unstemmed:
       - [onephrase, 450]
       - [and, 400]
