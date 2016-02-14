@@ -163,6 +163,7 @@ Author:
     - corporateAuthorName_txt
     - corporateAuthor2Name_txt_mv
     - corporateAuthor2NameGnd_txt_mv
+    - responsibilityNote_txt
   QueryFields:
 #    author_de:
 #      - [onephrase, 350]
@@ -204,7 +205,10 @@ Author:
       - [onephrase, 100]
       - [and, 50]
       - [or, ~]
-    
+    responsibilityNote_txt:
+      - [onephrase, 100]
+      - [and, 50]
+      - [or, ~]
 
 # ISN original search specs:
 #ISN:
@@ -439,6 +443,7 @@ AllFields:
     - corporateAuthorName_txt^300
     - corporateAuthor2Name_txt_mv^100
     - corporateAuthor2NameGnd_txt_mv^100
+    - responsibilityNote_txt^100
     - contents^10
     - topic_unstemmed^550
     - topic^500
@@ -503,7 +508,9 @@ AllFields:
       corporateAuthor2Name_txt_mv:
         - [and, 50]
       corporateAuthor2NameGnd_txt_mv:
-        - [and, 50]    
+        - [and, 50]
+      responsibilityNote_txt:
+        - [and, 50]
       contents:
         - [and, 10]
       topic_unstemmed:
