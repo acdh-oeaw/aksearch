@@ -61,15 +61,18 @@ class SolrMab extends SolrDefault {
      * spelling because it contains lots of fields jammed together and may cause
      * glitchy output; we exclude ID because random numbers are not helpful).
      * 
-     * Addition for AkSearch: we exclude title_de, title_wildcard, author_de and author_wildcard too
+     * Addition for AkSearch: we exclude title_de, title_wildcard, author_de, author_wildcard
+     * and some others too.
      *
      * @var array
      */
     protected $forbiddenSnippetFields = [
     		'author', 'author-letter', 'title', 'title_short', 'title_full',
-    		'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
+    		'title_full_unstemmed', 'title_auth', 'spelling', 'id',
     		'ctrlnum',
-    		'title_de', 'title_wildcard', 'author_de', 'author_wildcard'
+    		'title_de', 'title_wildcard', 'author_de', 'author_wildcard',
+    		/*'corporateAuthorName_txt', 'corporateAuthor2Name_txt_mv',
+    		'corporateAuthor2NameGnd_txt_mv'*/
     ];
     
     
@@ -836,8 +839,32 @@ class SolrMab extends SolrDefault {
 	 * @return string
 	 */
 	public function getPrimaryAuthor() {
-		return isset($this->fields['author']) ? $this->fields['author'] : '';
+		
+		// Primary author is set
+		if (isset($this->fields['author'])) {
+			return $this->fields['author'];
+		}
+		
+		// If no primary author is set, check for "corporate author"
+		if (isset($this->fields['corporateAuthorName_txt'])) {
+			return $this->fields['corporateAuthorName_txt'];
+		}
+		if (isset($this->fields['corporateAuthorName_txt'])) {
+			return $this->fields['corporateAuthorName_txt'];
+		}
+		
+		// If no primary author is set, check for "responsability note"
+		if (isset($this->fields['responsibilityNote_txt'])) {
+			return $this->fields['responsibilityNote_txt'];
+		}
+		
+		// If we got this far, no apropriate author field is set
+		return '';
+		
+		// Original:
+		//return (isset($this->fields['author'])) ? $this->fields['author'] : '';
 	}
+	
 	
 	/**
 	 * Get Solrfield author2 (secondary authors)
@@ -847,7 +874,27 @@ class SolrMab extends SolrDefault {
 	 * @return array
 	 */
 	public function getSecondaryAuthors() {
-		return isset($this->fields['author2']) ? $this->fields['author2'] : array();
+		
+		// Field author2 author is set
+		if (isset($this->fields['author2'])) {
+			return $this->fields['author2'];
+		}
+		
+		// Field corporateAuthor2NameGnd_txt_mv author is set
+		if (isset($this->fields['corporateAuthor2NameGnd_txt_mv'])) {
+			return $this->fields['corporateAuthor2NameGnd_txt_mv'];
+		}
+		
+		// Field corporateAuthor2GndNo_str_mv author is set
+		if (isset($this->fields['corporateAuthor2GndNo_str_mv'])) {
+			return $this->fields['corporateAuthor2GndNo_str_mv'];
+		}
+		
+		// If we got this far, no apropriate author field is set
+		return array();
+		
+		// Original:
+		//return isset($this->fields['author2']) ? $this->fields['author2'] : array();
 	}
 	
 	/**
