@@ -18,7 +18,7 @@
     $lastLimit = $options->getLastLimit();
 ?>
 <? if ($this->searchType == 'advanced'): ?>
-  <div id="searchForm">
+  <div id="searchForm" class="akAdvancedSearchForm">
     <? $searchTabs = $this->searchtabs($this->searchClassId, $this->lookfor, $this->searchIndex, $this->searchType); ?>
     <? if (count($searchTabs) > 0): ?>
       <ul class="nav nav-tabs">
@@ -30,10 +30,12 @@
       </ul>
       <div class="tab-content clearfix">
     <? endif; ?>
-    <p><?=$this->transEsc("Your search terms")?> : "<strong><?=$this->escapeHtml($this->lookfor)?>"</strong></p>
+    <?php /*<p><?=$this->transEsc("Your search terms")?> : "<strong><?=$this->escapeHtml($this->lookfor)?>"</strong></p>*/ ?>
     <p class="adv_search_links">
       <a href="<?=$this->url($advSearch)?>?edit=<?=$this->escapeHtmlAttr($this->searchId)?>"><?=$this->transEsc("Edit this Advanced Search")?></a>
+      &nbsp;|&nbsp;
       <a href="<?=$this->url($advSearch)?>"><?=$this->transEsc("Start a new Advanced Search")?></a>
+      &nbsp;|&nbsp;
       <a href="<?=$this->url($searchHome)?>"><?=$this->transEsc("Start a new Basic Search")?></a>
     </p>
     <? if (count($searchTabs) > 0): ?>

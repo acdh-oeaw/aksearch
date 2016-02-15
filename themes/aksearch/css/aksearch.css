@@ -141,6 +141,10 @@ a {
 	margin-bottom: 18px;
 }
 
+.akAdvancedSearchForm {
+	padding-left: 15px;
+}
+
 #advSearchForm .row .col-sm-9 .row fieldset {
 	margin-top: 20px;
 }
