@@ -1,29 +1,29 @@
-
-//OVERWRITE FOR AKSEARCH
-//Problem with substring if same string exists twice in Record-URL.
-//Example Record-URL: http://aksearch.arbeiterkammer.at/aksearch/Record/000097874#holdings
-//The substring and split command (see "var chunks = ..." below) cuts the URL into chunks.
-//With the original script, the chunks[0] and chunks[1] would be used. This would be
-//"arbeiterkammer.at" for chunks[0] and "aksearch" for chunks[1]. But we need to have
-//"Record" and "000097874" to be able to build the right URL to the Ajax-Tab
-//which would http://aksearch.arbeiterkammer.at/aksearch/Record/000097874/AjaxTab
-//That's why in our case we need to use chunks[2] and chunks[3].
+// OVERWRITE FOR AKSEARCH
+// Problem with substring if same string exists twice in Record-URL.
+// Example Record-URL: http://aksearch.arbeiterkammer.at/aksearch/Record/000097874#holdings
+// The substring and split command (see "var chunks = ..." below) cuts the URL into chunks.
+// With the original script, the chunks[0] and chunks[1] would be used. This would be
+// "arbeiterkammer.at" for chunks[0] and "aksearch" for chunks[1]. But we need to have
+// "Record" and "000097874" to be able to build the right URL to the Ajax-Tab
+// which would http://aksearch.arbeiterkammer.at/aksearch/Record/000097874/AjaxTab
+// That's why in our case we need to use chunks[2] and chunks[3] in this case.
 
 
 function ajaxLoadTab(tabid) {
 
-//	if we're flagged to skip AJAX for this tab, just return true and let the
-//	browser handle it.
+	// If we're flagged to skip AJAX for this tab, just return true and let the
+	// browser handle it.
 	if(document.getElementById(tabid).parentNode.className.indexOf('noajax') > -1) {
 		return true;
 	}
 
-//	Parse out the base URL for the current record:
+	// Parse out the base URL for the current record:
 	var urlParts = document.URL.split('#');
 	var urlWithoutFragment = urlParts[0];
 	var pathInUrl = urlWithoutFragment.indexOf(path);
 	var chunks = urlWithoutFragment.substring(pathInUrl + path.length + 1).split('/');
 
+	// If chunks 2 and 3 are undefined, use chunks 0 and 1 (same as in original code)
 	var urlroot = null;
 	if (chunks[2] == undefined && chunks[3] == undefined) {
 		urlroot = '/' + chunks[0] + '/' + chunks[1];
@@ -31,7 +31,7 @@ function ajaxLoadTab(tabid) {
 		urlroot = '/' + chunks[2] + '/' + chunks[3];
 	}
 
-//	Request the tab via AJAX:
+	// Request the tab via AJAX:
 	$.ajax({
 		url: path + urlroot + '/AjaxTab',
 		type: 'POST',
