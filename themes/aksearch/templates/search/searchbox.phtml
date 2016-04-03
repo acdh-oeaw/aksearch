@@ -10,9 +10,7 @@
     if (!isset($this->searchClassId)) {
         $this->searchClassId = 'Solr';
     }
-    
-    //$this->searchClassId = 'Akfilter';
-        
+            
     // Load search actions and settings (if any):
     $options = $this->searchOptions($this->searchClassId);
 
@@ -23,16 +21,6 @@
     $advSearch = $options->getAdvancedSearchAction();
     $lastSort = $options->getLastSort();
     $lastLimit = $options->getLastLimit();
-    
-    /*
-    echo '<br>searchClassId: '.$this->searchClassId;
-    echo '<br>Class: '.get_class($this->searchbox());
-    */
-    /*
-    echo '<pre>';
-    print_r($handlers);
-    echo '</pre>';
-    */
 ?>
 
 <? if ($this->searchType == 'advanced'): ?>
