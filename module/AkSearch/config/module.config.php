@@ -28,6 +28,12 @@
  
 namespace AkSearch\Module\Config;
 
+// Show PHP errors:
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(- 1);
+
+
 $config = [
     'router' => [
         'routes' => [
@@ -96,6 +102,8 @@ $config = [
             'upgrade' => 'VuFind\Controller\Factory::getUpgradeController',
         ],
         'invokables' => [
+        	'akfilter' => 'AkSearch\Controller\AkfilterController',
+        	'akfilterrecord' => 'AkSearch\Controller\AkfilterrecordController',
             'ajax' => 'VuFind\Controller\AjaxController',
             'alphabrowse' => 'VuFind\Controller\AlphabrowseController',
             'author' => 'VuFind\Controller\AuthorController',
@@ -485,6 +493,7 @@ $config = [
                     'summon' => 'VuFind\RecordDriver\Factory::getSummon',
                     'worldcat' => 'VuFind\RecordDriver\Factory::getWorldCat',
                 	'solrmab' => 'AkSearch\RecordDriver\Factory::getSolrMab',
+                	'akfilter' => 'AkSearch\RecordDriver\Factory::getSolrMab',
                 ],
                 'invokables' => [
                     'libguides' => 'VuFind\RecordDriver\LibGuides',
@@ -538,6 +547,7 @@ $config = [
             ],
             'search_backend' => [
                 'factories' => [
+                	'Akfilter' => 'AkSearch\Search\Factory\AkfilterBackendFactory',
                     'EDS' => 'VuFind\Search\Factory\EdsBackendFactory',
                     'EIT' => 'VuFind\Search\Factory\EITBackendFactory',
                     'LibGuides' => 'VuFind\Search\Factory\LibGuidesBackendFactory',
@@ -562,16 +572,26 @@ $config = [
                 ]
             ],
             'search_options' => [
-                'abstract_factories' => ['VuFind\Search\Options\PluginFactory'],
+            	'abstract_factories' => [
+            		'VuFind\Search\Options\PluginFactory',
+            		//'AkSearch\Search\Akfilter\Options'
+            		'AkSearch\Search\Options\PluginFactory'
+            	],
                 'factories' => [
                     'eds' => 'VuFind\Search\Options\Factory::getEDS',
                 ],
             ],
             'search_params' => [
-                'abstract_factories' => ['VuFind\Search\Params\PluginFactory'],
+            	'abstract_factories' => [
+            		'VuFind\Search\Params\PluginFactory',
+            		'AkSearch\Search\Params\PluginFactory'
+            	],
             ],
             'search_results' => [
-                'abstract_factories' => ['VuFind\Search\Results\PluginFactory'],
+                'abstract_factories' => [
+					'VuFind\Search\Results\PluginFactory',
+                	'AkSearch\Search\Results\PluginFactory'
+                ],
                 'factories' => [
                     'favorites' => 'VuFind\Search\Results\Factory::getFavorites',
                     'solr' => 'VuFind\Search\Results\Factory::getSolr',
@@ -747,6 +767,7 @@ $config = [
 
 // Define record view routes -- route name => controller
 $recordRoutes = [
+	'akfilterrecord' => 'AkfilterRecord',
     'record' => 'Record',
     'collection' => 'Collection',
     'edsrecord' => 'EdsRecord',
@@ -766,6 +787,7 @@ $dynamicRoutes = [
 
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
+	'Akfilter/Home', 'Akfilter/Search', 'Akfilter/Advanced',
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',

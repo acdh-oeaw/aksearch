@@ -9,7 +9,7 @@
   if (!isset($this->searchClassId)) {
     $this->searchClassId = 'Solr';
   }
-
+  
   // Load search actions and settings (if any):
   $options = $this->searchOptions($this->searchClassId);
   $basicSearch = $options->getSearchAction();

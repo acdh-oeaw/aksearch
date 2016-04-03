@@ -153,17 +153,17 @@
 # These searches use Dismax when possible:
 Author:
   DismaxFields:
-#    - author_de^200
-    - author^300
-    - corporateAuthorName_txt^300
-    - author_wildcard^250
+#    - author_de^350
+    - author^400
+    - author_wildcard^300
     - author_fuller^250
     - author2^200
-    - corporateAuthor2Name_txt_mv^200
-    - corporateAuthor2NameGnd_txt_mv^200
     - responsibilityNote_txt^200
-    - author_additional^150
-    - author_additional_NameGnd_txt_mv^150
+    - corporateAuthorName_txt^200
+    - corporateAuthor2Name_txt_mv^150
+    - corporateAuthor2NameGnd_txt_mv^150
+    - author_additional^120
+    - author_additional_NameGnd_txt_mv^120   
   DismaxParams:
     - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
     - ["bq", "publishDate:[2010 TO *]^600"]
@@ -172,47 +172,46 @@ Author:
 #      - [onephrase, 350]
 #      - [and, 200]
 #      - [or, 100]
-    author_wildcard:
-      - [onephrase, 350]
-      - [and, 200]
-      - [or, 100]
     author:
       - [onephrase, 350]
       - [and, 200]
       - [or, 100]
+    author_wildcard:
+      - [onephrase, 300]
+      - [and, 200]
+      - [or, 100]
     author_fuller:
-      - [onephrase, 200]
+      - [onephrase, 250]
       - [and, 100]
       - [or, 50]
     author2:
-      - [onephrase, 100]
-      - [and, 50]
-      - [or, ~]
-    author_additional:
-      - [onephrase, 100]
-      - [and, 50]
-      - [or, ~]
-    author_additional_NameGnd_txt_mv:
-      - [onephrase, 100]
-      - [and, 50]
-      - [or, ~]
-    corporateAuthorName_txt:
-      - [onephrase, 350]
-      - [and, 200]
-      - [or, 100]
-    corporateAuthor2Name_txt_mv:
-      - [onephrase, 100]
-      - [and, 50]
-      - [or, ~]
-    corporateAuthor2NameGnd_txt_mv:
-      - [onephrase, 100]
+      - [onephrase, 200]
       - [and, 50]
       - [or, ~]
     responsibilityNote_txt:
-      - [onephrase, 100]
+      - [onephrase, 200]
       - [and, 50]
       - [or, ~]
-
+    corporateAuthorName_txt:
+      - [onephrase, 200]
+      - [and, 150]
+      - [or, 100]
+    corporateAuthor2Name_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthor2NameGnd_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]
+    author_additional:
+      - [onephrase, 120]
+      - [and, 50]
+      - [or, ~]
+    author_additional_NameGnd_txt_mv:
+      - [onephrase, 120]
+      - [and, 50]
+      - [or, ~]
 # ISN original search specs:
 #ISN:
 #  DismaxFields:
@@ -374,7 +373,8 @@ Title:
     - series^100
     - series2
   DismaxParams:
-    - ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
+    #- ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
+    - ["boost", "if(and(tf(title,'Arbeiterkammer'),tf(title,'Wien')),1,0.7)"]
     - ["bq", "publishDate:[2010 TO *]^10000"]
   QueryFields:
     title_short:
@@ -572,6 +572,124 @@ AllFields:
 #        - [onephrase, ~]
 #      issn:
 #        - [onephrase, ~]
+
+
+# All fields of DVD collection "Arbeit im Film"
+AkfilterAll:
+  DismaxFields:
+    - title_short^500
+    - title_full_unstemmed^450
+    - title_full^400
+    - title^300
+    - container_title^250
+    - title_alt^200
+    - title_new^100
+    - title_old
+    - series^100
+    - series2
+    - author^300
+    - corporateAuthorName_txt^300
+    - publisher^150
+  QueryFields:
+    title_short:
+      - [onephrase, 500]
+    title_full_unstemmed:
+      - [onephrase, 450]
+      - [and, 400]
+    title_full:
+      - [onephrase, 400]
+    title:
+      - [onephrase, 300]
+      - [and, 250]
+    container_title:
+      - [onephrase, 275]
+      - [and, 225]
+    title_alt:
+      - [and, 200]
+    title_new:
+      - [and, 100]
+    title_old:
+      - [and, ~]
+    series:
+      - [onephrase, 100]
+      - [and, 50]
+    series2:
+      - [onephrase, 50]
+      - [and , ~]
+    author:
+      - [onephrase, 300]
+      - [and, 250]
+    corporateAuthorName_txt:
+      - [onephrase, 300]
+      - [and, 250]
+    publisher:
+      - [onephrase, 150]
+      - [and, 100]
+  FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+  #FilterQuery: "location_txtF:TGA*"
+
+
+# Title fields of DVD collection "Arbeit im Film"
+AkfilterTitle:
+  DismaxFields:
+    - title_short^500
+    - title_full_unstemmed^450
+    - title_full^400
+    - title^300
+    - container_title^250
+    - title_alt^200
+    - title_new^100
+    - title_old
+    - series^100
+    - series2
+  QueryFields:
+    title_short:
+      - [onephrase, 500]
+    title_full_unstemmed:
+      - [onephrase, 450]
+      - [and, 400]
+    title_full:
+      - [onephrase, 400]
+    title:
+      - [onephrase, 300]
+      - [and, 250]
+    container_title:
+      - [onephrase, 275]
+      - [and, 225]
+    title_alt:
+      - [and, 200]
+    title_new:
+      - [and, 100]
+    title_old:
+      - [and, ~]
+    series:
+      - [onephrase, 100]
+      - [and, 50]
+    series2:
+      - [onephrase, 50]
+      - [and , ~]
+  FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+
+
+# Person fields of DVD collection "Arbeit im Film"
+AkfilterPersons:
+  DismaxFields:
+    - author^300
+    - corporateAuthorName_txt^300
+    - publisher^150
+  QueryFields:
+    author:
+      - [onephrase, 300]
+      - [and, 250]
+    corporateAuthorName_txt:
+      - [onephrase, 300]
+      - [and, 250]
+    publisher:
+      - [onephrase, 150]
+      - [and, 100]
+  FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+
+
 
 # These are advanced searches that never use Dismax:
 id:

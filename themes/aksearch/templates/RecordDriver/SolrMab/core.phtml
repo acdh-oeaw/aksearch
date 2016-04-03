@@ -143,7 +143,9 @@
 					$parentRecordTitles = $this->driver->tryMethod('getParentTitles');
 					foreach ($parentRecordSYSs as $key => $value) {
 						$parentRecordTitle = str_replace(array("<", ">"), "", $parentRecordTitles[$key]);
-						echo '<a href="'.$this->recordLink()->getUrl().$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
+						echo '<a href="'.$this->recordLink()->getUrl(null).$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
+						//echo '<a href="'.$this->recordLink()->getUrl($this->driver).$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
+						
 					}
 				echo '</td>';
 			echo '</tr>';

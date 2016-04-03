@@ -1,4 +1,10 @@
 <?
+/*
+// Show PHP errors:
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(- 1);
+*/
   // Set up page title:
   $lookfor = $this->results->getUrlQuery()->isQuerySuppressed() ? '' : $this->params->getDisplayQuery();
   if (isset($this->overrideTitle)) {
@@ -22,7 +28,7 @@
         'selectedShards' => $this->params->getSelectedShards()
       )
   );
-
+  
   // Set up breadcrumbs:
   if (isset($this->overrideTitle)) {
     $this->layout()->breadcrumbs .= '<li class="active">' . $this->escapeHtml($this->overrideTitle) . '</li>';

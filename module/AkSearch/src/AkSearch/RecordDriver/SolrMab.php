@@ -522,7 +522,7 @@ class SolrMab extends SolrDefault {
 	 */
 	public function isJournal() {
 		$arrPublicationType = $this->getPublicationTypeFromCode();
-		$strFortlaufendesWerk = $arrPublicationType['fortlaufendesWerk'];
+		$strFortlaufendesWerk = (isset($arrPublicationType['fortlaufendesWerk'])) ? $arrPublicationType['fortlaufendesWerk'] : null;
 		$boolIsJournal = ($strFortlaufendesWerk == 'Zeitschrift') ? true : false;
 		return $boolIsJournal;
 	}
@@ -1104,8 +1104,14 @@ class SolrMab extends SolrDefault {
     		$descs = $this->fields['urlText_str_mv'];
     	}
     	
-    	foreach ($urls as $key => $value) {
-    		$retVal[] = ['url' => $urls[$key], 'desc' => $descs[$key]];
+    	if (isset($urls)) {
+	    	foreach ($urls as $key => $value) {
+	    		if (isset($descs)) {
+	    			$retVal[] = ['url' => $urls[$key], 'desc' => $descs[$key]];
+	    		} else {
+	    			$retVal[] = ['url' => $urls[$key], 'desc' => 'DefaultUrlText'];
+	    		}
+	    	}
     	}
     	
     	return $retVal;

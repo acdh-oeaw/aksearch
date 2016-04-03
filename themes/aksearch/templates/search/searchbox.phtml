@@ -1,22 +1,28 @@
 <?
+	/*
+	// Show PHP errors:
+	ini_set('display_errors', 1);
+	ini_set('display_startup_errors', 1);
+	error_reporting(- 1);
+	*/
+	
     // Set default value if necessary:
     if (!isset($this->searchClassId)) {
         $this->searchClassId = 'Solr';
     }
-
+        
     // Load search actions and settings (if any):
     $options = $this->searchOptions($this->searchClassId);
-    $handlers = $this->searchbox()->getHandlers(
-        $this->searchClassId,
-        isset($this->searchIndex) ? $this->searchIndex : null
-    );
+
+    $handlers = $this->searchbox()->getHandlers($this->searchClassId, isset($this->searchIndex) ? $this->searchIndex : null);
     $handlerCount = count($handlers);
     $basicSearch = $this->searchbox()->combinedHandlersActive() ? 'combined-searchbox' : $options->getSearchAction();
     $searchHome = $options->getSearchHomeAction();
     $advSearch = $options->getAdvancedSearchAction();
     $lastSort = $options->getLastSort();
-    $lastLimit = $options->getLastLimit();
+    $lastLimit = $options->getLastLimit();    
 ?>
+
 <? if ($this->searchType == 'advanced'): ?>
   <div id="searchForm" class="akAdvancedSearchForm">
     <? $searchTabs = $this->searchtabs($this->searchClassId, $this->lookfor, $this->searchIndex, $this->searchType); ?>
@@ -57,13 +63,25 @@
     <? endif; ?>
     <input class="form-control search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?>" id="searchForm_lookfor" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr($this->lookfor)?>"/>
     <? if ($handlerCount > 1): ?>
+
+
+
+
+
+	<!-- Select for search -->
       <select class="form-control" id="searchForm_type" name="type" data-native-menu="false">
         <? foreach ($handlers as $handler): ?>
           <option value="<?=$this->escapeHtmlAttr($handler['value'])?>"<?=$handler['selected'] ? ' selected="selected"' : ''?>><?=$handler['indent'] ? '-- ' : ''?><?=$this->transEsc($handler['label'])?></option>
         <? endforeach; ?>
       </select>
+
+
+
+
+
+
     <? elseif ($handlerCount == 1): ?>
-      <input type="hidden" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
+    <input type="hidden" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
     <? endif; ?>
     <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
     <? if ($advSearch): ?>

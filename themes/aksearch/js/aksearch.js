@@ -1,11 +1,11 @@
 $(document).ready(function() {
-	
+
 	// Override original autocomplete method for searchbox: removing "<" and ">" (non-sorting characters in RAK-WB)
 	// INFO: Autocomplete works with typeahead.js: https://github.com/twitter/typeahead.js
-	
+
 	// First destroy the original typeahead
 	$('.autocomplete').typeahead('destroy');
-	
+
 	// Now re-add the typeahead with the modifications
 	$('.autocomplete').typeahead({
 		highlight: true,
@@ -39,5 +39,5 @@ $(document).ready(function() {
 			});
 		}
 	});
-	
+
 });

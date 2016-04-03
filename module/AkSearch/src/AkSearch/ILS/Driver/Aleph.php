@@ -71,7 +71,7 @@ class Aleph extends AlephDefault {
 		}
 
 		$result = $this->doHTTPRequest($url);
-		if ($result->error) {
+		if ($result->error && $result->error != 'empty set') { // Excluding "empty set" prevents error message for empty "getNewItems" result
 			if ($this->debug_enabled) {
 				$this->debug("XServer error, URL is $url, error message: $result->error.");
 			}
@@ -406,6 +406,7 @@ class Aleph extends AlephDefault {
 	 */
 	public function getNewItems($page, $limit, $daysOld, $fundId = null)
 	{
+		// IMPORTANT: Only items that are already indexed in Solr-Index will can be shown in Frontend!
 		// Start request of new items from Aleph X-Services interface only if the user didn't request it with the same parameters in the same session:
 		if (!isset($_SESSION['aksNewItems']) || !isset($_SESSION['aksNewItemsDaysOld']) || $_SESSION['aksNewItemsDaysOld'] != $daysOld) {
 			$_SESSION['aksNewItems'] = $this->getNewItemsArray($page, $limit, $daysOld, $fundId = null);
@@ -431,9 +432,12 @@ class Aleph extends AlephDefault {
     	
     	$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
     	$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
-
-		// Execute search:		
-		$xFindParams = ['request' => 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP', 'base' => 'AKW01'];
+    	
+		// Execute search:
+		$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP';
+		
+		$xFindParams = ['request' => $requestText, 'base' => 'AKW01'];
+		//$xFindParams = ['request' => 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP', 'base' => 'AKW01'];
 		$findResult = $this->doXRequest('find', $xFindParams, false);
 		$setNumber = $findResult->set_number;
 		$noEntries = (int)$findResult->no_entries;
@@ -442,7 +446,12 @@ class Aleph extends AlephDefault {
 			
 			// Set the "count" value for the return array
 			$newItems = ['count' => $noEntries, 'results' => []];
-
+			
+			// Get results and add them to the return array
+			$xPresentParams = ['set_entry' => '1-3', 'set_number' => $setNumber];
+			$presentResult = $this->doXRequest('present', $xPresentParams, false);
+			$getSysNos = $presentResult->xpath('//doc_number');
+			
 			$from = 1; // Initial "from" value for the "present" request on Aleph X-Services
 			$until = 100; // Initial "until" value for the "present" request on Aleph X-Services
 			
@@ -473,6 +482,7 @@ class Aleph extends AlephDefault {
 					$until = $noEntries;
 				}
 			}
+			
 		}
 		
 		return $newItems;

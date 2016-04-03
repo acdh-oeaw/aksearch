@@ -65,9 +65,14 @@
           $this->headScript()->appendFile("keep_alive.js");
       }
     ?>
-    <?=$this->headScript()?>
+
+    <?=$this->headScript()?> 
   </head>
   <body>
+  
+  
+
+  
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box
       // 2. It was set to false; we should display nothing
