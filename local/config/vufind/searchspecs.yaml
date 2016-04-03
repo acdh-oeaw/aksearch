@@ -575,7 +575,7 @@ AllFields:
 
 
 # All fields of DVD collection "Arbeit im Film"
-AkfilterAll:
+DvdaifAll:
   DismaxFields:
     - title_short^500
     - title_full_unstemmed^450
@@ -630,7 +630,7 @@ AkfilterAll:
 
 
 # Title fields of DVD collection "Arbeit im Film"
-AkfilterTitle:
+DvdaifTitle:
   DismaxFields:
     - title_short^500
     - title_full_unstemmed^450
@@ -672,7 +672,7 @@ AkfilterTitle:
 
 
 # Person fields of DVD collection "Arbeit im Film"
-AkfilterPersons:
+DvdaifPersons:
   DismaxFields:
     - author^300
     - corporateAuthorName_txt^300
@@ -688,6 +688,115 @@ AkfilterPersons:
       - [onephrase, 150]
       - [and, 100]
   FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+
+LnAll:
+  DismaxFields:
+    - title_short^500
+    - title_full_unstemmed^450
+    - title_full^400
+    - title^300
+    - container_title^250
+    - title_alt^200
+    - title_new^100
+    - title_old
+    - series^100
+    - series2
+    - author^300
+    - corporateAuthorName_txt^300
+    - publisher^150
+  QueryFields:
+    title_short:
+      - [onephrase, 500]
+    title_full_unstemmed:
+      - [onephrase, 450]
+      - [and, 400]
+    title_full:
+      - [onephrase, 400]
+    title:
+      - [onephrase, 300]
+      - [and, 250]
+    container_title:
+      - [onephrase, 275]
+      - [and, 225]
+    title_alt:
+      - [and, 200]
+    title_new:
+      - [and, 100]
+    title_old:
+      - [and, ~]
+    series:
+      - [onephrase, 100]
+      - [and, 50]
+    series2:
+      - [onephrase, 50]
+      - [and , ~]
+    author:
+      - [onephrase, 300]
+      - [and, 250]
+    corporateAuthorName_txt:
+      - [onephrase, 300]
+      - [and, 250]
+    publisher:
+      - [onephrase, 150]
+      - [and, 100]
+  FilterQuery: "location_txtF:\"Lesesaal Nachschlagewerke\""
+  
+LnTitle:
+  DismaxFields:
+    - title_short^500
+    - title_full_unstemmed^450
+    - title_full^400
+    - title^300
+    - container_title^250
+    - title_alt^200
+    - title_new^100
+    - title_old
+    - series^100
+    - series2
+  QueryFields:
+    title_short:
+      - [onephrase, 500]
+    title_full_unstemmed:
+      - [onephrase, 450]
+      - [and, 400]
+    title_full:
+      - [onephrase, 400]
+    title:
+      - [onephrase, 300]
+      - [and, 250]
+    container_title:
+      - [onephrase, 275]
+      - [and, 225]
+    title_alt:
+      - [and, 200]
+    title_new:
+      - [and, 100]
+    title_old:
+      - [and, ~]
+    series:
+      - [onephrase, 100]
+      - [and, 50]
+    series2:
+      - [onephrase, 50]
+      - [and , ~]
+  FilterQuery: "location_txtF:\"Lesesaal Nachschlagewerke\""
+
+LnPersons:
+  DismaxFields:
+    - author^300
+    - corporateAuthorName_txt^300
+    - publisher^150
+  QueryFields:
+    author:
+      - [onephrase, 300]
+      - [and, 250]
+    corporateAuthorName_txt:
+      - [onephrase, 300]
+      - [and, 250]
+    publisher:
+      - [onephrase, 150]
+      - [and, 100]
+  FilterQuery: "location_txtF:\"Lesesaal Nachschlagewerke\""
 
 
 
