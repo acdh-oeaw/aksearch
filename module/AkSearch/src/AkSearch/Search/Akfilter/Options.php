@@ -9,20 +9,28 @@ class Options extends \VuFind\Search\Solr\Options {
 	 */
 	public function __construct(\VuFind\Config\PluginManager $configLoader) {
 		parent::__construct($configLoader);
-
+		$akfilterSettings = $configLoader->get('Akfilter');
+		
+		// TODO: Check if this is really necessary
+		// Unset default handler
 		unset($this->defaultHandler);
+		
+		// TODO: Is this really necessary?
 		$this->defaultHandler = 'AkfilterAll';
+				
+		// First unset from superior options which are set with parent::__construct($configLoader)
+		unset($this->basicHandlers);
 		
-		// Keys must be defined as search-options in searchspecs.yaml
-		unset($this->basicHandlers); // First unset from superior options set with parent::__construct($configLoader)
-		$this->basicHandlers['AkfilterAll'] = 'DVD all fields';
-		$this->basicHandlers['AkfilterTitle'] = 'DVD Title';
-		$this->basicHandlers['AkfilterPersons'] = 'DVD Person';
-		
-		unset($this->advancedHandlers);
-		$this->advancedHandlers['AkfilterAll'] = 'DVD all fields';
-		$this->advancedHandlers['AkfilterTitle'] = 'DVD Title';
-		$this->advancedHandlers['AkfilterPersons'] = 'DVD Person';
+		// Iterate over the Akfilter settings and set the handlers for the searchbox:
+		//   Filter values (basicHandlers[key:VALUE]) are prepended with filter key (basicHandlers[KEY:value])
+		//   defined in Akfilter.ini and separated from it by colon (:). Filter values after the colon must be
+		//   defined as search options in searchspecs.yaml
+		foreach ($akfilterSettings as $akfilterKey => $akfilterValues) {
+			$this->basicHandlers[$akfilterKey.':'.$akfilterValues->toptarget[0]] = $akfilterValues->toplabel[0];
+			foreach ($akfilterValues->subtarget as $subtargetKey => $subtargetValue) {
+				$this->basicHandlers[$akfilterKey.':'.$subtargetValue] = $akfilterValues->sublabel[$subtargetKey];
+			}
+		}
 	}
 	
 	/**
@@ -43,8 +51,8 @@ class Options extends \VuFind\Search\Solr\Options {
 	 */
 	public function getAdvancedSearchAction()
 	{
-		return 'akfilter-advanced';
-		//return false;
+		//return 'akfilter-advanced';
+		return false;
 	}
 	
 	
