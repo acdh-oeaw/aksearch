@@ -10,6 +10,8 @@
     if (!isset($this->searchClassId)) {
         $this->searchClassId = 'Solr';
     }
+    
+    //$this->searchClassId = 'Akfilter';
         
     // Load search actions and settings (if any):
     $options = $this->searchOptions($this->searchClassId);
@@ -20,7 +22,17 @@
     $searchHome = $options->getSearchHomeAction();
     $advSearch = $options->getAdvancedSearchAction();
     $lastSort = $options->getLastSort();
-    $lastLimit = $options->getLastLimit();    
+    $lastLimit = $options->getLastLimit();
+    
+    /*
+    echo '<br>searchClassId: '.$this->searchClassId;
+    echo '<br>Class: '.get_class($this->searchbox());
+    */
+    /*
+    echo '<pre>';
+    print_r($handlers);
+    echo '</pre>';
+    */
 ?>
 
 <? if ($this->searchType == 'advanced'): ?>
@@ -71,7 +83,7 @@
 	<!-- Select for search -->
       <select class="form-control" id="searchForm_type" name="type" data-native-menu="false">
         <? foreach ($handlers as $handler): ?>
-          <option value="<?=$this->escapeHtmlAttr($handler['value'])?>"<?=$handler['selected'] ? ' selected="selected"' : ''?>><?=$handler['indent'] ? '-- ' : ''?><?=$this->transEsc($handler['label'])?></option>
+			<option value="<?=$this->escapeHtmlAttr($handler['value'])?>"<?=$handler['selected'] ? ' selected="selected"' : ''?>><?=$handler['indent'] ? '-- ' : ''?><?=$this->transEsc($handler['label'])?></option>        
         <? endforeach; ?>
       </select>
 
