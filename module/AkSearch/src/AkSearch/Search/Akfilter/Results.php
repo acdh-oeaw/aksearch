@@ -36,13 +36,13 @@ class Results extends \VuFind\Search\Solr\Results
     	} catch (\VuFindSearch\Backend\Exception\BackendException $e) {
     		// If the query caused a parser error, see if we can clean it up:
     		if ($e->hasTag('VuFind\Search\ParserError') && $newQuery = $this->fixBadQuery($query)) {
-    					// We need to get a fresh set of $params, since the previous one was
-    					// manipulated by the previous search() call.
-    					$params = $this->getParams()->getBackendParameters();
-    					$collection = $searchService->search($this->backendId, $newQuery, $offset, $limit, $params);
-    				} else {
-    					throw $e;
-    				}
+    			// We need to get a fresh set of $params, since the previous one was
+    			// manipulated by the previous search() call.
+    			$params = $this->getParams()->getBackendParameters();
+    			$collection = $searchService->search($this->backendId, $newQuery, $offset, $limit, $params);
+    		} else {
+    			throw $e;
+    		}
     	}
     
     	$this->responseFacets = $collection->getFacets();
@@ -83,6 +83,7 @@ class Results extends \VuFind\Search\Solr\Results
         // Loop through every field returned by the result set
         $fieldFacets = $this->responseFacets->getFieldFacets();
         $translatedFacets = $this->getOptions()->getTranslatedFacets();
+        
         foreach (array_keys($filter) as $field) {
             $data = isset($fieldFacets[$field]) ? $fieldFacets[$field] : [];
             // Skip empty arrays:
@@ -97,23 +98,17 @@ class Results extends \VuFind\Search\Solr\Results
             $list[$field]['list']  = [];
             // Should we translate values for the current facet?
             if ($translate = in_array($field, $translatedFacets)) {
-                $translateTextDomain = $this->getOptions()
-                    ->getTextDomainForTranslatedFacet($field);
+                $translateTextDomain = $this->getOptions()->getTextDomainForTranslatedFacet($field);
             }
             // Loop through values:
             foreach ($data as $value => $count) {
                 // Initialize the array of data about the current facet:
                 $currentSettings = [];
                 $currentSettings['value'] = $value;
-                $currentSettings['displayText']
-                    = $translate
-                    ? $this->translate("$translateTextDomain::$value") : $value;
+                $currentSettings['displayText']  = $translate ? $this->translate("$translateTextDomain::$value") : $value;
                 $currentSettings['count'] = $count;
-                $currentSettings['operator']
-                    = $this->getParams()->getFacetOperator($field);
-                $currentSettings['isApplied']
-                    = $this->getParams()->hasFilter("$field:" . $value)
-                    || $this->getParams()->hasFilter("~$field:" . $value);
+                $currentSettings['operator'] = $this->getParams()->getFacetOperator($field);
+                $currentSettings['isApplied'] = $this->getParams()->hasFilter("$field:" . $value) || $this->getParams()->hasFilter("~$field:" . $value);
 
                 // Store the collected values:
                 $list[$field]['list'][] = $currentSettings;
