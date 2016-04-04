@@ -103,7 +103,6 @@ $config = [
         ],
         'invokables' => [
         	'akfilter' => 'AkSearch\Controller\AkfilterController',
-        	'akfilterrecord' => 'AkSearch\Controller\AkfilterrecordController',
             'ajax' => 'VuFind\Controller\AjaxController',
             'alphabrowse' => 'VuFind\Controller\AlphabrowseController',
             'author' => 'VuFind\Controller\AuthorController',
@@ -767,7 +766,7 @@ $config = [
 
 // Define record view routes -- route name => controller
 $recordRoutes = [
-	'akfilterrecord' => 'AkfilterRecord',
+	'akfilterrecord' => 'Record',
     'record' => 'Record',
     'collection' => 'Collection',
     'edsrecord' => 'EdsRecord',

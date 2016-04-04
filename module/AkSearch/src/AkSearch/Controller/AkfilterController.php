@@ -1,27 +1,14 @@
 <?php
-
 namespace AkSearch\Controller;
 
-class AkfilterController extends \VuFind\Controller\AbstractSearch
-{
-	
-	/**
-	 * Search class family to use.
-	 *
-	 * @var string
-	 */
-	//protected $searchClassId = 'Akfilter';
+class AkfilterController extends \VuFind\Controller\AbstractSearch {
 	
     /**
      * Constructor
      */
-    public function __construct() {
-    	// CALLED
-    	//echo '<br>AkSearch\Controller\AkfilterController -> __construct';
-    	
+    public function __construct() {    	
         $this->searchClassId = 'Akfilter';
         parent::__construct();
-        //'WorldCat'
     }
     
     /**
@@ -46,14 +33,15 @@ class AkfilterController extends \VuFind\Controller\AbstractSearch
     	return $this->createViewModel();
     }
     
+    
     /**
      * Search action -- call standard results action
      *
      * @return mixed
      */
-    
     public function searchAction()
     {
+    	// Search action to call:
     	return $this->resultsAction();
     }
     
