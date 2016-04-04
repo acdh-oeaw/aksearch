@@ -39,5 +39,14 @@ $(document).ready(function() {
 			});
 		}
 	});
+	
+	// Override method that updates autocomplete values if search handler is changed in DropDown:
+	$('.searchForm_type').change(function() {
+		// Original uses searchForm as class (.searchForm), we need to use it as id (#searchForm)
+		var $lookfor = $(this).closest('#searchForm').find('#searchForm_lookfor[name]');
+		var query = $lookfor.val();
+		$lookfor.focus().typeahead('val', '').typeahead('val', query);
+	});
+	
 
 });
