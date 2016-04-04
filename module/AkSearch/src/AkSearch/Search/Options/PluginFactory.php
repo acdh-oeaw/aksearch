@@ -1,11 +1,13 @@
 <?php
 /**
- * Search options plugin factory
+ * Search options plugin factory for Akfilter search.
  *
  * PHP version 5
  *
- * Copyright (C) Villanova University 2010.
- *
+ * Copyright (C) AK Bibliothek Wien 2016.
+ * Overriding some functions from extended original:
+ * @see VuFind\ServiceManager\AbstractPluginFactory
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
@@ -16,37 +18,25 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1335, USA.
  *
- * @category VuFind2
- * @package  Search
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @category AkSearch
+ * @package  Search_Options
+ * @author   Michael Birkner <michael.birkner@akwien.at>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     http://vufind.org/wiki/vufind2:record_drivers Wiki
+ * @link     http://wien.arbeiterkammer.at/service/bibliothek/
  */
+
 namespace AkSearch\Search\Options;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
-/**
- * Search options plugin factory
- *
- * @category VuFind2
- * @package  Search
- * @author   Demian Katz <demian.katz@villanova.edu>
- * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     http://vufind.org/wiki/vufind2:record_drivers Wiki
- */
-class PluginFactory extends \VuFind\ServiceManager\AbstractPluginFactory
-{
+class PluginFactory extends \VuFind\ServiceManager\AbstractPluginFactory {
+	
     /**
      * Constructor
      */
     public function __construct() {
-    	
-    	// CALLED
-    	// echo '<br>AkSearch\Search\Options\PluginFactory -> __construct()';
-    	
         $this->defaultNamespace = 'AkSearch\Search';
         $this->classSuffix = '\Options';
     }
@@ -60,10 +50,8 @@ class PluginFactory extends \VuFind\ServiceManager\AbstractPluginFactory
      *
      * @return object
      */
-    
     public function createServiceWithName(ServiceLocatorInterface $serviceLocator, $name, $requestedName) {
         $class = $this->getClassName($name, $requestedName);
         return new $class($serviceLocator->getServiceLocator()->get('VuFind\Config'));
     }
-    
 }

@@ -1,10 +1,37 @@
 <?php
+/**
+ * Search box view helper for Akfilter search.
+ *
+ * PHP version 5
+ *
+ * Copyright (C) AK Bibliothek Wien 2016.
+ * Overriding some functions from extended original:
+ * @see VuFind\View\Helper\Root\SearchBox
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1335, USA.
+ *
+ * @category AkSearch
+ * @package  View_Helper_Root
+ * @author   Michael Birkner <michael.birkner@akwien.at>
+ * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
+ * @link     http://wien.arbeiterkammer.at/service/bibliothek/
+ */
 
 namespace AkSearch\View\Helper\Root;
 use VuFind\Search\Options\PluginManager as OptionsManager;
 
-class SearchBox extends \VuFind\View\Helper\Root\SearchBox
-{
+class SearchBox extends \VuFind\View\Helper\Root\SearchBox {
 
     /**
      * Support method for getHandlers() -- load combined settings.
@@ -17,8 +44,8 @@ class SearchBox extends \VuFind\View\Helper\Root\SearchBox
      *
      * @return array
      */
-    protected function getCombinedHandlers($activeSearchClass, $activeHandler)
-    {
+    protected function getCombinedHandlers($activeSearchClass, $activeHandler) {
+    	
         // Build settings:
         $handlers = [];
         $selectedFound = false;
