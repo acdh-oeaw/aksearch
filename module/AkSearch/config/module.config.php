@@ -27,12 +27,12 @@
  */
  
 namespace AkSearch\Module\Config;
-
+/*
 // Show PHP errors:
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(- 1);
-
+*/
 
 $config = [
     'router' => [
@@ -573,7 +573,6 @@ $config = [
             'search_options' => [
             	'abstract_factories' => [
             		'VuFind\Search\Options\PluginFactory',
-            		//'AkSearch\Search\Akfilter\Options'
             		'AkSearch\Search\Options\PluginFactory'
             	],
                 'factories' => [
