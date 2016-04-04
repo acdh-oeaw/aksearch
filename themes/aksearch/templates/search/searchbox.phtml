@@ -69,7 +69,7 @@
 
 
 	<!-- Select for search -->
-      <select class="form-control" id="searchForm_type" name="type" data-native-menu="false">
+      <select class="searchForm_type form-control" id="searchForm_type" name="type" data-native-menu="false">
         <? foreach ($handlers as $handler): ?>
 			<option value="<?=$this->escapeHtmlAttr($handler['value'])?>"<?=$handler['selected'] ? ' selected="selected"' : ''?>><?=$handler['indent'] ? '-- ' : ''?><?=$this->transEsc($handler['label'])?></option>        
         <? endforeach; ?>
