@@ -158,10 +158,14 @@ Author:
     - author_wildcard^300
     - author_fuller^250
     - author2^200
+    - authHeadingPerson_txt_mv^200
+    - authUseForPerson_txt_mv^200
     - responsibilityNote_txt^200
     - corporateAuthorName_txt^200
     - corporateAuthor2Name_txt_mv^150
     - corporateAuthor2NameGnd_txt_mv^150
+    - authHeadingCorporation_txt_mv^150
+    - authUseForCorporation_txt_mv^150
     - author_additional^120
     - author_additional_NameGnd_txt_mv^120   
   DismaxParams:
@@ -188,6 +192,14 @@ Author:
       - [onephrase, 200]
       - [and, 50]
       - [or, ~]
+    authUseForPerson_txt_mv:
+      - [onephrase, 200]
+      - [and, 50]
+      - [or, ~]
+    authHeadingPerson_txt_mv:
+      - [onephrase, 200]
+      - [and, 50]
+      - [or, ~]
     responsibilityNote_txt:
       - [onephrase, 200]
       - [and, 50]
@@ -201,6 +213,14 @@ Author:
       - [and, 50]
       - [or, ~]
     corporateAuthor2NameGnd_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]
+    authHeadingCorporation_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]
+    authUseForCorporation_txt_mv:
       - [onephrase, 150]
       - [and, 50]
       - [or, ~]
@@ -273,8 +293,14 @@ Subject:
   DismaxFields:
     - topic_unstemmed^150
     - topic^100
+    - authHeadingSubject_txt_mv^100
+    - authUseForSubject_txt_mv^100
     - geographic^50
+    - authHeadingGeographic_txt_mv^50
+    - authUseForGeographic_txt_mv^50
     - genre^50
+    - authHeadingCongress_txt_mv^30
+    - authUseForCongress_txt_mv^30
     - era
   QueryFields:
     topic_unstemmed:
@@ -285,7 +311,23 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
+    authHeadingSubject_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    authUseForSubject_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
     geographic:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    authHeadingGeographic_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    authUseForGeographic_txt_mv:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
@@ -293,6 +335,14 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
+    authHeadingCongress_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]    
+    authUseForCongress_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~] 
     era:
       - [and, 100]
       - [or, ~]
@@ -369,9 +419,11 @@ Title:
     - title_alt^200
     - title_sub^150
     - title_new^100
-    - title_old
+    - title_old^100
     - series^100
-    - series2
+    - series2^100
+    - authHeadingWork_txt_mv^100
+    - authUseForWork_txt_mv^100
   DismaxParams:
     #- ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
     - ["boost", "if(and(tf(title,'Arbeiterkammer'),tf(title,'Wien')),1,0.7)"]
@@ -403,6 +455,12 @@ Title:
       - [onephrase, 100]
       - [and, 50]
     series2:
+      - [onephrase, 50]
+      - [and , ~]
+    authHeadingWork_txt_mv:
+      - [onephrase, 50]
+      - [and , ~]
+    authUseForWork_txt_mv:
       - [onephrase, 50]
       - [and , ~]
 #  ExactSettings:
