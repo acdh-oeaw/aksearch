@@ -170,7 +170,7 @@ Author:
     - author_additional_NameGnd_txt_mv^120   
   DismaxParams:
     - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
-    - ["bq", "publishDate:[2010 TO *]^600"]
+    - ["bq", "publishDateSort:[2010 TO *]^10000"]
   QueryFields:
 #    author_de:
 #      - [onephrase, 350]
@@ -427,7 +427,7 @@ Title:
   DismaxParams:
     #- ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
     - ["boost", "if(and(tf(title,'Arbeiterkammer'),tf(title,'Wien')),1,0.7)"]
-    - ["bq", "publishDate:[2010 TO *]^10000"]
+    - ["bq", "publishDateSort:[2010 TO *]^10000"]
   QueryFields:
     title_short:
       - [onephrase, 500]
@@ -524,7 +524,7 @@ AllFields:
     - sysNo_txt
   DismaxParams:
     - ["boost", "if(and(or(tf(title,'Arbeiterkammer'),tf(author,'Arbeiterkammer'),tf(corporateAuthorName_txt,'Arbeiterkammer')),tf(title,'Wien')),1,0.7)"]
-    - ["bq", "publishDate:[2010 TO *]^10000"]
+    - ["bq", "publishDateSort:[2010 TO *]^10000"]
   QueryFields:
     0:
       0:
