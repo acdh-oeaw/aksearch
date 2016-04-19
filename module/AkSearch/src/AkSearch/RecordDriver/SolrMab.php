@@ -726,15 +726,18 @@ class SolrMab extends SolrDefault {
 	}
 	
 	/**
-	 * Get Solrfield publishDate
+	 * Get Solrfield publishDate or datePublishSort_str
 	 *
-	 * @return array or null if empty
+	 * @return string or null if empty
 	 */
 	public function getPublishDate() {
 		$arrPublishDates = isset($this->fields['publishDate']) ? $this->fields['publishDate'] : null;
-
+		$strPublishDateSort = isset($this->fields['datePublishSort_str']) ? $this->fields['datePublishSort_str'] : null;
+		
 		if ($arrPublishDates != null) {
 			$publishDates = implode(', ', $arrPublishDates);
+		} else if ($strPublishDateSort != null) {
+			$publishDates = $strPublishDateSort;
 		} else {
 			$publishDates = null;
 		}
