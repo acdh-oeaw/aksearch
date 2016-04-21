@@ -153,95 +153,86 @@
 # These searches use Dismax when possible:
 Author:
   DismaxFields:
-#    - author_de^350
-    - author^400
-    - author_wildcard^300
-    - author_fuller^250
-    - author2^200
-    - authHeadingPerson_txt_mv^200
-    - authUseForPerson_txt_mv^200
-    - responsibilityNote_txt^200
-    - corporateAuthorName_txt^200
-    - corporateAuthor2Name_txt_mv^150
-    - corporateAuthor2NameGnd_txt_mv^150
-    - authHeadingCorporation_txt_mv^150
-    - authUseForCorporation_txt_mv^150
-    - author_additional^120
-    - author_additional_NameGnd_txt_mv^120
-    - authOtherAdditionsPerson_txt_mv^100
-#    - authOtherAdditionsCorporation_txt_mv^80
+    - author^500
+    - author_wildcard^450
+    - authHeadingPerson_txt_mv^500
+    - authUseForPerson_txt_mv^400
+    - corporateAuthorName_txt^500
+    - authHeadingCorporation_txt_mv^500
+    - corporateAuthor2Name_txt_mv^350
+    - corporateAuthor2NameGnd_txt_mv^350
+    - authUseForCorporation_txt_mv^400
+    - author2^350
+    - author_additional^300
+    - author_additional_NameGnd_txt_mv^300
+    - authOtherAdditionsPerson_txt_mv^150
+#    - authOtherAdditionsCorporation_txt_mv^150
+#    - responsibilityNote_txt^100
   DismaxParams:
     - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
     - ["bq", "publishDateSort:[2010 TO *]^10000"]
   QueryFields:
-#    author_de:
-#      - [onephrase, 350]
-#      - [and, 200]
-#      - [or, 100]
     author:
-      - [onephrase, 350]
+      - [onephrase, 500]
       - [and, 200]
       - [or, 100]
     author_wildcard:
-      - [onephrase, 300]
+      - [onephrase, 450]
       - [and, 200]
       - [or, 100]
-    author_fuller:
-      - [onephrase, 250]
-      - [and, 100]
-      - [or, 50]
-    author2:
-      - [onephrase, 200]
+    authHeadingPerson_txt_mv:
+      - [onephrase, 500]
       - [and, 50]
       - [or, ~]
     authUseForPerson_txt_mv:
-      - [onephrase, 200]
-      - [and, 50]
-      - [or, ~]
-    authHeadingPerson_txt_mv:
-      - [onephrase, 200]
-      - [and, 50]
-      - [or, ~]
-    responsibilityNote_txt:
-      - [onephrase, 200]
+      - [onephrase, 400]
       - [and, 50]
       - [or, ~]
     corporateAuthorName_txt:
-      - [onephrase, 200]
+      - [onephrase, 500]
       - [and, 150]
       - [or, 100]
+    authHeadingCorporation_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]
     corporateAuthor2Name_txt_mv:
-      - [onephrase, 150]
+      - [onephrase, 350]
       - [and, 50]
       - [or, ~]
     corporateAuthor2NameGnd_txt_mv:
-      - [onephrase, 150]
-      - [and, 50]
-      - [or, ~]
-    authHeadingCorporation_txt_mv:
-      - [onephrase, 150]
+      - [onephrase, 350]
       - [and, 50]
       - [or, ~]
     authUseForCorporation_txt_mv:
-      - [onephrase, 150]
+      - [onephrase, 400]
+      - [and, 50]
+      - [or, ~]      
+    author2:
+      - [onephrase, 350]
       - [and, 50]
       - [or, ~]
     author_additional:
-      - [onephrase, 120]
+      - [onephrase, 300]
       - [and, 50]
       - [or, ~]
     author_additional_NameGnd_txt_mv:
-      - [onephrase, 120]
+      - [onephrase, 300]
       - [and, 50]
       - [or, ~]
     authOtherAdditionsPerson_txt_mv:
-      - [onephrase, 100]
+      - [onephrase, 150]
       - [and, 50]
-      - [or, ~]
+      - [or, ~]      
 #    authOtherAdditionsCorporation_txt_mv:
-#      - [onephrase, 80]
+#      - [onephrase, 150]
+#      - [and, 50]
+#      - [or, ~]      
+#    responsibilityNote_txt:
+#      - [onephrase, 100]
 #      - [and, 50]
 #      - [or, ~]
+
 
 
 # ISN original search specs:
