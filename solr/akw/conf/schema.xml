@@ -80,7 +80,8 @@
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/> <!-- TEST -->
-        <filter class="solr.SnowballPorterFilterFactory" language="German2" /> <!-- TEST -->
+        <!-- <filter class="solr.SnowballPorterFilterFactory" language="German2" />  --> <!-- TEST SnowballPorterFilterFactory -->
+        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" /><!-- TEST HunspellStemFilterFactory -->
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
       <analyzer type="query">
@@ -90,7 +91,8 @@
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/> <!-- TEST -->
-        <filter class="solr.SnowballPorterFilterFactory" language="German2" /> <!-- TEST SnowballPorterFilterFactory -->
+        <!-- <filter class="solr.SnowballPorterFilterFactory" language="German2" />  --> <!-- TEST SnowballPorterFilterFactory -->
+        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" /><!-- TEST HunspellStemFilterFactory -->
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
     </fieldType>
