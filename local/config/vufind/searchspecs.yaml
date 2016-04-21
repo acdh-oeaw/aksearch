@@ -167,7 +167,9 @@ Author:
     - authHeadingCorporation_txt_mv^150
     - authUseForCorporation_txt_mv^150
     - author_additional^120
-    - author_additional_NameGnd_txt_mv^120   
+    - author_additional_NameGnd_txt_mv^120
+    - authOtherAdditionsPerson_txt_mv^100
+#    - authOtherAdditionsCorporation_txt_mv^80
   DismaxParams:
     - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
     - ["bq", "publishDateSort:[2010 TO *]^10000"]
@@ -232,6 +234,16 @@ Author:
       - [onephrase, 120]
       - [and, 50]
       - [or, ~]
+    authOtherAdditionsPerson_txt_mv:
+      - [onephrase, 100]
+      - [and, 50]
+      - [or, ~]
+#    authOtherAdditionsCorporation_txt_mv:
+#      - [onephrase, 80]
+#      - [and, 50]
+#      - [or, ~]
+
+
 # ISN original search specs:
 #ISN:
 #  DismaxFields:
