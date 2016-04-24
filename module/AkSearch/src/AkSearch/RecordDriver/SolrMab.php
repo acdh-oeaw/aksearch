@@ -931,6 +931,30 @@ class SolrMab extends SolrDefault {
 	}
 	
 	
+	/**
+	 * Get all subjects
+	 *
+	 * @return array
+	 */
+	public function getAllSubjectHeadings() {		
+		
+		$headings = [];
+		foreach (['topic', 'authHeadingSubject_txt_mv', 'authUseForSubject_txt_mv', 'geographic', 'authHeadingGeographic_txt_mv', 'authUseForGeographic_txt_mv', 'authHeadingCongress_txt_mv', 'authUseForCongress_txt_mv', 'authHeadingWork_txt_mv', 'authUseForWork_txt_mv', 'genre', 'era'] as $field) {
+			if (isset($this->fields[$field])) {
+				$headings = array_merge($headings, $this->fields[$field]);
+			}
+		}
+	
+		// The Solr index doesn't currently store subject headings in a broken-down
+		// format, so we'll just send each value as a single chunk.  Other record
+		// drivers (i.e. MARC) can offer this data in a more granular format.
+		$callback = function ($i) {
+			return [$i];
+		};
+		return array_map($callback, array_unique($headings));
+	}
+	
+	
 
 
 	// #######################################################################################
