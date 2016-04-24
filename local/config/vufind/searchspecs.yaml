@@ -166,11 +166,11 @@ Author:
     - author_additional^300
     - author_additional_NameGnd_txt_mv^300
     - authOtherAdditionsPerson_txt_mv^150
-#    - authOtherAdditionsCorporation_txt_mv^150
+    - authOtherAdditionsCorporation_txt_mv^150
 #    - responsibilityNote_txt^100
   DismaxParams:
     - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
-    - ["bq", "publishDateSort:[2010 TO *]^10000"]
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
     author:
       - [onephrase, 500]
@@ -224,10 +224,10 @@ Author:
       - [onephrase, 150]
       - [and, 50]
       - [or, ~]      
-#    authOtherAdditionsCorporation_txt_mv:
-#      - [onephrase, 150]
-#      - [and, 50]
-#      - [or, ~]      
+    authOtherAdditionsCorporation_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]      
 #    responsibilityNote_txt:
 #      - [onephrase, 100]
 #      - [and, 50]
@@ -297,14 +297,30 @@ Subject:
     - topic_unstemmed^150
     - topic^100
     - authHeadingSubject_txt_mv^100
+#    - authHeadingAdditionsSubject_txt_mv^80
     - authUseForSubject_txt_mv^100
+#    - authUseForAdditionsSubject_txt_mv^70
+#    - authOtherAdditionsSubject_txt_mv^70
     - geographic^50
     - authHeadingGeographic_txt_mv^50
+#    - authHeadingAdditionsGeographic_txt_mv^40
     - authUseForGeographic_txt_mv^50
-    - genre^50
+#    - authUseForAdditionsGeographic_txt_mv^40
+#    - authOtherAdditionsGeographic_txt_mv^30
     - authHeadingCongress_txt_mv^30
     - authUseForCongress_txt_mv^30
-    - era
+#    - authHeadingAdditionsCongress_txt_mv^20
+#    - authUseForAdditionsCongress_txt_mv^20
+#    - authOtherAdditionsCongress_txt_mv^10
+    - authHeadingWork_txt_mv^30
+#    - authHeadingAdditionsWork_txt_mv^20
+    - authUseForWork_txt_mv^30
+#    - authUseForAdditionsWork_txt_mv^20
+#    - authOtherAdditionsWork_txt_mv^10
+    - genre^50
+    - era^20
+  DismaxParams:
+    - ["bq", "publishDateSort:[2010 TO *]^10000 || datePublishSort_str:[2010 TO *]^10000"]
   QueryFields:
     topic_unstemmed:
       - [onephrase, 350]
@@ -318,10 +334,22 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
+#    authHeadingAdditionsSubject_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]    
     authUseForSubject_txt_mv:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
+#    authUseForAdditionsSubject_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
+#    authOtherAdditionsSubject_txt_mv:
+#      - [onephrase, 200]
+#      - [and, 70]
+#      - [or, ~]
     geographic:
       - [onephrase, 300]
       - [and, 100]
@@ -330,22 +358,66 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
+#    authHeadingAdditionsGeographic_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
     authUseForGeographic_txt_mv:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
-    genre:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
+#    authUseForAdditionsGeographic_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
+#    authOtherAdditionsGeographic_txt_mv:
+#      - [onephrase, 200]
+#      - [and, 70]
+#      - [or, ~]
     authHeadingCongress_txt_mv:
       - [onephrase, 300]
       - [and, 100]
-      - [or, ~]    
+      - [or, ~]
+#    authHeadingAdditionsCongress_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
     authUseForCongress_txt_mv:
       - [onephrase, 300]
       - [and, 100]
-      - [or, ~] 
+      - [or, ~]
+#    authUseForAdditionsCongress_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
+#    authOtherAdditionsCongress_txt_mv:
+#      - [onephrase, 200]
+#      - [and, 70]
+#      - [or, ~]
+    authHeadingWork_txt_mv:  
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+#    authHeadingAdditionsWork_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
+    authUseForWork_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+#    authUseForAdditionsWork_txt_mv:
+#      - [onephrase, 250]
+#      - [and, 80]
+#      - [or, ~]
+#    authOtherAdditionsWork_txt_mv:  
+#      - [onephrase, 200]
+#      - [and, 70]
+#      - [or, ~]
+    genre:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]    
     era:
       - [and, 100]
       - [or, ~]
@@ -428,9 +500,9 @@ Title:
     - authHeadingWork_txt_mv^100
     - authUseForWork_txt_mv^100
   DismaxParams:
-    #- ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
+#    - ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
     - ["boost", "if(and(tf(title,'Arbeiterkammer'),tf(title,'Wien')),1,0.7)"]
-    - ["bq", "publishDateSort:[2010 TO *]^10000"]
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
     title_short:
       - [onephrase, 500]
@@ -527,7 +599,7 @@ AllFields:
     - sysNo_txt
   DismaxParams:
     - ["boost", "if(and(or(tf(title,'Arbeiterkammer'),tf(author,'Arbeiterkammer'),tf(corporateAuthorName_txt,'Arbeiterkammer')),tf(title,'Wien')),1,0.7)"]
-    - ["bq", "publishDateSort:[2010 TO *]^10000"]
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
     0:
       0:
