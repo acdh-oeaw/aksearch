@@ -758,7 +758,7 @@ DvdaifAll:
     publisher:
       - [onephrase, 150]
       - [and, 100]
-  FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+  FilterQuery: "locationCode_str:\"ZSF\""
   #FilterQuery: "location_txtF:TGA*"
 
 
@@ -801,7 +801,7 @@ DvdaifTitle:
     series2:
       - [onephrase, 50]
       - [and , ~]
-  FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+  FilterQuery: "locationCode_str:\"ZSF\""
 
 
 # Person fields of DVD collection "Arbeit im Film"
@@ -820,7 +820,7 @@ DvdaifPersons:
     publisher:
       - [onephrase, 150]
       - [and, 100]
-  FilterQuery: "location_txtF:\"DVD Sammlung Arbeit im Film\""
+  FilterQuery: "locationCode_str:\"ZSF\""
 
 LnAll:
   DismaxFields:
@@ -872,7 +872,7 @@ LnAll:
     publisher:
       - [onephrase, 150]
       - [and, 100]
-  FilterQuery: "location_txtF:\"Lesesaal Nachschlagewerke\""
+  FilterQuery: "locationCode_str:\"LN\""
   
 LnTitle:
   DismaxFields:
@@ -912,7 +912,7 @@ LnTitle:
     series2:
       - [onephrase, 50]
       - [and , ~]
-  FilterQuery: "location_txtF:\"Lesesaal Nachschlagewerke\""
+  FilterQuery: "locationCode_str:\"LN\""
 
 LnPersons:
   DismaxFields:
@@ -929,7 +929,7 @@ LnPersons:
     publisher:
       - [onephrase, 150]
       - [and, 100]
-  FilterQuery: "location_txtF:\"Lesesaal Nachschlagewerke\""
+  FilterQuery: "locationCode_str:\"LN\""
 
 
 
