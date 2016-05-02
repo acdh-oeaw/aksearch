@@ -1127,22 +1127,22 @@ class SolrMab extends SolrDefault {
     		$urls =  $this->fields['url'];
     	}
     	
-    	if (isset($this->fields['urlText_str_mv']) && is_array($this->fields['urlText_str_mv'])) {
-    		$descs = $this->fields['urlText_str_mv'];
-    	}
-    	
     	if (isset($urls)) {
-	    	foreach ($urls as $key => $value) {
-	    		if (isset($descs)) {
-	    			$retVal[] = ['url' => $urls[$key], 'desc' => $descs[$key]];
-	    		} else {
-	    			$retVal[] = ['url' => $urls[$key], 'desc' => 'DefaultUrlText'];
-	    		}
-	    	}
+    		$counter = 0;
+    		foreach ($urls as $key => $value) {
+    			
+    			if (($key % 2) == 0) {
+    				$counter = $counter + 1;
+    				$newUrl = $urls[$key];
+    			} else {
+    				$newRetVal[$counter]['url'] = $newUrl;
+    				$newRetVal[$counter]['desc'] = $urls[$key];
+    			}
+    		}
     	}
     	
-    	return $retVal;
-	}
-
+   		return $newRetVal;
+    }
+    
 }
 ?>
