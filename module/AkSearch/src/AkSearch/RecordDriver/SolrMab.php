@@ -944,6 +944,8 @@ class SolrMab extends SolrDefault {
 				$headings = array_merge($headings, $this->fields[$field]);
 			}
 		}
+		
+		sort($headings, SORT_ASC);
 	
 		// The Solr index doesn't currently store subject headings in a broken-down
 		// format, so we'll just send each value as a single chunk.  Other record
