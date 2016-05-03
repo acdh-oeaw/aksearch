@@ -162,7 +162,15 @@
 			$urls = array();
 				if (!$this->driver->isCollection()) :
 					foreach ($urls as $current) : ?>
+              			<?php
+              			/*
+              			// Removed by AK Bibliothek Wien for adding translation of url text from language file (see addition below)
               			<br /><a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new"><i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($current['desc'])?></a>
+          				*/
+          				?>
+          				<!-- Added by AK Bibliothek Wien for adding translation of url text from language file -->
+          				<br /><a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new"><i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($this->transEsc($current['desc']))?></a>     			
+          			
           			<? endforeach; ?>
         		<? endif; ?>
       <? endif; ?>

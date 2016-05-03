@@ -40,7 +40,7 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
   <h3><?=$this->transEsc("Internet")?></h3>
   <? if (!empty($urls)): ?>
     <? foreach ($urls as $current): ?>
-      <a href="<?=$this->escapeHtml($this->proxyUrl($current['url']))?>"><?=$this->escapeHtml($current['desc'])?></a><br/>
+      <a href="<?=$this->escapeHtml($this->proxyUrl($current['url']))?>" target="new"><?=$this->escapeHtml($this->transEsc($current['desc']))?></a><br/>
     <? endforeach; ?>
   <? endif; ?>
   <? if ($openUrlActive): ?><?=$openUrl->renderTemplate()?><? endif; ?>
