@@ -27,6 +27,7 @@
  */
  
 namespace AkSearch\Module\Config;
+
 /*
 // Show PHP errors:
 ini_set('display_errors', 1);
@@ -420,6 +421,7 @@ $config = [
                     'voyagerrestful' => 'VuFind\ILS\Driver\Factory::getVoyagerRestful',
                 ],
                 'invokables' => [
+                	'alma' => 'AkSearch\ILS\Driver\Alma',
                     'amicus' => 'VuFind\ILS\Driver\Amicus',
                     'claviussql' => 'VuFind\ILS\Driver\ClaviusSQL',
                     'evergreen' => 'VuFind\ILS\Driver\Evergreen',
