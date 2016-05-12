@@ -1137,13 +1137,13 @@ class SolrMab extends SolrDefault {
     				$counter = $counter + 1;
     				$newUrl = $urls[$key];
     			} else {
-    				$newRetVal[$counter]['url'] = $newUrl;
-    				$newRetVal[$counter]['desc'] = $urls[$key];
+    				$retVal[$counter]['url'] = $newUrl;
+    				$retVal[$counter]['desc'] = $urls[$key];
     			}
     		}
     	}
     	
-   		return $newRetVal;
+   		return $retVal;
     }
     
 }
