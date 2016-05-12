@@ -568,6 +568,7 @@ AllFields:
     - title_full_unstemmed^600
     - title_full^400
     - title^500
+    - title_sub^300
     - title_alt^200
     - title_new^100
     - series^50
@@ -619,6 +620,9 @@ AllFields:
       title:
         - [onephrase, 300]
         - [and, 250]
+      title_sub:
+        - [onephrase, 250]
+        - [and, 200]
       title_alt:
         - [and, 200]
       title_new:
