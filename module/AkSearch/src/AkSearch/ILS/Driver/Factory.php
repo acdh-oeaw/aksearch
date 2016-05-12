@@ -21,7 +21,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1335, USA.
  *
  * @category AkSearch
- * @package  RecordDrivers
+ * @package  ILS Drivers
  * @author   Michael Birkner <michael.birkner@akwien.at>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://wien.arbeiterkammer.at/service/bibliothek/
