@@ -319,6 +319,7 @@ Subject:
 #    - authOtherAdditionsWork_txt_mv^10
     - subjectSWD_txt_mv^70
     - subjectBKL_txt_mv^70
+    - subjectAdditional_txt_mv^70
     - subjectPER_txt_mv^30
     - subjectKOR_txt_mv^30
     - genre^50
@@ -426,6 +427,10 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
+    subjectAdditional_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]    
     subjectPER_txt_mv:
       - [onephrase, 300]
       - [and, 100]
@@ -609,6 +614,7 @@ AllFields:
     - topic^500
     - subjectSWD_txt_mv^400
     - subjectBKL_txt_mv^400
+    - subjectAdditional_txt_mv^400
     - subjectPER_txt_mv^300
     - subjectKOR_txt_mv^300
     - geographic^300
@@ -696,6 +702,10 @@ AllFields:
         - [onephrase, 400]
         - [and, 40]
         - [or, 10]
+      subjectAdditional_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]      
       subjectPER_txt_mv:
         - [onephrase, 300]
         - [and, 30]
