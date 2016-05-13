@@ -317,6 +317,10 @@ Subject:
     - authUseForWork_txt_mv^30
 #    - authUseForAdditionsWork_txt_mv^20
 #    - authOtherAdditionsWork_txt_mv^10
+    - subjectSWD_txt_mv^70
+    - subjectBKL_txt_mv^70
+    - subjectPER_txt_mv^30
+    - subjectKOR_txt_mv^30
     - genre^50
     - era^20
   DismaxParams:
@@ -414,6 +418,22 @@ Subject:
 #      - [onephrase, 200]
 #      - [and, 70]
 #      - [or, ~]
+    subjectSWD_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    subjectBKL_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    subjectPER_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    subjectKOR_txt_mv:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
     genre:
       - [onephrase, 300]
       - [and, 100]
@@ -587,6 +607,10 @@ AllFields:
     - contents^10
     - topic_unstemmed^550
     - topic^500
+    - subjectSWD_txt_mv^400
+    - subjectBKL_txt_mv^400
+    - subjectPER_txt_mv^300
+    - subjectKOR_txt_mv^300
     - geographic^300
     - genre^300
     - allfields_unstemmed^10
@@ -664,6 +688,22 @@ AllFields:
         - [and, 500]
       topic:
         - [onephrase, 500]
+      subjectSWD_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectBKL_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectPER_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]
+      subjectKOR_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]        
       geographic:
         - [onephrase, 300]
       genre:
