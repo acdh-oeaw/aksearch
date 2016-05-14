@@ -49,8 +49,6 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 
 <?php 
 
-$holdings = $this->driver->getRealTimeHoldings();
-
 foreach ($holdings as $location => $holdingsOfLocation) {
 	echo '<p>' . $this->driver->getSubLibraryName($location) . '</p><br />';
 	
