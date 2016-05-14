@@ -67,9 +67,9 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 			
 			if (isset($holdingOfLocation['barcode']) && $holdingOfLocation['barcode'] != "") {
 				echo '<tr>';
-					echo '<td>' . ((isset($holdingOfLocation['callnumber'])) ? $holdingOfLocation['callnumber'] : 'n. A.') . '</td>';
-					echo '<td>' . ((isset($holdingOfLocation['collection'])) ? $holdingOfLocation['collection'] : 'n. A.') . '</td>';
-					echo '<td>' . ((isset($holdingOfLocation['status'])) ? $holdingOfLocation['status'] : 'n. A.') . '</td>';
+					echo '<td>' . ((isset($holdingOfLocation['callnumber'])) ? $holdingOfLocation['callnumber'] : $this->transEsc('n. A.')) . '</td>';
+					echo '<td>' . ((isset($holdingOfLocation['collection'])) ? $holdingOfLocation['collection'] : $this->transEsc('n. A.')) . '</td>';
+					echo '<td>' . ((isset($holdingOfLocation['status'])) ? $holdingOfLocation['status'] : $this->transEsc('n. A.')) . '</td>';
 						
 					// Show status of item
 					echo '<td>';
