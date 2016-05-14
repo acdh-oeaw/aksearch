@@ -10,3 +10,5 @@ vendor/.git
 /.buildpath
 /.settings/
 /import/solrmarc.log*
+/local/config/vufind/Alma.ini
+/module/AkSearch/src/AkSearch/ILS/Driver/Alma.php
