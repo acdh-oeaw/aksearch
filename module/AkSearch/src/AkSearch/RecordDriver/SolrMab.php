@@ -155,6 +155,66 @@ class SolrMab extends SolrDefault {
 
 	
 	
+	public function getThumbnail($size = 'small') {
+		
+		if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
+			return $this->fields['thumbnail'];
+		}
+		
+		// Get format:
+		//$format = $this->fields['format'];
+		$format = 'Journal';
+		
+		$arr = [
+				'contenttype'	=> $format,
+				'author'		=> mb_substr($this->getPrimaryAuthor(), 0, 300, 'utf-8'),
+				'callnumber'	=> $this->getCallNumber(),
+				'size'			=> $size,
+				'title'			=> mb_substr($this->getTitle(), 0, 300, 'utf-8')
+		];
+		if ($isbn = $this->getCleanISBN()) {
+			$arr['isbn'] = $isbn;
+		}
+		if ($issn = $this->getCleanISSN()) {
+			$arr['issn'] = $issn;
+		}
+		if ($oclc = $this->getCleanOCLCNum()) {
+			$arr['oclc'] = $oclc;
+		}
+		if ($upc = $this->getCleanUPC()) {
+			$arr['upc'] = $upc;
+		}
+		// If an ILS driver has injected extra details, check for IDs in there
+		// to fill gaps:
+		if ($ilsDetails = $this->getExtraDetail('ils_details')) {
+			foreach (['isbn', 'issn', 'oclc', 'upc'] as $key) {
+				if (!isset($arr[$key]) && isset($ilsDetails[$key])) {
+					$arr[$key] = $ilsDetails[$key];
+				}
+			}
+		}
+		return $arr;
+		
+		
+		
+		
+		
+		/*
+		// Possible values for return array:
+		'isbn'
+		'size'
+		'contenttype'
+		'title'
+		'author'
+		'callnumber'
+		'issn'
+		'oclc'
+		'upc
+		*/
+	}
+	
+	
+	
 	
 	
 	// ######################################################################################
