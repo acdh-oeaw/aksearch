@@ -155,7 +155,8 @@ class SolrMab extends SolrDefault {
 
 	
 	/**
-	 * Gettin the cover or fallback image (thumbnail)
+	 * Getting the cover or icon (according to format and/or publication type)
+	 * 
 	 * {@inheritDoc}
 	 * @see \VuFind\RecordDriver\SolrDefault::getThumbnail()
 	 */
@@ -165,48 +166,66 @@ class SolrMab extends SolrDefault {
 			return $this->fields['thumbnail'];
 		}
 		
+		// Get publication type as string:
+		$publicationTypeCode = $this->getPublicationTypeCode();
+		
 		// Get formats as array:
 		$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
 		$format = null;
 		if (isset($formats)) {
-			if (in_array('Elektronisch', $formats)) {
-				$format = 'electronic';
-			} else if (in_array('DVD', $formats)) {
-				$format = 'dvd';
-			} else if (in_array('Artikel', $formats)) {
-				$format = 'article';
-			} else if (in_array('Zeitschrift', $formats)) {
-				$format = 'journal';
-			} else if (in_array('Zeitung', $formats)) {
-				$format = 'newspaper';
-			} else if (in_array('Mikroform', $formats)) {
-				$format = 'microform';
-			} else if (in_array('Video', $formats)) {
-				$format = 'video';
-			} else if (in_array('Audio', $formats)) {
-				$format = 'audio';
-			} else if (in_array('Bildlich', $formats)) {
-				$format = 'figurative';
-			} else if (in_array('Plakat', $formats)) {
-				$format = 'poster';
-			} else if (in_array('Karte', $formats)) {
-				$format = 'map';
-			} else if (in_array('Musikalia', $formats)) {
-				$format = 'music';
-			} else if (in_array('Mehrbändig', $formats)) {
-				$format = 'books';
-			} else if (in_array('Buch', $formats)) {
+			if (in_array('printed', $formats)) {
+				// Default for "printed" format. Overwrite below if other format is available.
 				$format = 'book';
+				
+				if (isset($publicationTypeCode)) {
+					if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
+						$format = 'book';
+					} else if ($publicationTypeCode == 'n' || $publicationTypeCode == 't' || $publicationTypeCode == 'r') {
+						$format = 'books';
+					} else if ($publicationTypeCode == 'a') {
+						$format = 'article';
+					} else if ($publicationTypeCode == 'j' || $publicationTypeCode == 'p' || $publicationTypeCode == 'f') {
+						$format = 'journal';
+					} else if ($publicationTypeCode == 'z') {
+						$format = 'newspaper';
+					}
+				}
+			} else if (in_array('manuscript', $formats)) {
+				$format = 'manuscript';
+			} else if (in_array('mixedmedia', $formats)) {
+				$format = 'mixedmedia';
+			} else if (in_array('microform', $formats)) {
+				$format = 'microform';
+			} else if (in_array('soundcarrier', $formats)) {
+				$format = 'music';
+			} else if (in_array('avunknown', $formats)) {
+				$format = 'avunknown';
+			} else if (in_array('filmforprojection', $formats)) {
+				$format = 'filmforprojection';
+			} else if (in_array('videorecording', $formats)) {
+				$format = 'video';
+			} else if (in_array('dvd', $formats)) {
+				$format = 'dvd';
+			} else if (in_array('figurative', $formats)) {
+				$format = 'figurative';
+			} else if (in_array('poster', $formats)) {
+				$format = 'poster';
+			} else if (in_array('file', $formats)) {
+				$format = 'file';
+			} else if (in_array('electronic', $formats)) {
+				$format = 'electronic';
+			} else if (in_array('game', $formats)) {
+				$format = 'game';
+			} else if (in_array('map', $formats)) {
+				$format = 'map';
+			} else {
+				$format = 'unknown';
 			}
 		}
 		
 		
-		/*
-		echo '<pre>';
-		print_r($formats);
-		echo '</pre>';
-		*/
 		
+		// Preparing return array:
 		$arr = [
 				'contenttype'	=> $format,
 				'author'		=> mb_substr($this->getPrimaryAuthor(), 0, 300, 'utf-8'),
@@ -226,8 +245,8 @@ class SolrMab extends SolrDefault {
 		if ($upc = $this->getCleanUPC()) {
 			$arr['upc'] = $upc;
 		}
-		// If an ILS driver has injected extra details, check for IDs in there
-		// to fill gaps:
+		
+		// If an ILS driver has injected extra details, check for IDs in there to fill gaps:
 		if ($ilsDetails = $this->getExtraDetail('ils_details')) {
 			foreach (['isbn', 'issn', 'oclc', 'upc'] as $key) {
 				if (!isset($arr[$key]) && isset($ilsDetails[$key])) {
@@ -235,24 +254,8 @@ class SolrMab extends SolrDefault {
 				}
 			}
 		}
+		
 		return $arr;
-		
-		
-		
-		
-		
-		/*
-		// Possible values for return array:
-		'isbn'
-		'size'
-		'contenttype'
-		'title'
-		'author'
-		'callnumber'
-		'issn'
-		'oclc'
-		'upc
-		*/
 	}
 	
 	
