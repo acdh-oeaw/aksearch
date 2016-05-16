@@ -154,16 +154,58 @@ class SolrMab extends SolrDefault {
 	}
 
 	
-	
+	/**
+	 * Gettin the cover or fallback image (thumbnail)
+	 * {@inheritDoc}
+	 * @see \VuFind\RecordDriver\SolrDefault::getThumbnail()
+	 */
 	public function getThumbnail($size = 'small') {
 		
 		if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
 			return $this->fields['thumbnail'];
 		}
 		
-		// Get format:
-		//$format = $this->fields['format'];
-		$format = 'Journal';
+		// Get formats as array:
+		$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
+		$format = null;
+		if (isset($formats)) {
+			if (in_array('Elektronisch', $formats)) {
+				$format = 'electronic';
+			} else if (in_array('DVD', $formats)) {
+				$format = 'dvd';
+			} else if (in_array('Artikel', $formats)) {
+				$format = 'article';
+			} else if (in_array('Zeitschrift', $formats)) {
+				$format = 'journal';
+			} else if (in_array('Zeitung', $formats)) {
+				$format = 'newspaper';
+			} else if (in_array('Mikroform', $formats)) {
+				$format = 'microform';
+			} else if (in_array('Video', $formats)) {
+				$format = 'video';
+			} else if (in_array('Audio', $formats)) {
+				$format = 'audio';
+			} else if (in_array('Bildlich', $formats)) {
+				$format = 'figurative';
+			} else if (in_array('Plakat', $formats)) {
+				$format = 'poster';
+			} else if (in_array('Karte', $formats)) {
+				$format = 'map';
+			} else if (in_array('Musikalia', $formats)) {
+				$format = 'music';
+			} else if (in_array('Mehrbändig', $formats)) {
+				$format = 'books';
+			} else if (in_array('Buch', $formats)) {
+				$format = 'book';
+			}
+		}
+		
+		
+		/*
+		echo '<pre>';
+		print_r($formats);
+		echo '</pre>';
+		*/
 		
 		$arr = [
 				'contenttype'	=> $format,
