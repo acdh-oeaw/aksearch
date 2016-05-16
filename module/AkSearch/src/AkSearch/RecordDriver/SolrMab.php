@@ -206,6 +206,8 @@ class SolrMab extends SolrDefault {
 				$format = 'video';
 			} else if (in_array('dvd', $formats)) {
 				$format = 'dvd';
+			} else if (in_array('compactdisc', $formats)) {
+				$format = 'compactdisc';
 			} else if (in_array('figurative', $formats)) {
 				$format = 'figurative';
 			} else if (in_array('poster', $formats)) {
@@ -222,8 +224,6 @@ class SolrMab extends SolrDefault {
 				$format = 'unknown';
 			}
 		}
-		
-		
 		
 		// Preparing return array:
 		$arr = [
