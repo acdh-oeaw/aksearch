@@ -223,6 +223,22 @@ class SolrMab extends SolrDefault {
 			} else {
 				$format = 'unknown';
 			}
+		} else {
+			// Default format. Overwrite below if other format is available.
+			$format = 'book';
+			if (isset($publicationTypeCode)) {
+				if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
+					$format = 'book';
+				} else if ($publicationTypeCode == 'n' || $publicationTypeCode == 't' || $publicationTypeCode == 'r') {
+					$format = 'books';
+				} else if ($publicationTypeCode == 'a') {
+					$format = 'article';
+				} else if ($publicationTypeCode == 'j' || $publicationTypeCode == 'p' || $publicationTypeCode == 'f') {
+					$format = 'journal';
+				} else if ($publicationTypeCode == 'z') {
+					$format = 'newspaper';
+				}
+			}
 		}
 		
 		// Preparing return array:
