@@ -104,6 +104,7 @@ $config = [
         ],
         'invokables' => [
         	'akfilter' => 'AkSearch\Controller\AkfilterController',
+        	'aksites' => 'AkSearch\Controller\AkSitesController',
             'ajax' => 'VuFind\Controller\AjaxController',
             'alphabrowse' => 'VuFind\Controller\AlphabrowseController',
             'author' => 'VuFind\Controller\AuthorController',
@@ -788,6 +789,7 @@ $dynamicRoutes = [
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
 	'Akfilter/Home', 'Akfilter/Search', 'Akfilter/Advanced',
+	'AkSites/About',
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',
