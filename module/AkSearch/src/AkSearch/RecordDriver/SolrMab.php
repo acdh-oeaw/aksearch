@@ -1207,9 +1207,15 @@ class SolrMab extends SolrDefault {
      * 
      * @return array
      */
-    public function getJournalHoldings() {
-    	$arrHolResult = $this->ils->getJournalHoldings($this->getSysNo());
-    	return $arrHolResult;
+    public function getJournalHoldings() {    	
+    	if (!$this->hasILS()) {
+    		return array();
+    	}
+    	try {
+    		return $this->ils->getJournalHoldings($this->getSysNo());
+    	} catch (ILSException $e) {
+    		return array();
+    	}
     }
     
     /**
