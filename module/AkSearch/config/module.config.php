@@ -732,7 +732,7 @@ $config = [
         				'Excerpt' => 'Excerpt',
         				'HierarchyTree' => 'HierarchyTree',
         				'Map' => 'Map',
-        				'Details' => 'StaffViewArray',
+        				'Details' => 'AkSearch\RecordTab\StaffViewAll', // Tab changed by AK Bibliothek Wien
         				],
         	]
         ],

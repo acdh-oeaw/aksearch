@@ -30,18 +30,17 @@ namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
 
+/*
 // Show PHP errors:
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(- 1);
-
+*/
 
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
-	
 	use \VuFind\Log\LoggerAwareTrait;
     use \VuFindHttp\HttpServiceAwareTrait;
-	
 
 	/**
 	 * API key of Alma API
@@ -50,7 +49,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	protected $apiKey;
 	
-	
 	/**
 	 * URL to Alma API
 	 *
@@ -58,9 +56,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	protected $apiUrl;
 	
-	
-	
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::init()
@@ -88,7 +84,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// TODO: Auto-generated method stub
 	}
 	
-
 	/**
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
@@ -204,7 +199,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// TODO: Auto-generated method stub
 	}
 	
-	
 	/**
 	 * Perform HTTP request.
 	 *
@@ -258,6 +252,5 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 		return null;
 	}
-
 }
 ?>
