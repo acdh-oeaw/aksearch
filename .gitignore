@@ -10,3 +10,4 @@ vendor/.git
 /.buildpath
 /.settings/
 /import/solrmarc.log*
+/local/config/vufind/Alma.ini
