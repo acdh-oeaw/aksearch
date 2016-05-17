@@ -31,13 +31,52 @@
       </tr>
   </xsl:template>
 
+  <!-- <xsl:variable name="indicator1"><xsl:value-of select="@ind1"/></xsl:variable> -->
+  
   <xsl:template match="//datafield">
+  	<xsl:variable name="indicator1" select="@ind1"/>
+  	<xsl:variable name="indicator2" select="@ind2"/>
       <tr>
         <th>
           <xsl:value-of select="@tag"/>
         </th>
-        <td><xsl:value-of select="@ind1"/></td>
-        <td><xsl:value-of select="@ind2"/></td>
+        
+        <!-- <xsl:value-of select="translate($indicator1, '-', '_')" /> -->
+        
+        <!-- ORIGINAL: <td><xsl:value-of select="@ind1"/></td> -->
+        <!-- Replace all "*" and "-" with "_" -->
+		<xsl:choose>
+			<xsl:when test="$indicator1 = '*'">
+  				<td>_</td>
+			</xsl:when>
+			<xsl:when test="$indicator1 = '-'">
+				<td>_</td>
+			</xsl:when>
+			<xsl:when test="$indicator1 = ' '">
+				<td>_</td>
+			</xsl:when>
+			<xsl:otherwise>
+				<td><xsl:value-of select="$indicator1"/></td>
+			</xsl:otherwise>
+		</xsl:choose>
+		
+		<!-- ORIGINAL: <td><xsl:value-of select="@ind2"/></td> -->
+		<!-- Replace all "*" and "-" with "_" -->
+		<xsl:choose>
+			<xsl:when test="$indicator2 = '*'">
+  				<td>_</td>
+			</xsl:when>
+			<xsl:when test="$indicator2 = '-'">
+				<td>_</td>
+			</xsl:when>
+			<xsl:when test="$indicator2 = ' '">
+				<td>_</td>
+			</xsl:when>
+			<xsl:otherwise>
+				<td><xsl:value-of select="$indicator2"/></td>
+			</xsl:otherwise>
+		</xsl:choose>        
+        
         <td>
           <xsl:apply-templates select="subfield"/>
         </td>
