@@ -117,6 +117,14 @@ class SolrMab extends SolrDefault {
     
     
     /**
+     * Return an XML representation of the record.
+     */
+    public function getXML() {
+    	return $this->fields['fullrecord'];
+    }
+    
+    
+    /**
      * Get text that can be displayed to represent this record in breadcrumbs.
      *
      * @return string: Breadcrumb text to represent this record.
