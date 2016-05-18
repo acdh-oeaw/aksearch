@@ -1,0 +1,25 @@
+<?php
+if ($handler = $this->recommend->getNewHandler()) {
+	$oldRoute = $this->recommend->getOldRoute();
+	$newRoute = $this->recommend->getNewRoute();
+	
+	$oldPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+	$oldUrlSegments = explode('/', $oldPath);
+	$newUrlSegments = [];
+	
+	foreach ($oldUrlSegments as $oldUrlSegment) {
+		if ($oldUrlSegment == $oldRoute) {
+			$oldUrlSegment = $newRoute;
+		}
+		$newUrlSegments[] = $oldUrlSegment;
+	}
+	
+	$newPath = implode('/', $newUrlSegments);
+	
+	
+	echo '<div class="alert alert-info">';
+		echo $this->transEsc('widen_prefix');
+		echo ' <a href="'.$newPath.$this->recommend->getResults()->getUrlQuery()->setHandler($handler).'">'.$this->transEsc($this->recommend->getNewHandlerName()).'</a>.';
+	echo '</div>';
+}
+?>
