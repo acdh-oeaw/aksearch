@@ -476,6 +476,7 @@ $config = [
                     'summondatabasesdeferred' => 'VuFind\Recommend\SummonDatabasesDeferred',
                     'summonresultsdeferred' => 'VuFind\Recommend\SummonResultsDeferred',
                     'switchtype' => 'VuFind\Recommend\SwitchType',
+                	'akswitchtype' => 'AkSearch\Recommend\AkSwitchType'
                 ],
             ],
             'recorddriver' => [
@@ -788,7 +789,7 @@ $dynamicRoutes = [
 
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
-	'Akfilter/Home', 'Akfilter/Search', 'Akfilter/Advanced',
+	'Akfilter/Home', 'Akfilter/Results', 'Akfilter/Advanced',
 	'AkSites/About',
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',

@@ -69,7 +69,7 @@ class Options extends \VuFind\Search\Solr\Options {
 	 * @return string
 	 */
 	public function getSearchAction() {
-		return 'akfilter-search';
+		return 'akfilter-results';
 	}
 	
 	/**
