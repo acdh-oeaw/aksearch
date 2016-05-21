@@ -588,14 +588,14 @@ Series:
 AllFields:
   DismaxFields:
 #    - title_de^750
+    - title^1000
     - title_short^750
-#    - title_wildcard^600
+    - title_wildcard^600
     - title_full_unstemmed^600
-    - title_full^400
-    - title^500
-    - title_sub^300
-    - title_alt^200
-    - title_new^100
+    - title_full^600
+    - title_sub^500
+    - title_alt^400
+    - title_new^400
     - series^50
     - series2^30
 #    - author_de^300
@@ -764,73 +764,169 @@ AllFields:
 # All fields of DVD collection "Arbeit im Film"
 DvdaifAll:
   DismaxFields:
-    - title_short^500
-    - title_full_unstemmed^450
-    - title_full^400
-    - title^300
-    - container_title^250
-    - title_alt^200
-    - title_new^100
-    - title_old
-    - series^100
-    - series2
+    - title^1000
+    - title_short^750
+    - title_wildcard^600
+    - title_full_unstemmed^600
+    - title_full^600
+    - title_sub^500
+    - title_alt^400
+    - title_new^400
+    - series^50
+    - series2^30
+    - author_wildcard^300
     - author^300
+    - author_fuller^150
+    - author2^100
+    - author_additional^100
+    - author_additional_NameGnd_txt_mv^100
     - corporateAuthorName_txt^300
-    - publisher^150
+    - corporateAuthor2Name_txt_mv^100
+    - corporateAuthor2NameGnd_txt_mv^100
+    - responsibilityNote_txt^100
+    - contents^10
+    - topic_unstemmed^550
+    - topic^500
+    - subjectSWD_txt_mv^400
+    - subjectBKL_txt_mv^400
+    - subjectAdditional_txt_mv^400
+    - subjectPER_txt_mv^300
+    - subjectKOR_txt_mv^300
+    - geographic^300
+    - genre^300
+    - allfields_unstemmed^10
+    - fulltext_unstemmed^10
+    - allfields
+    - fulltext
+    - description
+    - isbn
+    - issn
+    - acNo_txt
+    - sysNo_txt
+  DismaxParams:
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
-    title_short:
-      - [onephrase, 500]
-    title_full_unstemmed:
-      - [onephrase, 450]
-      - [and, 400]
-    title_full:
-      - [onephrase, 400]
-    title:
-      - [onephrase, 300]
-      - [and, 250]
-    container_title:
-      - [onephrase, 275]
-      - [and, 225]
-    title_alt:
-      - [and, 200]
-    title_new:
-      - [and, 100]
-    title_old:
-      - [and, ~]
-    series:
-      - [onephrase, 100]
-      - [and, 50]
-    series2:
-      - [onephrase, 50]
-      - [and , ~]
-    author:
-      - [onephrase, 300]
-      - [and, 250]
-    corporateAuthorName_txt:
-      - [onephrase, 300]
-      - [and, 250]
-    publisher:
-      - [onephrase, 150]
-      - [and, 100]
+    0:
+      0:
+        - OR
+        - 50
+      title_wildcard:
+        - [onephrase, 750]
+      title_short:
+        - [onephrase, 750]
+      title_full_unstemmed:
+        - [onephrase, 600]
+        - [and, 500]
+      title_full:
+        - [onephrase, 400]
+      title:
+        - [onephrase, 300]
+        - [and, 250]
+      title_sub:
+        - [onephrase, 250]
+        - [and, 200]
+      title_alt:
+        - [and, 200]
+      title_new:
+        - [and, 100]
+      series:
+        - [and, 50]
+      series2:
+        - [and, 30]
+      author_wildcard:
+        - [onephrase, 300]
+        - [and, 250]
+      author:
+        - [onephrase, 300]
+        - [and, 250]
+      author_fuller:
+        - [onephrase, 150]
+        - [and, 125]
+      author2:
+        - [and, 50]
+      author_additional:
+        - [and, 50]
+      author_additional_NameGnd_txt_mv:
+        - [and, 50]
+      corporateAuthorName_txt:
+        - [and, 250]
+      corporateAuthor2Name_txt_mv:
+        - [and, 50]
+      corporateAuthor2NameGnd_txt_mv:
+        - [and, 50]
+      responsibilityNote_txt:
+        - [and, 50]
+      contents:
+        - [and, 10]
+      topic_unstemmed:
+        - [onephrase, 550]
+        - [and, 500]
+      topic:
+        - [onephrase, 500]
+      subjectSWD_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectBKL_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectAdditional_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]      
+      subjectPER_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]
+      subjectKOR_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]        
+      geographic:
+        - [onephrase, 300]
+      genre:
+        - [onephrase, 300]
+      allfields_unstemmed:
+        - [or, 10]
+      fulltext_unstemmed:
+        - [or, 10]
+      allfields:
+        - [or, ~]
+      fulltext:
+        - [or, ~]
+      description:
+        - [or, ~]
+      isbn:
+        - [onephrase, ~]
+      issn:
+        - [onephrase, ~]
+      acNo_txt:
+        - [onephrase, ~]
+      sysNo_txt:
+        - [onephrase, ~]
   FilterQuery: "locationCode_str:\"ZSF\""
-  #FilterQuery: "location_txtF:TGA*"
 
 
 # Title fields of DVD collection "Arbeit im Film"
 DvdaifTitle:
   DismaxFields:
     - title_short^500
+    - title_wildcard^450
     - title_full_unstemmed^450
     - title_full^400
     - title^300
     - container_title^250
     - title_alt^200
+    - title_sub^150
     - title_new^100
-    - title_old
+    - title_old^100
     - series^100
-    - series2
+    - series2^100
   QueryFields:
     title_short:
+      - [onephrase, 500]
+    title_wildcard:
       - [onephrase, 500]
     title_full_unstemmed:
       - [onephrase, 450]
@@ -845,6 +941,8 @@ DvdaifTitle:
       - [and, 225]
     title_alt:
       - [and, 200]
+    title_sub:
+      - [and, 150]
     title_new:
       - [and, 100]
     title_old:
@@ -861,87 +959,250 @@ DvdaifTitle:
 # Person fields of DVD collection "Arbeit im Film"
 DvdaifPersons:
   DismaxFields:
-    - author^300
-    - corporateAuthorName_txt^300
-    - publisher^150
+    - author^500
+    - author_wildcard^450
+    - authHeadingPerson_txt_mv^500
+    - authUseForPerson_txt_mv^400
+    - corporateAuthorName_txt^500
+    - authHeadingCorporation_txt_mv^500
+    - corporateAuthor2Name_txt_mv^350
+    - corporateAuthor2NameGnd_txt_mv^350
+    - authUseForCorporation_txt_mv^400
+    - author2^350
+    - author_additional^300
+    - author_additional_NameGnd_txt_mv^300
+    - authOtherAdditionsPerson_txt_mv^150
+    - authOtherAdditionsCorporation_txt_mv^150
+#    - responsibilityNote_txt^100
+  DismaxParams:
+    - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
     author:
-      - [onephrase, 300]
-      - [and, 250]
+      - [onephrase, 500]
+      - [and, 200]
+      - [or, 100]
+    author_wildcard:
+      - [onephrase, 450]
+      - [and, 200]
+      - [or, 100]
+    authHeadingPerson_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]
+    authUseForPerson_txt_mv:
+      - [onephrase, 400]
+      - [and, 50]
+      - [or, ~]
     corporateAuthorName_txt:
+      - [onephrase, 500]
+      - [and, 150]
+      - [or, 100]
+    authHeadingCorporation_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthor2Name_txt_mv:
+      - [onephrase, 350]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthor2NameGnd_txt_mv:
+      - [onephrase, 350]
+      - [and, 50]
+      - [or, ~]
+    authUseForCorporation_txt_mv:
+      - [onephrase, 400]
+      - [and, 50]
+      - [or, ~]      
+    author2:
+      - [onephrase, 350]
+      - [and, 50]
+      - [or, ~]
+    author_additional:
       - [onephrase, 300]
-      - [and, 250]
-    publisher:
+      - [and, 50]
+      - [or, ~]
+    author_additional_NameGnd_txt_mv:
+      - [onephrase, 300]
+      - [and, 50]
+      - [or, ~]
+    authOtherAdditionsPerson_txt_mv:
       - [onephrase, 150]
-      - [and, 100]
+      - [and, 50]
+      - [or, ~]      
+    authOtherAdditionsCorporation_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]      
+#    responsibilityNote_txt:
+#      - [onephrase, 100]
+#      - [and, 50]
+#      - [or, ~]
   FilterQuery: "locationCode_str:\"ZSF\""
 
 LnAll:
   DismaxFields:
-    - title_short^500
-    - title_full_unstemmed^450
-    - title_full^400
-    - title^300
-    - container_title^250
-    - title_alt^200
-    - title_new^100
-    - title_old
-    - series^100
-    - series2
+    - title^1000
+    - title_short^750
+    - title_wildcard^600
+    - title_full_unstemmed^600
+    - title_full^600
+    - title_sub^500
+    - title_alt^400
+    - title_new^400
+    - series^50
+    - series2^30
+    - author_wildcard^300
     - author^300
+    - author_fuller^150
+    - author2^100
+    - author_additional^100
+    - author_additional_NameGnd_txt_mv^100
     - corporateAuthorName_txt^300
-    - publisher^150
+    - corporateAuthor2Name_txt_mv^100
+    - corporateAuthor2NameGnd_txt_mv^100
+    - responsibilityNote_txt^100
+    - contents^10
+    - topic_unstemmed^550
+    - topic^500
+    - subjectSWD_txt_mv^400
+    - subjectBKL_txt_mv^400
+    - subjectAdditional_txt_mv^400
+    - subjectPER_txt_mv^300
+    - subjectKOR_txt_mv^300
+    - geographic^300
+    - genre^300
+    - allfields_unstemmed^10
+    - fulltext_unstemmed^10
+    - allfields
+    - fulltext
+    - description
+    - isbn
+    - issn
+    - acNo_txt
+    - sysNo_txt
+  DismaxParams:
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
-    title_short:
-      - [onephrase, 500]
-    title_full_unstemmed:
-      - [onephrase, 450]
-      - [and, 400]
-    title_full:
-      - [onephrase, 400]
-    title:
-      - [onephrase, 300]
-      - [and, 250]
-    container_title:
-      - [onephrase, 275]
-      - [and, 225]
-    title_alt:
-      - [and, 200]
-    title_new:
-      - [and, 100]
-    title_old:
-      - [and, ~]
-    series:
-      - [onephrase, 100]
-      - [and, 50]
-    series2:
-      - [onephrase, 50]
-      - [and , ~]
-    author:
-      - [onephrase, 300]
-      - [and, 250]
-    corporateAuthorName_txt:
-      - [onephrase, 300]
-      - [and, 250]
-    publisher:
-      - [onephrase, 150]
-      - [and, 100]
+    0:
+      0:
+        - OR
+        - 50
+      title_wildcard:
+        - [onephrase, 750]
+      title_short:
+        - [onephrase, 750]
+      title_full_unstemmed:
+        - [onephrase, 600]
+        - [and, 500]
+      title_full:
+        - [onephrase, 400]
+      title:
+        - [onephrase, 300]
+        - [and, 250]
+      title_sub:
+        - [onephrase, 250]
+        - [and, 200]
+      title_alt:
+        - [and, 200]
+      title_new:
+        - [and, 100]
+      series:
+        - [and, 50]
+      series2:
+        - [and, 30]
+      author_wildcard:
+        - [onephrase, 300]
+        - [and, 250]
+      author:
+        - [onephrase, 300]
+        - [and, 250]
+      author_fuller:
+        - [onephrase, 150]
+        - [and, 125]
+      author2:
+        - [and, 50]
+      author_additional:
+        - [and, 50]
+      author_additional_NameGnd_txt_mv:
+        - [and, 50]
+      corporateAuthorName_txt:
+        - [and, 250]
+      corporateAuthor2Name_txt_mv:
+        - [and, 50]
+      corporateAuthor2NameGnd_txt_mv:
+        - [and, 50]
+      responsibilityNote_txt:
+        - [and, 50]
+      contents:
+        - [and, 10]
+      topic_unstemmed:
+        - [onephrase, 550]
+        - [and, 500]
+      topic:
+        - [onephrase, 500]
+      subjectSWD_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectBKL_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectAdditional_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]      
+      subjectPER_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]
+      subjectKOR_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]        
+      geographic:
+        - [onephrase, 300]
+      genre:
+        - [onephrase, 300]
+      allfields_unstemmed:
+        - [or, 10]
+      fulltext_unstemmed:
+        - [or, 10]
+      allfields:
+        - [or, ~]
+      fulltext:
+        - [or, ~]
+      description:
+        - [or, ~]
+      isbn:
+        - [onephrase, ~]
+      issn:
+        - [onephrase, ~]
+      acNo_txt:
+        - [onephrase, ~]
+      sysNo_txt:
+        - [onephrase, ~]
   FilterQuery: "locationCode_str:\"LN\""
   
 LnTitle:
   DismaxFields:
     - title_short^500
+    - title_wildcard^450
     - title_full_unstemmed^450
     - title_full^400
     - title^300
     - container_title^250
     - title_alt^200
+    - title_sub^150
     - title_new^100
-    - title_old
+    - title_old^100
     - series^100
-    - series2
+    - series2^100
   QueryFields:
     title_short:
+      - [onephrase, 500]
+    title_wildcard:
       - [onephrase, 500]
     title_full_unstemmed:
       - [onephrase, 450]
@@ -956,6 +1217,8 @@ LnTitle:
       - [and, 225]
     title_alt:
       - [and, 200]
+    title_sub:
+      - [and, 150]
     title_new:
       - [and, 100]
     title_old:
@@ -970,21 +1233,241 @@ LnTitle:
 
 LnPersons:
   DismaxFields:
-    - author^300
-    - corporateAuthorName_txt^300
-    - publisher^150
+    - author^500
+    - author_wildcard^450
+    - authHeadingPerson_txt_mv^500
+    - authUseForPerson_txt_mv^400
+    - corporateAuthorName_txt^500
+    - authHeadingCorporation_txt_mv^500
+    - corporateAuthor2Name_txt_mv^350
+    - corporateAuthor2NameGnd_txt_mv^350
+    - authUseForCorporation_txt_mv^400
+    - author2^350
+    - author_additional^300
+    - author_additional_NameGnd_txt_mv^300
+    - authOtherAdditionsPerson_txt_mv^150
+    - authOtherAdditionsCorporation_txt_mv^150
+#    - responsibilityNote_txt^100
+  DismaxParams:
+    - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
     author:
-      - [onephrase, 300]
-      - [and, 250]
+      - [onephrase, 500]
+      - [and, 200]
+      - [or, 100]
+    author_wildcard:
+      - [onephrase, 450]
+      - [and, 200]
+      - [or, 100]
+    authHeadingPerson_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]
+    authUseForPerson_txt_mv:
+      - [onephrase, 400]
+      - [and, 50]
+      - [or, ~]
     corporateAuthorName_txt:
+      - [onephrase, 500]
+      - [and, 150]
+      - [or, 100]
+    authHeadingCorporation_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthor2Name_txt_mv:
+      - [onephrase, 350]
+      - [and, 50]
+      - [or, ~]
+    corporateAuthor2NameGnd_txt_mv:
+      - [onephrase, 350]
+      - [and, 50]
+      - [or, ~]
+    authUseForCorporation_txt_mv:
+      - [onephrase, 400]
+      - [and, 50]
+      - [or, ~]      
+    author2:
+      - [onephrase, 350]
+      - [and, 50]
+      - [or, ~]
+    author_additional:
       - [onephrase, 300]
-      - [and, 250]
-    publisher:
+      - [and, 50]
+      - [or, ~]
+    author_additional_NameGnd_txt_mv:
+      - [onephrase, 300]
+      - [and, 50]
+      - [or, ~]
+    authOtherAdditionsPerson_txt_mv:
       - [onephrase, 150]
-      - [and, 100]
+      - [and, 50]
+      - [or, ~]      
+    authOtherAdditionsCorporation_txt_mv:
+      - [onephrase, 150]
+      - [and, 50]
+      - [or, ~]      
+#    responsibilityNote_txt:
+#      - [onephrase, 100]
+#      - [and, 50]
+#      - [or, ~]
   FilterQuery: "locationCode_str:\"LN\""
 
+
+DigitalerWandel:
+  DismaxFields:
+    - title^1000
+    - title_short^750
+    - title_wildcard^600
+    - title_full_unstemmed^600
+    - title_full^600
+    - title_sub^500
+    - title_alt^400
+    - title_new^400
+    - series^50
+    - series2^30
+    - author_wildcard^300
+    - author^300
+    - author_fuller^150
+    - author2^100
+    - author_additional^100
+    - author_additional_NameGnd_txt_mv^100
+    - corporateAuthorName_txt^300
+    - corporateAuthor2Name_txt_mv^100
+    - corporateAuthor2NameGnd_txt_mv^100
+    - responsibilityNote_txt^100
+    - contents^10
+    - topic_unstemmed^550
+    - topic^500
+    - subjectSWD_txt_mv^400
+    - subjectBKL_txt_mv^400
+    - subjectAdditional_txt_mv^400
+    - subjectPER_txt_mv^300
+    - subjectKOR_txt_mv^300
+    - geographic^300
+    - genre^300
+    - allfields_unstemmed^10
+    - fulltext_unstemmed^10
+    - allfields
+    - fulltext
+    - description
+    - isbn
+    - issn
+    - acNo_txt
+    - sysNo_txt
+  DismaxParams:
+    - ["bq", "publishDateSort:[2013 TO *]^1000"]
+  QueryFields:
+    0:
+      0:
+        - OR
+        - 50
+      title_wildcard:
+        - [onephrase, 750]
+      title_short:
+        - [onephrase, 750]
+      title_full_unstemmed:
+        - [onephrase, 600]
+        - [and, 500]
+      title_full:
+        - [onephrase, 400]
+      title:
+        - [onephrase, 300]
+        - [and, 250]
+      title_sub:
+        - [onephrase, 250]
+        - [and, 200]
+      title_alt:
+        - [and, 200]
+      title_new:
+        - [and, 100]
+      series:
+        - [and, 50]
+      series2:
+        - [and, 30]
+      author_wildcard:
+        - [onephrase, 300]
+        - [and, 250]
+      author:
+        - [onephrase, 300]
+        - [and, 250]
+      author_fuller:
+        - [onephrase, 150]
+        - [and, 125]
+      author2:
+        - [and, 50]
+      author_additional:
+        - [and, 50]
+      author_additional_NameGnd_txt_mv:
+        - [and, 50]
+      corporateAuthorName_txt:
+        - [and, 250]
+      corporateAuthor2Name_txt_mv:
+        - [and, 50]
+      corporateAuthor2NameGnd_txt_mv:
+        - [and, 50]
+      responsibilityNote_txt:
+        - [and, 50]
+      contents:
+        - [and, 10]
+      topic_unstemmed:
+        - [onephrase, 550]
+        - [and, 500]
+      topic:
+        - [onephrase, 500]
+      subjectSWD_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectBKL_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]
+      subjectAdditional_txt_mv:
+        - [onephrase, 400]
+        - [and, 40]
+        - [or, 10]      
+      subjectPER_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]
+      subjectKOR_txt_mv:
+        - [onephrase, 300]
+        - [and, 30]
+        - [or, 10]        
+      geographic:
+        - [onephrase, 300]
+      genre:
+        - [onephrase, 300]
+      allfields_unstemmed:
+        - [or, 10]
+      fulltext_unstemmed:
+        - [or, 10]
+      allfields:
+        - [or, ~]
+      fulltext:
+        - [or, ~]
+      description:
+        - [or, ~]
+      isbn:
+        - [onephrase, ~]
+      issn:
+        - [onephrase, ~]
+      acNo_txt:
+        - [onephrase, ~]
+      sysNo_txt:
+        - [onephrase, ~]
+  FilterQuery: "customField_txt_mv:\"Digitaler Wandel\""
+
+
+
+
+
+
+
+
+####################################################################################################
 
 
 # These are advanced searches that never use Dismax:

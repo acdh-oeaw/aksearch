@@ -67,7 +67,7 @@
       </analyzer>
     </fieldType>
     
-    <!-- Field type "textWildcard" added by AK Bibliothek Wien - V1 - WORX -->
+    <!-- Field type "textWildcard" added by AK Bibliothek Wien -->
 	<fieldType name="textWildcard" class="solr.TextField" positionIncrementGap="100">
 		<analyzer type="index">
 			<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
@@ -85,6 +85,18 @@
 	        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
 	        <filter class="solr.ICUFoldingFilterFactory"/>
 	        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+		</analyzer>
+	</fieldType>
+	
+	<!-- Field type "text_sort" added by AK Bibliothek Wien -->
+	<fieldType name="text_sort" class="solr.TextField" positionIncrementGap="100">
+		<analyzer type="index">
+			<tokenizer class="solr.StandardTokenizerFactory"/>
+			<filter class="solr.LowerCaseFilterFactory"/>
+		</analyzer>
+		<analyzer type="query">
+			<tokenizer class="solr.StandardTokenizerFactory"/>
+			<filter class="solr.LowerCaseFilterFactory"/>
 		</analyzer>
 	</fieldType>
     
@@ -220,6 +232,8 @@
    <field name="author" type="textProper" indexed="true" stored="true" termVectors="true"/>
    <field name="author-letter" type="string" indexed="true" stored="true"/>
    <field name="authorStr" type="textFacet" indexed="true" stored="false"/>
+   <field name="author_sort" type="text_sort" indexed="true" stored="true"/>
+   <field name="author_role" type="string" indexed="true" stored="true"/>
    <field name="title" type="text" indexed="true" stored="true"/>
    <field name="title_sort" type="string" indexed="true" stored="true"/>
    <field name="title_sub" type="text" indexed="true" stored="true"/>
@@ -259,7 +273,7 @@
    <field name="dewey-search" type="callnumberSearch" indexed="true" stored="true" multiValued="true" />
    <field name="author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
-   <field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="author2_role" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="author_fuller" type="textProper" indexed="true" stored="true" />
    <field name="author_additional" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author_additionalStr" type="string" indexed="true" stored="true" multiValued="true"/>
