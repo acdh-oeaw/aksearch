@@ -1,4 +1,5 @@
 <? if (!empty($this->facetList) || !empty($this->checkboxFacets)): ?>
+
   <div class="row">
     <fieldset class="col-sm-12">
       <legend><?=$this->transEsc('Limit To')?></legend>
@@ -7,8 +8,20 @@
       <? endif; ?>
       <div class="row">
         <? foreach ($this->facetList as $field => $list): ?>
+        
+        <?php 
+        // Check for AK sorting
+        $label = $list['label'];
+        $aksort = false;
+        if (preg_match('/\[aksort\]/',$label)) {
+        	$aksort = true;
+        	$label = preg_replace('/\[aksort\]/', "", $label);
+        }
+        ?>
+        
           <div class="col-sm-<?=floor(12/count($this->facetList)) ?>">
-            <label for="limit_<?=$this->escapeHtmlAttr(str_replace(' ', '', $field))?>"><?=$this->transEsc($list['label'])?>:</label>
+            <label for="limit_<?=$this->escapeHtmlAttr(str_replace(' ', '', $field))?>"><?=$this->transEsc($label)?>:</label>
+            
             <select class="form-control" id="limit_<?=$this->escapeHtmlAttr(str_replace(' ', '', $field))?>" name="filter[]" multiple="multiple" size="10">
               <? if (is_array($this->hierarchicalFacets) && in_array($field, $this->hierarchicalFacets)): ?>
                 <? foreach ($list['list'] as $value): ?>
@@ -16,23 +29,49 @@
                   <option value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>"<?=(isset($value['selected']) && $value['selected'])?' selected="selected"':''?>><?=$display?></option>
                 <? endforeach; ?>
               <? else: ?>
+
                 <?
-                // Sort the current facet list alphabetically; we'll use this data
-                // along with the foreach below to display facet options in the
-                // correct order.
                 $sorted = array();
-                foreach ($list['list'] as $i => $value) {
-                  if (!empty($value['displayText'])) {
-                    $sorted[$i] = $this->transEsc($value['displayText']);
-                  }
+                if ($aksort) {
+	                $sortBy = array();
+	                foreach ($list['list'] as $i => $value) {
+	                	if (!empty($value['displayText'])) {
+	                		$sortText = preg_replace("/^(([<!][^a-zA-Z0-9]+).*?[>!]+[\s\W_]*)|[<>]/", "", $value['displayText']);
+	                		$sorted[$i]['displayText'] = $this->transEsc(str_replace(array("<", ">"), "", $value['displayText']));
+	                		$sorted[$i]['sortText'] = $sortText;
+	                		$sorted[$i]['key'] = $i;
+	                		$sortBy[] = $sortText;
+	                	}
+	                }
+	                array_multisort($sortBy, SORT_LOCALE_STRING, $sorted);
+                } else {
+	                // Sort the current facet list alphabetically; we'll use this data
+	                // along with the foreach below to display facet options in the
+	                // correct order.
+	                foreach ($list['list'] as $i => $value) {
+	                  if (!empty($value['displayText'])) {
+	                    $sorted[$i] = $this->transEsc($value['displayText']);
+	                  }
+	                }
+	                natcasesort($sorted);
                 }
-                natcasesort($sorted);
                 ?>
                 <? foreach ($sorted as $i => $display): ?>
-                  <? $value = $list['list'][$i]; ?>
-                  <option value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>"<?=(isset($value['selected']) && $value['selected'])?' selected="selected"':''?>><?=$this->escapeHtml($this->transEsc($display))?></option>
+                  <?php 
+                  $displayText = '';
+                  if ($aksort) {
+                  	$value = $list['list'][$display['key']];
+                  	$displayText = $display['displayText'];
+                  } else {
+                  	$value = $list['list'][$i];
+                  	$displayText = $display;
+                  }
+                  ?>
+                  <option value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>"<?=(isset($value['selected']) && $value['selected'])?' selected="selected"':''?>><?=$this->escapeHtml($this->transEsc($displayText))?></option>
                 <? endforeach; ?>
+
               <? endif; ?>
+
             </select>
           </div>
         <? endforeach; ?>
