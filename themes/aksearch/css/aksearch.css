@@ -167,7 +167,6 @@ a {
 
 
 
-
 /* ###################################################################################################### */
 /* ##################################### AK BIBLIOTHEK WIEN - BEGIN ##################################### */
 /* ###################################################################################################### */
@@ -192,6 +191,14 @@ a {
 	color: #f4f4f2;
 }
 
+
+.akSubtitle {
+	text-overflow: ellipsis;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
 #searchForm_lookfor {
 	background-color: #fff !important;
 	vertical-align: middle !important;
@@ -211,6 +218,7 @@ a {
     margin-left: 10px;
     margin-top: 10px;
 }
+
 
 @media ( max-width : 767px) {
 	.btn {

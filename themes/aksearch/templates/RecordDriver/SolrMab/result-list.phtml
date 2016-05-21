@@ -14,10 +14,17 @@
     <div class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
 			<div>
 				<a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
-          <?=str_replace(array('&lt;', '&gt;'), "", $this->record($this->driver)->getTitleHtml())?>
-        </a>
+          			<?=str_replace(array('&lt;', '&gt;'), "", $this->record($this->driver)->getTitleHtml())?>
+        		</a>
 			</div>
-
+			<div class="akSubtitle">
+			<?php
+        	$subTitle = $this->escapeHtml(str_replace(array("<", ">"), "", ucfirst($this->driver->getSubtitle())));
+        	if (!empty($subTitle)) {
+        		echo $subTitle;
+        	}
+        	?>
+			</div>
 			<div>
         <? if($this->driver->isCollection()): ?>
           <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
