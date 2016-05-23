@@ -156,9 +156,11 @@ Author:
     - author^500
     - author_wildcard^450
     - authHeadingPerson_txt_mv^500
+    - subjectPER_txt_mv^500
     - authUseForPerson_txt_mv^400
     - corporateAuthorName_txt^500
     - authHeadingCorporation_txt_mv^500
+    - subjectKOR_txt_mv^500
     - corporateAuthor2Name_txt_mv^350
     - corporateAuthor2NameGnd_txt_mv^350
     - authUseForCorporation_txt_mv^400
@@ -184,6 +186,10 @@ Author:
       - [onephrase, 500]
       - [and, 50]
       - [or, ~]
+    subjectPER_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]      
     authUseForPerson_txt_mv:
       - [onephrase, 400]
       - [and, 50]
@@ -196,6 +202,10 @@ Author:
       - [onephrase, 500]
       - [and, 50]
       - [or, ~]
+    subjectKOR_txt_mv:
+      - [onephrase, 500]
+      - [and, 50]
+      - [or, ~]  
     corporateAuthor2Name_txt_mv:
       - [onephrase, 350]
       - [and, 50]
@@ -320,8 +330,8 @@ Subject:
     - subjectSWD_txt_mv^70
     - subjectBKL_txt_mv^70
     - subjectAdditional_txt_mv^70
-    - subjectPER_txt_mv^30
-    - subjectKOR_txt_mv^30
+#    - subjectPER_txt_mv^30
+#    - subjectKOR_txt_mv^30
     - genre^50
     - era^20
   DismaxParams:
