@@ -180,7 +180,7 @@
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
         <filter class="solr.ShingleFilterFactory" maxShingleSize="2" outputUnigrams="false"/>
-        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" />
+        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" />       
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
