@@ -82,17 +82,17 @@ if ($labelFirst == null && $labelSecond == null) {
 	echo 'Label - all null<br>';
 }
 */
-
+opcache_reset();
 foreach ($holdings as $location => $holdingsOfLocation) {
 	
 	// Check for first and second call number (for label in table heading)
 	foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
 		$callNoFirstLabel = null;
 		$callNoSecondLabel = null;
-		if (isset($holdingOfLocation['callnumber'])) {
+		if (isset($holdingOfLocation['callnumber']) && !empty($holdingOfLocation['callnumber'])) {
 			$callNoFirstLabel = 'Call Number';
 		}
-		if (isset($holdingOfLocation['callnumber_second'])) {
+		if (isset($holdingOfLocation['callnumber_second']) && !empty($holdingOfLocation['callnumber_second'])) {
 			if (!isset($holdingOfLocation['callnumber'])) {
 				$callNoSecondLabel = 'Call Number';
 			} else {
