@@ -48,41 +48,7 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 
 
 <?php
-// Test in call no 2 label
-/*
-opcache_reset();
 
-
-$first = null;
-$second = null;
-
-$labelFirst = null;
-$labelSecond = null;
-
-if ($first) {
-	$labelFirst = 'Label';
-}
-if ($second) {
-	if (!isset($first)) {
-		$labelSecond = 'Label';
-	} else {
-		$labelSecond = 'Label 2';
-	}
-}
-
-echo '<h2>Label test</h2>';
-
-if ($labelFirst != null) {
-	echo $labelFirst.' (from first check)<br>';
-}
-if ($labelSecond != null) {
-	echo $labelSecond.' (from second check)<br>';
-}
-if ($labelFirst == null && $labelSecond == null) {
-	echo 'Label - all null<br>';
-}
-*/
-opcache_reset();
 foreach ($holdings as $location => $holdingsOfLocation) {
 	
 	// Check for first and second call number (for label in table heading)
