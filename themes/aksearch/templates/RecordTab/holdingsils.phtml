@@ -51,22 +51,7 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 
 foreach ($holdings as $location => $holdingsOfLocation) {
 	
-	$callNoFirst = null;
-	$callNoFirstLabel = null;
-	$callNoSecond = null;
-	$callNoSecondLabel = null;
-	if (isset($holdingOfLocation['callnumber'])) {
-		$callNoFirst = $holdingOfLocation['callnumber'];
-		$callNoFirstLabel = 'Call Number';
-	}
-	if (isset($holdingOfLocation['callnumber_second'])) {
-		$callNoSecond = $holdingOfLocation['callnumber_second'];
-		$callNoSecondLabel = 'Call Number 2';
-	}
 	
-	if ($callNoFirst == null && $callNoSecond != null) {
-		$callNoSecondLabel = 'Call Number';
-	}
 	
 	echo '<p>' . $this->driver->getSubLibraryName($location) . '</p><br />';
 	
@@ -90,6 +75,23 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 		foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
 			
 			$check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
+			
+			$callNoFirst = null;
+			$callNoFirstLabel = null;
+			$callNoSecond = null;
+			$callNoSecondLabel = null;
+			if (isset($holdingOfLocation['callnumber'])) {
+				$callNoFirst = $holdingOfLocation['callnumber'];
+				$callNoFirstLabel = 'Call Number';
+			}
+			if (isset($holdingOfLocation['callnumber_second'])) {
+				$callNoSecond = $holdingOfLocation['callnumber_second'];
+				$callNoSecondLabel = 'Call Number 2';
+			}
+			
+			if ($callNoFirst == null && $callNoSecond != null) {
+				$callNoSecondLabel = 'Call Number';
+			}
 			
 			if (isset($holdingOfLocation['barcode']) && $holdingOfLocation['barcode'] != "") {
 				echo '<tr>';
