@@ -51,20 +51,33 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 
 foreach ($holdings as $location => $holdingsOfLocation) {
 	
-	
+	// Check for first and second call number (for label in table heading)
+	foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
+		$callNoFirstLabel = null;
+		$callNoSecondLabel = null;
+		if (isset($holdingOfLocation['callnumber'])) {
+			$callNoFirstLabel = 'Call Number';
+		}
+		if (isset($holdingOfLocation['callnumber_second'])) {
+			$callNoSecondLabel = 'Call Number 2';
+		}
+		if (!isset($holdingOfLocation['callnumber']) == null && isset($holdingOfLocation['callnumber_second']) != null) {
+			$callNoSecondLabel = 'Call Number';
+		}
+	}
 	
 	echo '<p>' . $this->driver->getSubLibraryName($location) . '</p><br />';
 	
 	echo '<table class="table" summary="'.$this->transEsc('Holdings details from').' '.$this->transEsc($location).'">';
 		
 		echo '<tr>';
-			if ($callNoFirst != null) {
+			if ($callNoFirstLabel != null) {
 				echo '<th>'.$this->transEsc($callNoFirstLabel).'</th>';
 			}
-			if ($callNoSecond != null) {
+			if ($callNoSecondLabel != null) {
 				echo '<th>'.$this->transEsc($callNoSecondLabel).'</th>';
 			}
-			if ($callNoFirst == null && $callNoSecond == null) {
+			if ($callNoFirstLabel == null && $callNoSecondLabel == null) {
 				echo '<th>'.$this->transEsc('Call Number').'</th>';
 			}
 			echo '<th>'.$this->transEsc('Location').'</th>';
@@ -76,21 +89,14 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 			
 			$check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 			
+			// Call Numbers (first and second)
 			$callNoFirst = null;
-			$callNoFirstLabel = null;
 			$callNoSecond = null;
-			$callNoSecondLabel = null;
 			if (isset($holdingOfLocation['callnumber'])) {
 				$callNoFirst = $holdingOfLocation['callnumber'];
-				$callNoFirstLabel = 'Call Number';
 			}
 			if (isset($holdingOfLocation['callnumber_second'])) {
 				$callNoSecond = $holdingOfLocation['callnumber_second'];
-				$callNoSecondLabel = 'Call Number 2';
-			}
-			
-			if ($callNoFirst == null && $callNoSecond != null) {
-				$callNoSecondLabel = 'Call Number';
 			}
 			
 			if (isset($holdingOfLocation['barcode']) && $holdingOfLocation['barcode'] != "") {
