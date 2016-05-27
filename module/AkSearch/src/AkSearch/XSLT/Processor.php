@@ -37,7 +37,7 @@ use DOMDocument, XSLTProcessor;
 class Processor {
     /**
      * Perform an XSLT transformation and return the results.
-     * Overriding original function rom VuFind-Namespace to be able to use xsl located in custom AkSearch module.
+     * Overriding original function from VuFind-Namespace to be able to use xsl located in custom AkSearch module.
      * @see \VuFind\XSLT\Processor
      * 
      * @param string $xslt   Name of stylesheet (in application/xsl directory)

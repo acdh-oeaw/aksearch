@@ -141,7 +141,104 @@ class SolrMab extends SolrDefault {
      * Return an XML representation of the record.
      */
     public function getXML($format = null, $baseUrl = null, $recordLink = null) {
-    	return $this->fields['fullrecord'];
+    	$xmlOrFullRecord = $this->fields['fullrecord'];
+    	
+    	// Masking call nos. and collections
+    	$strMarcFieldsForMasking = $this->akConfig->Masking->marcfields;
+    	if (isset($strMarcFieldsForMasking) && !empty($strMarcFieldsForMasking)) {
+    		$arrMarcFieldsForMasking = explode(',', $strMarcFieldsForMasking);
+    		$simpleXML = simplexml_load_string($xmlOrFullRecord);
+    		foreach ($simpleXML->record->datafield as $datafield) {
+    			foreach ($arrMarcFieldsForMasking as $marcFieldForMasking) {
+    				$marcFieldForMasking = trim($marcFieldForMasking);
+    				$tagToMask = substr($marcFieldForMasking, 0, 3);
+    				$ind1ToMask = substr($marcFieldForMasking, 4, 1);
+    				$ind2ToMask = substr($marcFieldForMasking, 5, 1);
+    				$subfToMask = substr($marcFieldForMasking, 7, 1);
+    				$mode = trim(substr($marcFieldForMasking, 8, strlen($marcFieldForMasking)));
+    				if ($mode == '[all]') {
+    					$mode = 'all';
+    				} else {
+    					$mode = 'begins';
+    				}
+    				
+    				$tag = $datafield->attributes()->tag;
+    				$ind1 = $datafield->attributes()->ind1;
+    				$ind2 = $datafield->attributes()->ind2;
+    				 
+    				if ($tag == $tagToMask) { // Check for tag
+    					if ($ind1 == $ind1ToMask || $ind1ToMask == '*') { // Check for indicator 1
+    						if ($ind2 == $ind2ToMask || $ind2ToMask == '*') { // Check for indicator 2
+    							$subfieldCounter = -1;
+    							foreach ($datafield->subfield as $subfield) {
+    								$subfieldCounter = $subfieldCounter + 1;
+    								foreach ($subfield->attributes() as $subfieldCode) {
+    									if ($subfieldCode == $subfToMask) {
+    										$datafield->subfield->$subfieldCounter = $this->getMaskedValue($subfield, $mode);
+    									}
+    								}
+    							}
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	return $simpleXML->asXML();
+    }
+    
+    /**
+     * Getting raw solr field for staff view ... but first apply masking.
+     * 
+     * {@inheritDoc}
+     * @see \VuFind\RecordDriver\AbstractBase::getRawData()
+     */
+    public function getRawData() {
+    	$raw = $this->fields;
+    	
+    	// Masking solr fields
+    	$strMaskingSolrFields = $this->akConfig->Masking->solrfields;
+    	if (isset($strMaskingSolrFields) && !empty($strMaskingSolrFields)) {
+    		$arrMaskingSolrFields = preg_split('/\s*,\s*/', trim($strMaskingSolrFields));
+
+    		foreach ($raw as $fieldname => &$fieldvalue) {
+    			if (is_array($fieldvalue)) {
+    				foreach ($fieldvalue as &$value) {
+    					foreach ($arrMaskingSolrFields as $solrFieldToMask) {
+	    					$mode = 'begins';
+	    					if (preg_match('/\[all\]/', $solrFieldToMask)) {
+	    						$mode = 'all';
+	    						$solrFieldToMask = preg_replace('/\[all\]/', '', $solrFieldToMask);
+	    					} else if (preg_match('/\[begins\]/', $solrFieldToMask)) {
+	    						$mode = 'begins';
+	    						$solrFieldToMask = preg_replace('/\[begins\]/', '', $solrFieldToMask);
+	    					}
+	    					if ($fieldname == $solrFieldToMask) {
+	    						$value = $this->getMaskedValue($value, $mode);
+	    					}
+	    				}
+    				}
+    			} else {
+    				foreach ($arrMaskingSolrFields as $solrFieldToMask) {
+    					$mode = 'begins';
+    					if (preg_match('/\[all\]/', $solrFieldToMask)) {
+    						$mode = 'all';
+    						$solrFieldToMask = preg_replace('/\[all\]/', '', $solrFieldToMask);
+    					} else if (preg_match('/\[begins\]/', $solrFieldToMask)) {
+    						$mode = 'begins';
+    						$solrFieldToMask = preg_replace('/\[begins\]/', '', $solrFieldToMask);
+    					}
+    					if ($fieldname == $solrFieldToMask) {
+    						$fieldvalue = $this->getMaskedValue($fieldvalue, $mode);
+    					}
+    				}
+    			}
+    		}
+    		
+    	}
+    	
+    	return $raw;
     }
     
     
@@ -1187,37 +1284,20 @@ class SolrMab extends SolrDefault {
     	}
     	try {
     		$holdings = $this->holdLogic->getHoldings($this->getSysNo());
-    		$akConfigMasking = trim($this->akConfig->Masking->beginswith);
     		
     		// Masking call no 1, call no 2, collection and collection description
-    		if (isset($akConfigMasking) && !empty($akConfigMasking)) {
-    			$arrBeginswith = array_reverse(explode(',', $akConfigMasking));
-    			foreach ($holdings as &$holdingsOfLocation) {
-    				$items = &$holdingsOfLocation['items'];
-    				foreach ($items as &$item) {
-    					$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
-    					$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
-    					$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
-    					$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
-    					foreach ($arrBeginswith as $beginswith) {
-    						$beginswith = trim($beginswith);
-    						if (substr($callNo1, 0, strlen($beginswith)) == $beginswith) {
-    							$item['callnumber'] = $beginswith.preg_replace("/./", '*', substr($callNo1, strlen($beginswith), strlen($callNo1)));
-    						}
-    							
-    						if (substr($callNo2, 0, strlen($beginswith) ) == $beginswith) {
-    							$item['callnumber_second'] = $beginswith.preg_replace("/./", '*', substr($callNo2, strlen($beginswith), strlen($callNo2)));
-    						}
-    							
-    						if (substr($collection, 0, strlen($beginswith)) == $beginswith) {
-    							$item['collection'] = $beginswith.preg_replace("/./", '*', substr($collection, strlen($beginswith), strlen($collection)));
-    						}
-    							
-    						if (substr($collection_desc, 0, strlen($beginswith)) == $beginswith) {
-    							$item['collection_desc'] = $beginswith.preg_replace("/./", '*', substr($collection_desc, strlen($beginswith), strlen($collection_desc)));
-    						}
-    					}
-    				}
+    		foreach ($holdings as &$holdingsOfLocation) {
+    			$items = &$holdingsOfLocation['items'];
+    			foreach ($items as &$item) {
+    				$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
+    				$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
+    				$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
+    				$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
+    				
+    				$item['callnumber'] = ($callNo1 != null) ? $this->getMaskedValue($callNo1) : null;
+    				$item['callnumber_second'] = ($callNo2 != null) ? $this->getMaskedValue($callNo2) : null;
+    				$item['collection'] = ($collection != null) ? $this->getMaskedValue($collection) : null;
+    				$item['collection_desc'] = ($collection_desc != null) ? $this->getMaskedValue($collection_desc) : null;
     			}
     		}
     		
@@ -1225,6 +1305,42 @@ class SolrMab extends SolrDefault {
     	} catch (ILSException $e) {
     		return array();
     	}
+    }
+
+    private function getMaskedValue($stringToMask, $mode = 'begins') {
+    	
+    	if ($mode == 'begins') {
+    		$akConfigMasking = trim($this->akConfig->Masking->beginswith);
+    		 
+    		// Masking call no 1, call no 2, collection and collection description
+    		if (isset($akConfigMasking) && !empty($akConfigMasking)) {
+    			$arrBeginswith = array_reverse(explode(',', $akConfigMasking));
+    			$beginswithExceptions = trim($this->akConfig->Masking->beginswithExceptions);
+    			$arrBeginswithExceptions = array_reverse(explode(',', $beginswithExceptions));
+    		
+    			foreach ($arrBeginswith as $beginswith) {
+    				$beginswith = trim($beginswith);
+    				 
+    				if (isset($beginswithExceptions) && !empty($beginswithExceptions)) {
+    					foreach ($arrBeginswithExceptions as $beginswithException) {
+    						$beginswithException = trim($beginswithException);
+    						if (substr($stringToMask, 0, strlen($beginswithException)) == $beginswithException) {
+    							return $stringToMask;
+    						}
+    					}
+    				}
+    		
+    				if (substr($stringToMask, 0, strlen($beginswith)) == $beginswith) {
+    					return $beginswith.preg_replace("/./", '*', substr($stringToMask, strlen($beginswith), strlen($stringToMask)));
+    				}
+    			}
+    		}
+    	} else if ($mode == 'all') {
+    		return preg_replace("/./", '*', substr($stringToMask, 0, strlen($stringToMask)));
+    	}
+    	
+    	
+    	return $stringToMask;
     }
 
     /**
