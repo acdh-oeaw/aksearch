@@ -11,3 +11,4 @@ vendor/.git
 /.settings/
 /import/solrmarc.log*
 /local/config/vufind/Alma.ini
+/local/config/vufind/AKsearch.ini

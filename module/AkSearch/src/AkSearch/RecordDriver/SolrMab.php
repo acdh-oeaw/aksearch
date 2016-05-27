@@ -58,15 +58,7 @@ class SolrMab extends SolrDefault {
      * AKsearch.ini configuration
      */
     protected $akConfig;
-    
-    /**
-     * Configuration loader
-     *
-     * @var \VuFind\Config\PluginManager
-     */
-    protected $configLoader;
-    
-    
+
     
     /**
      * Constructor
@@ -75,32 +67,9 @@ class SolrMab extends SolrDefault {
      */
     public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null) {
     	
-    	// Getting AKsearch.ini config:
+    	// Get AKsearch.ini config
+    	// See 4th parameter for "new SolrMab(...)" in method "getSolrMab()" of class "AkSearch\RecordDriver\Factory"
     	$this->akConfig = (isset($akConfig)) ? $akConfig : null;
-    	
-    	/*
-    	echo '<pre>';
-    	print_r($akConfig);
-    	echo '</pre>';
-    	
-    	// Test call no and locations - BEGIN
-		opcache_reset();
-		$callNo1 = 'B987465';
-		$callNo2 = 'B987465';
-		$loc1 = 'MAG1';
-		$loc2 = 'MAG1';
-		
-		if (substr($callNo1, 0, 1 ) == "H") {
-			echo $callNo1.' = '.preg_replace("/\B[\d\w]/", '*', $callNo1);
-			echo '<br><br>';
-		}
-		
-		if (substr($loc1, 0, 3 ) == "ABT") {
-			echo $locPart2 = substr($loc1, 3, strlen($loc1)).'<br>';
-			echo $loc1.' = ABT.'.preg_replace("/./", '*', $locPart2);
-		}
-		// Test call no and locations - END
-    	*/
     	
     	// Call parent constructor
     	parent::__construct($mainConfig, $recordConfig, $searchSettings);
@@ -1200,42 +1169,59 @@ class SolrMab extends SolrDefault {
     	}
     }
     
-
-    /*
-    private function getAkConfig(\VuFind\Config\PluginManager $configLoader) {
-    	// See:	getAksearchConfig in AkSearch\View\Helper\Root\Factory
-    	// See:	theme.config.php'akconfig' => 'AkSearch\View\Helper\Root\Factory::getAksearchConfig',
-    	//$configLoader->get($this->getSearchIni());
-    	//$this->akConfig = $this->configLoader->get('AKsearch');
-    	return $configLoader->get('AKsearch');
-    }
-    */
-    /*
-    private function getAkConfig(\VuFind\Config\PluginManager $configLoader) {
-    	// See:	getAksearchConfig in AkSearch\View\Helper\Root\Factory
-    	// See:	theme.config.php'akconfig' => 'AkSearch\View\Helper\Root\Factory::getAksearchConfig',
-    	//$configLoader->get($this->getSearchIni());
-    	//$this->akConfig = $this->configLoader->get('AKsearch');
-    	return $configLoader->get('AKsearch');
-    }*/
-    
     
 
     
     /**
      * Get an array of information about record holdings, obtained in real-time from the ILS.
+     * Mask call nos and collections if value set in AKsearch.ini
      * 
      * Adopted from VuFind\RecordDriver\SolrMarc.
      * 
      * @return array
      */
-    public function getRealTimeHoldings() {   	
+    public function getRealTimeHoldings() {
     	// Get real time holdings
     	if (!$this->hasILS()) {
     		return array();
     	}
     	try {
-    		return $this->holdLogic->getHoldings($this->getSysNo());
+    		$holdings = $this->holdLogic->getHoldings($this->getSysNo());
+    		$akConfigMasking = trim($this->akConfig->Masking->beginswith);
+    		
+    		// Masking call no 1, call no 2, collection and collection description
+    		if (isset($akConfigMasking) && !empty($akConfigMasking)) {
+    			$arrBeginswith = array_reverse(explode(',', $akConfigMasking));
+    			foreach ($holdings as &$holdingsOfLocation) {
+    				$items = &$holdingsOfLocation['items'];
+    				foreach ($items as &$item) {
+    					$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
+    					$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
+    					$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
+    					$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
+    					foreach ($arrBeginswith as $beginswith) {
+    						$beginswith = trim($beginswith);
+    						if (substr($callNo1, 0, strlen($beginswith)) == $beginswith) {
+    							$item['callnumber'] = $beginswith.preg_replace("/./", '*', substr($callNo1, strlen($beginswith), strlen($callNo1)));
+    						}
+    							
+    						if (substr($callNo2, 0, strlen($beginswith) ) == $beginswith) {
+    							$item['callnumber_second'] = $beginswith.preg_replace("/./", '*', substr($callNo2, strlen($beginswith), strlen($callNo2)));
+    						}
+    							
+    						if (substr($collection, 0, strlen($beginswith)) == $beginswith) {
+    							$item['collection'] = $beginswith.preg_replace("/./", '*', substr($collection, strlen($beginswith), strlen($collection)));
+    						}
+    							
+    						if (substr($collection_desc, 0, strlen($beginswith)) == $beginswith) {
+    							$item['collection_desc'] = $beginswith.preg_replace("/./", '*', substr($collection_desc, strlen($beginswith), strlen($collection_desc)));
+    						}
+    					}
+    				}
+    			}
+    		}
+    		
+    		return $holdings;
     	} catch (ILSException $e) {
     		return array();
     	}
