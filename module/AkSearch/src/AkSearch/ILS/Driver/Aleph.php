@@ -392,6 +392,7 @@ class Aleph extends AlephDefault {
 	 * @return string
 	 */
 	public function getSubLibName($subLibCode) {
+		$subLibName = null;
 		if (isset($this->table_sub_library)) {
 			$subLibInfoArray = $this->translator->tabSubLibraryTranslate($subLibCode);
 			$subLibName = $subLibInfoArray['desc'];

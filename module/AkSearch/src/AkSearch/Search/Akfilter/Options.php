@@ -56,10 +56,14 @@ class Options extends \VuFind\Search\Solr\Options {
 		//   defined in Akfilter.ini and separated from it by colon (:). Filter values after the colon must be
 		//   defined as search options in searchspecs.yaml
 		foreach ($akfilterSettings as $akfilterKey => $akfilterValues) {
-			$this->basicHandlers[$akfilterKey.':'.$akfilterValues->toptarget[0]] = $akfilterValues->toplabel[0];
-			foreach ($akfilterValues->subtarget as $subtargetKey => $subtargetValue) {
-				$this->basicHandlers[$akfilterKey.':'.$subtargetValue] = $akfilterValues->sublabel[$subtargetKey];
+			$this->basicHandlers[$akfilterKey.':'.$akfilterValues->toptarget[0]] = $akfilterValues->toplabel[0];			
+			if (isset($akfilterValues->subtarget)) {
+				foreach ($akfilterValues->subtarget as $subtargetKey => $subtargetValue) {
+					$this->basicHandlers[$akfilterKey.':'.$subtargetValue] = $akfilterValues->sublabel[$subtargetKey];
+				}
 			}
+			
+
 		}
 	}
 	

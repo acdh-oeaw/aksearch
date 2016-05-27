@@ -50,6 +50,7 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 <?php
 
 foreach ($holdings as $location => $holdingsOfLocation) {
+	
 	// Check for first and second call number (for label in table heading)
 	foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
 		$callNoFirstLabel = null;
@@ -74,7 +75,7 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 			if ($callNoFirstLabel != null) {
 				echo '<th>'.$this->transEsc($callNoFirstLabel).'</th>';
 			}
-			if ($callNoSecondLabel != null) {
+			if ($callNoSecondLabel != null) { // There is a second call no, so show an additional table column
 				echo '<th>'.$this->transEsc($callNoSecondLabel).'</th>';
 			}
 			if ($callNoFirstLabel == null && $callNoSecondLabel == null) {
@@ -99,24 +100,17 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 				$callNoSecond = $holdingOfLocation['callnumber_second'];
 			}
 			
-			// Mask certain call numbers:
-			if (substr($callNo1, 0, 1 ) == "H") {
-				echo $callNo1.' = '.preg_replace("/\B[\d\w]/", '*', $callNo1);
-				echo '<br><br>';
-			}
-			
-			if (substr($loc1, 0, 3 ) == "ABT") {
-				echo $locPart2 = substr($loc1, 3, strlen($loc1)).'<br>';
-				echo $loc1.' = ABT.'.preg_replace("/./", '*', $locPart2);
-			}
-			
 			if (isset($holdingOfLocation['barcode']) && $holdingOfLocation['barcode'] != "") {
 				echo '<tr>';
 					if ($callNoFirst != null) {
 						echo '<td>' . ((isset($callNoFirst)) ? $callNoFirst : $this->transEsc('n. A.')) . '</td>';
+					} else if ($callNoFirstLabel != null) { // There is no first call no for this item, but there is a collumn for it that we have to fill (because another item has a first call no.)
+						echo '<td>' . $this->transEsc('n. A.') . '</td>';
 					}
 					if ($callNoSecond != null) {
 						echo '<td>' . ((isset($callNoSecond)) ? $callNoSecond : $this->transEsc('n. A.')) . '</td>';
+					} else if ($callNoSecondLabel != null) { // There is no second call no for this item, but there is a collumn for it that we have to fill (because another item has a second call no.)
+						echo '<td>' . $this->transEsc('n. A.') . '</td>';
 					}
 					if ($callNoFirst == null && $callNoSecond == null) {
 						echo '<td>' .  $this->transEsc('n. A.') . '</td>';
