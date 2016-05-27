@@ -52,7 +52,59 @@ class SolrMab extends SolrDefault {
      *
      * @var \VuFind\ILS\Logic\TitleHolds
      */
-    protected $titleHoldLogic;  
+    protected $titleHoldLogic;
+    
+    /**
+     * AKsearch.ini configuration
+     */
+    protected $akConfig;
+    
+    /**
+     * Configuration loader
+     *
+     * @var \VuFind\Config\PluginManager
+     */
+    protected $configLoader;
+    
+    
+    
+    /**
+     * Constructor
+     * 
+     * Geting values from AKsearch.ini
+     */
+    public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null) {
+    	
+    	// Getting AKsearch.ini config:
+    	$this->akConfig = (isset($akConfig)) ? $akConfig : null;
+    	
+    	/*
+    	echo '<pre>';
+    	print_r($akConfig);
+    	echo '</pre>';
+    	
+    	// Test call no and locations - BEGIN
+		opcache_reset();
+		$callNo1 = 'B987465';
+		$callNo2 = 'B987465';
+		$loc1 = 'MAG1';
+		$loc2 = 'MAG1';
+		
+		if (substr($callNo1, 0, 1 ) == "H") {
+			echo $callNo1.' = '.preg_replace("/\B[\d\w]/", '*', $callNo1);
+			echo '<br><br>';
+		}
+		
+		if (substr($loc1, 0, 3 ) == "ABT") {
+			echo $locPart2 = substr($loc1, 3, strlen($loc1)).'<br>';
+			echo $loc1.' = ABT.'.preg_replace("/./", '*', $locPart2);
+		}
+		// Test call no and locations - END
+    	*/
+    	
+    	// Call parent constructor
+    	parent::__construct($mainConfig, $recordConfig, $searchSettings);
+    }
     
     
     /**
@@ -119,7 +171,7 @@ class SolrMab extends SolrDefault {
     /**
      * Return an XML representation of the record.
      */
-    public function getXML() {
+    public function getXML($format, $baseUrl = null, $recordLink = null) {
     	return $this->fields['fullrecord'];
     }
     
@@ -1149,6 +1201,27 @@ class SolrMab extends SolrDefault {
     }
     
 
+    /*
+    private function getAkConfig(\VuFind\Config\PluginManager $configLoader) {
+    	// See:	getAksearchConfig in AkSearch\View\Helper\Root\Factory
+    	// See:	theme.config.php'akconfig' => 'AkSearch\View\Helper\Root\Factory::getAksearchConfig',
+    	//$configLoader->get($this->getSearchIni());
+    	//$this->akConfig = $this->configLoader->get('AKsearch');
+    	return $configLoader->get('AKsearch');
+    }
+    */
+    /*
+    private function getAkConfig(\VuFind\Config\PluginManager $configLoader) {
+    	// See:	getAksearchConfig in AkSearch\View\Helper\Root\Factory
+    	// See:	theme.config.php'akconfig' => 'AkSearch\View\Helper\Root\Factory::getAksearchConfig',
+    	//$configLoader->get($this->getSearchIni());
+    	//$this->akConfig = $this->configLoader->get('AKsearch');
+    	return $configLoader->get('AKsearch');
+    }*/
+    
+    
+
+    
     /**
      * Get an array of information about record holdings, obtained in real-time from the ILS.
      * 
@@ -1156,8 +1229,7 @@ class SolrMab extends SolrDefault {
      * 
      * @return array
      */
-    public function getRealTimeHoldings()
-    {
+    public function getRealTimeHoldings() {   	
     	// Get real time holdings
     	if (!$this->hasILS()) {
     		return array();

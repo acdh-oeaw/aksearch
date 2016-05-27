@@ -50,7 +50,6 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 <?php
 
 foreach ($holdings as $location => $holdingsOfLocation) {
-	
 	// Check for first and second call number (for label in table heading)
 	foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
 		$callNoFirstLabel = null;
@@ -98,6 +97,17 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 			}
 			if (isset($holdingOfLocation['callnumber_second'])) {
 				$callNoSecond = $holdingOfLocation['callnumber_second'];
+			}
+			
+			// Mask certain call numbers:
+			if (substr($callNo1, 0, 1 ) == "H") {
+				echo $callNo1.' = '.preg_replace("/\B[\d\w]/", '*', $callNo1);
+				echo '<br><br>';
+			}
+			
+			if (substr($loc1, 0, 3 ) == "ABT") {
+				echo $locPart2 = substr($loc1, 3, strlen($loc1)).'<br>';
+				echo $loc1.' = ABT.'.preg_replace("/./", '*', $locPart2);
 			}
 			
 			if (isset($holdingOfLocation['barcode']) && $holdingOfLocation['barcode'] != "") {

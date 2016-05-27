@@ -43,24 +43,8 @@ class Factory extends RecordDriverFactory {
     	$driver = new SolrMab (
     			$sm->getServiceLocator()->get('VuFind\Config')->get('config'),
     			null,
-    			$sm->getServiceLocator()->get('VuFind\Config')->get('searches')
-    	);
-    	
-    	$driver->attachILS (
-    			$sm->getServiceLocator()->get('VuFind\ILSConnection'),
-    			$sm->getServiceLocator()->get('VuFind\ILSHoldLogic'),
-    			$sm->getServiceLocator()->get('VuFind\ILSTitleHoldLogic')
-    	);
-    	
-    	return $driver;
-    }
-    
-    
-    public static function getAkfilter(ServiceManager $sm) {
-    	$driver = new Akfilter(
-    			$sm->getServiceLocator()->get('VuFind\Config')->get('config'),
-    			null,
-    			$sm->getServiceLocator()->get('VuFind\Config')->get('searches')
+    			$sm->getServiceLocator()->get('VuFind\Config')->get('searches'),
+    			$sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch')
     	);
     	
     	$driver->attachILS (

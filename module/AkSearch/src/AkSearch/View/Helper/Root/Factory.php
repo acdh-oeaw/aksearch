@@ -47,4 +47,11 @@ class Factory extends \VuFind\View\Helper\Root\Factory {
             $config->get('searchbox')->toArray()
         );
     }
+    
+    /*
+    public static function getAksearchConfig(ServiceManager $sm) {
+    	$akSearchConfig = $sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch');
+    	return $akSearchConfig;
+    }
+    */
 }
