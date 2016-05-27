@@ -140,7 +140,7 @@ class SolrMab extends SolrDefault {
     /**
      * Return an XML representation of the record.
      */
-    public function getXML($format, $baseUrl = null, $recordLink = null) {
+    public function getXML($format = null, $baseUrl = null, $recordLink = null) {
     	return $this->fields['fullrecord'];
     }
     
