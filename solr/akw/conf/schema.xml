@@ -89,7 +89,7 @@
 	</fieldType>
 	
 	<!-- Field type "text_sort" added by AK Bibliothek Wien -->
-	<fieldType name="text_sort" class="solr.TextField" positionIncrementGap="100">
+	<fieldType name="text_sort" class="solr.TextField" sortMissingLast="true" omitNorms="true" >
 		<analyzer type="index">
 			<tokenizer class="solr.StandardTokenizerFactory"/>
 			<filter class="solr.LowerCaseFilterFactory"/>
@@ -379,6 +379,11 @@
  <copyField source="title" dest="title_wildcard" />
  <!-- <copyField source="author" dest="author_de" /> -->
  <copyField source="author" dest="author_wildcard" />
+ <copyField source="author" dest="participants_txtF_mv" />
+ <copyField source="author2" dest="participants_txtF_mv" />
+ <copyField source="author_additional" dest="participants_txtF_mv" />
+ <copyField source="corporateAuthorName_txt" dest="participants_txtF_mv" />
+ <copyField source="corporateAuthor2Name_txt_mv" dest="participants_txtF_mv" />
  <!-- ADDED BY AK BIBLIOTHEK WIEN - END -->
    
    
