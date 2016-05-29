@@ -153,20 +153,20 @@
 # These searches use Dismax when possible:
 Author:
   DismaxFields:
-    - author^500
-    - author_wildcard^450
+    - author^1000
+    - author_wildcard^600
     - authHeadingPerson_txt_mv^500
-    - subjectPER_txt_mv^500
-    - authUseForPerson_txt_mv^400
-    - corporateAuthorName_txt^500
-    - authHeadingCorporation_txt_mv^500
-    - subjectKOR_txt_mv^500
-    - corporateAuthor2Name_txt_mv^350
-    - corporateAuthor2NameGnd_txt_mv^350
-    - authUseForCorporation_txt_mv^400
-    - author2^350
-    - author_additional^300
-    - author_additional_NameGnd_txt_mv^300
+    - subjectPER_txt_mv^300
+    - authUseForPerson_txt_mv^300
+    - corporateAuthorName_txt^400
+    - authHeadingCorporation_txt_mv^400
+    - subjectKOR_txt_mv^200
+    - corporateAuthor2Name_txt_mv^200
+    - corporateAuthor2NameGnd_txt_mv^200
+    - authUseForCorporation_txt_mv^200
+    - author2^200
+    - author_additional^200
+    - author_additional_NameGnd_txt_mv^200
     - authOtherAdditionsPerson_txt_mv^150
     - authOtherAdditionsCorporation_txt_mv^150
 #    - responsibilityNote_txt^100
