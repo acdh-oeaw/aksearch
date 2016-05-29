@@ -5,6 +5,8 @@
   } else {
     $user_id = false;
   }
+  
+ 
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
   <? $QRCode = $this->record($this->driver)->getQRCode("core"); 
@@ -153,7 +155,9 @@
     }
     
     ?>
-      
+	<?php
+      /*
+      // ORIGINAL
       <? $authors = $this->driver->getAuthors(); if (!empty($authors)): ?>
       <tr>
       	<th><?=$this->transEsc('Authors')?>: </th>
@@ -164,6 +168,40 @@
         </td>
       </tr>
       <? endif; ?>
+      */
+      
+	// PARTICIPANTS (with role and authority info)
+	$participants = $this->driver->getParticipants();
+	if (isset($participants) && !empty($participants)) {
+		foreach ($participants as $role => $participant) {
+			echo '<tr>';
+				echo '<th>'.$this->transEsc($role).':</th>';
+				echo '<td>';
+					foreach ($participant as $key => $gndName) {
+						$gnd = key($gndName);
+						$name = $gndName[key($gndName)];
+						echo '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'">';
+							echo $this->escapeHtml(str_replace(array("<", ">"), "", $name));
+						echo '</a>';
+						
+						// If a (valid) GND no. was found, display a "i"nfo-circle and open a tooltip when clicked on it:
+						if (isset($gnd) &&
+							!empty($gnd) &&
+							$gnd != 'NoGndId' &&
+							!preg_match('/^BIP/', $gnd) &&
+							!preg_match('/PND$/', $gnd) &&
+							!preg_match('/^BIK/', $gnd) &&
+							!preg_match('/GKD$/', $gnd)
+							) {
+							echo '&nbsp;&nbsp;<span class="akEntityFactsOpener" data-url="http://hub.culturegraph.org/entityfacts/'.preg_replace('/\(.*?\)/', '', $gnd).'"><i class="fa fa-info-circle akEntityFactsInfo" aria-hidden="true"></i></span>';
+						}
+						echo '<br/>';
+					}
+				echo '</td>';
+        	echo '</tr>';
+		}
+	}
+	?>
       
 	 <? $corporateAuthors = $this->driver->getCorporateAuthors(); if (!empty($corporateAuthors)): ?>
       <tr>

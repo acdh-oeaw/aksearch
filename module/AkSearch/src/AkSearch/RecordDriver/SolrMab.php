@@ -30,6 +30,7 @@
 namespace AkSearch\RecordDriver;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\RecordDriver\SolrDefault as SolrDefault;
+use ProxyManagerTestAsset\EmptyClass;
 
 class SolrMab extends SolrDefault {
 
@@ -1161,6 +1162,82 @@ class SolrMab extends SolrDefault {
 	}
 	
 	/**
+	 * Get all all involved / participants incl. their role and authoirty no.
+	 * 
+	 *  @return array or null if empty
+	 */
+	public function getParticipants() {
+		
+		// First participant
+		$author1 = isset($this->fields['author']) ? $this->fields['author'] : null;
+		$author1Role = isset($this->fields['author_role']) ? $this->fields['author_role'] : 'NoRole';
+		$author1Gnd = isset($this->fields['author_GndNo_str']) ? $this->fields['author_GndNo_str'] : 'NoGndId';
+		
+		// Second participant
+		$author2 = isset($this->fields['author2']) ? $this->fields['author2'][0] : null;
+		$author2Role = isset($this->fields['author2_role']) ? $this->fields['author2_role'][0] : 'NoRole';
+		$author2Gnd = isset($this->fields['author2_GndNo_str']) ? $this->fields['author2_GndNo_str'] : 'NoGndId';
+		
+		// All other participants
+		$author_additional_NameRoleGnd = (isset($this->fields['author_additional_NameRoleGnd_str_mv']) && !empty($this->fields['author_additional_NameRoleGnd_str_mv'])) ? $this->fields['author_additional_NameRoleGnd_str_mv'] : null;
+		
+		// First Corporate participant
+		$corp1 = isset($this->fields['corporateAuthorName_txt']) ? $this->fields['corporateAuthorName_txt'] : null;
+		$corp1Role = isset($this->fields['corporateAuthorRole_str']) ? $this->fields['corporateAuthorRole_str'] : 'NoRole';
+		$corp1Gnd = isset($this->fields['corporateAuthorGndNo_str']) ? $this->fields['corporateAuthorGndNo_str'] : 'NoGndId';
+		
+		// All other corporate participants
+		$corp_additional_NameRoleGnd = (isset($this->fields['corporateAuthor2NameRoleGnd_str_mv']) && !empty($this->fields['corporateAuthor2NameRoleGnd_str_mv']))? $this->fields['corporateAuthor2NameRoleGnd_str_mv'] : null;
+		
+		
+		$participants = [];
+		if ($author1 != null && $author1Role != null && $author1Gnd != null) {
+			$participants[$author1Role][] = array($author1Gnd => $author1);
+		}
+		if ($author2 != null && $author2Role != null && $author2Gnd != null) {
+			$participants[$author2Role][] = array($author2Gnd => $author2);
+		}
+		if ($corp1 != null && $corp1Role != null && $corp1Gnd != null) {
+			$participants[$corp1Role][] = array($corp1Gnd => $corp1);
+		}
+		
+		if ($author_additional_NameRoleGnd != null) {
+    		foreach ($author_additional_NameRoleGnd as $key => $value) {
+    			
+    			if (($key % 3) == 0) { // First of 3 values
+    				$name = $author_additional_NameRoleGnd[$key];
+    			} else if (($key % 3) == 1) { // Second of 3 values
+    				$role = $author_additional_NameRoleGnd[$key];
+    			}  else if (($key % 3) == 2) { // Third and last of 3 values
+    				$gnd = $author_additional_NameRoleGnd[$key];
+    				
+    				// We have all values now, add them to the return array:
+    				$participants[$role][] = array($gnd => $name);
+    			}
+    		}
+    	}
+    	
+    	if ($corp_additional_NameRoleGnd != null) {
+    		foreach ($corp_additional_NameRoleGnd as $key => $value) {
+    			 
+    			if (($key % 3) == 0) { // First of 3 values
+    				$name = $corp_additional_NameRoleGnd[$key];
+    			} else if (($key % 3) == 1) { // Second of 3 values
+    				$role = $corp_additional_NameRoleGnd[$key];
+    			}  else if (($key % 3) == 2) { // Third and last of 3 values
+    				$gnd = $corp_additional_NameRoleGnd[$key];
+    	
+    				// We have all values now, add them to the return array:
+    				$participants[$role][] = array($gnd => $name);
+    			}
+    		}
+    	}
+			
+		return (isset($participants) && !empty($participants)) ? $participants : null;
+	}
+	
+	
+	/**
 	 * Get all corporate authors
 	 *
 	 * @return array or null if empty
@@ -1440,12 +1517,18 @@ class SolrMab extends SolrDefault {
     		$counter = 0;
     		foreach ($urls as $key => $value) {
     			
-    			if (($key % 2) == 0) {
+    			if (($key % 3) == 0) { // First of 3 values
+    				$url = $urls[$key];
+    			} else if (($key % 3) == 1) { // Second of 3 values
+    				$desc = $urls[$key];
+    			}  else if (($key % 3) == 2) { // Third and last of 3 values
+    				$mime = $urls[$key];
+    				
+    				// We have all values now, add them to the return array:
     				$counter = $counter + 1;
-    				$newUrl = $urls[$key];
-    			} else {
-    				$retVal[$counter]['url'] = $newUrl;
-    				$retVal[$counter]['desc'] = $urls[$key];
+    				$retVal[$counter]['url'] = $url;
+    				$retVal[$counter]['desc'] = $desc;
+    				$retVal[$counter]['mime'] = $mime;
     			}
     		}
     	}

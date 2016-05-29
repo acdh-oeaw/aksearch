@@ -191,7 +191,6 @@ a {
 	color: #f4f4f2;
 }
 
-
 .akSubtitle {
 	text-overflow: ellipsis;
 	width: 100%;
@@ -219,10 +218,49 @@ a {
     margin-top: 10px;
 }
 
+.akEntityFactsOpener {
+	float: right;
+}
+
+.akEntityFactsOpener .fa, .akEntityFactsTooltipClose .fa {
+	cursor: pointer;
+}
+
+.akEntityFactsTooltip {
+	position: absolute;
+	z-index: 999;
+	background-color: #dedede;
+	padding: 5px;
+	border: 1px solid #fff;
+	width: 300px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.akEntityFactsTooltipClose {
+	cursor: pointer !important;
+	font-size: 16px;
+	float: right;
+}
+
+.akEntitiyFactsTable th, .akEntitiyFactsTable td {
+	padding: 2px;
+	vertical-align: top;
+}
+
+.akClearer {
+	clear: both;
+}
 
 @media ( max-width : 767px) {
 	.btn {
 		margin-top: 5px;
+	}
+	.akEntityFactsTooltip {
+		width: 250px;
+		margin-left: -25px;
+	}
+	h4{
+		font-size: 14px;
 	}
 }
 

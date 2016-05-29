@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+	var isAkEntityFactsTooltipOpen = false;
 	// Override original autocomplete method for searchbox: removing "<" and ">" (non-sorting characters in RAK-WB)
 	// INFO: Autocomplete works with typeahead.js: https://github.com/twitter/typeahead.js
 
@@ -47,6 +48,128 @@ $(document).ready(function() {
 		var query = $lookfor.val();
 		$lookfor.focus().typeahead('val', '').typeahead('val', query);
 	});
+
 	
+	// Getting entity facts:
+	$('.akEntityFactsOpener').click (function() {
+		if (!isAkEntityFactsTooltipOpen) {
+			isAkEntityFactsTooltipOpen = true;
+			var url = $(this).data('url');
+			var tooltipLink = $(this);
+			
+			$(tooltipLink).after('<div class="akEntityFactsTooltip"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i></div>');
+			
+			$.ajax({
+				url: url,
+				statusCode: {
+					// No info was found:
+					404: function() {
+						var tooltipHtml =
+							'<div class="akEntityFactsTooltip">' +
+								'<strong>Keine weiteren Infos verfügbar</strong><div class="akEntityFactsTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
+							'</div>';
+						$(tooltipLink).after(tooltipHtml)
+				    }
+				},
+				success: function(result) {					
+					// General info
+					var preferredName = (result.preferredName != undefined) ? '<tr><th>Name:</th><td>' + result.preferredName + '</td></tr>' : '';
+					
+					// Person info
+					var placeOfBirth = (result.placeOfBirth != undefined) ? ' (' + result.placeOfBirth[0].preferredName + ')' : '';
+					var dateOfBirth = (result.dateOfBirth != undefined) ? '<tr><th>Geboren:</th><td>' + result.dateOfBirth + placeOfBirth + '</td></tr>' : '';
+					var placeOfDeath = (result.placeOfDeath != undefined) ? ' (' + result.placeOfDeath[0].preferredName + ')' : '';
+					var dateOfDeath = (result.dateOfDeath != undefined) ? '<tr><th>Gestorben:</th><td>' + result.dateOfDeath + placeOfDeath + '</td></tr>' : '';
+					var gender = (result.gender != undefined) ? '<tr><th>Geschlecht:</th><td>' + result.gender.label + '</td></tr>' : '';
+					var arrPlaceOfActivity = (result.placeOfActivity != undefined) ? result.placeOfActivity : null;
+					var strPlaceOfActivity = '';
+					var htmlPlaceOfActivity = '';
+					if (arrPlaceOfActivity != null) {
+						for (i in arrPlaceOfActivity) {
+							strPlaceOfActivity += arrPlaceOfActivity[i].preferredName + '<br>';
+						}
+						htmlPlaceOfActivity = '<tr><th>Wirkungsort:</th><td>' + strPlaceOfActivity + '</td></tr>';
+					}
+					var arrOccupation = (result.professionOrOccupation != undefined) ? result.professionOrOccupation : null;
+					var strOccupation = '';
+					var htmlOccupation = '';
+					if (arrOccupation != null) {
+						for (i in arrOccupation) {
+							strOccupation += arrOccupation[i].preferredName + '<br>';
+						}
+						htmlOccupation = '<tr><th>Beruf:</th><td>' + strOccupation + '</td></tr>';
+					}
+					var biographicalOrHistoricalInformation = (result.biographicalOrHistoricalInformation != undefined) ? '<tr><th>Sonstiges:</th><td>' + result.biographicalOrHistoricalInformation + '</td></tr>' : '';
+					
+					// Corporation info
+					var arrDateOfEstablishment = (result.dateOfEstablishment != undefined) ? result.dateOfEstablishment : null;
+					console.log(arrDateOfEstablishment);
+					var strDateOfEstablishment = '';
+					var htmlDateOfEstablishment = '';
+					if (arrDateOfEstablishment != null) {
+						for (i in arrDateOfEstablishment) {
+							strDateOfEstablishment += arrDateOfEstablishment[i] + '<br>';
+						}
+						htmlDateOfEstablishment = '<tr><th>Gründung:</th><td>' + strDateOfEstablishment + '</td></tr>';
+					}
+					var placeOfBusiness = (result.placeOfBusiness != undefined) ? '<tr><th>Sitz:</th><td>' + result.placeOfBusiness[0].preferredName  + '</td></tr>': '';
+					var topic = (result.topic != undefined) ? '<tr><th>Thema:</th><td>' + result.topic[0].preferredName  + '</td></tr>': '';
+					var precedingOrganisation = (result.precedingOrganisation != undefined) ? '<tr><th>Vorgänger:</th><td>' + result.precedingOrganisation[0].preferredName  + '</td></tr>': '';
+						
+					
+					// Construction of tooltip html:
+					var resultHtml =
+						'<strong>Weitere Infos</strong><div class="akEntityFactsTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
+						'<div class="akClearer"></div>' + 
+						'<table class="akEntitiyFactsTable">' +
+							preferredName + 
+							dateOfBirth +
+							dateOfDeath +
+							gender +
+							htmlPlaceOfActivity +
+							htmlOccupation +
+							biographicalOrHistoricalInformation +
+							htmlDateOfEstablishment +
+							placeOfBusiness +
+							topic +
+							precedingOrganisation +
+						'</table>';
+					
+					// Remove "loading" spinner:
+					$('.fa-cog').remove();
+					
+					// Add result html to tooltip
+					$(resultHtml).appendTo('.akEntityFactsTooltip');
+				},
+				dataType: 'json'
+			});
+		} else {
+			// Remove entity facts tooltip on second click on "I":
+			$('.akEntityFactsTooltip').remove();
+			isAkEntityFactsTooltipOpen = false;
+		}
+	});
+	
+	
+	// Remove entity facts tooltip on click on "X":
+	$("body").on("click", ".akEntityFactsTooltipClose", function(event) {
+		if (isAkEntityFactsTooltipOpen) {
+			console.log("Close");
+			$(this).closest('.akEntityFactsTooltip').remove();
+			isAkEntityFactsTooltipOpen = false;
+		}
+	});
+	
+	// Remove entity facts tooltip on click outside tooltip:
+	$(document).click(function(e) {
+		var container = $('.akEntityFactsTooltip');		
+		if (!container.is(e.target) && container.has(e.target).length === 0 && $(event.target).hasClass('akEntityFactsInfo') == false) {
+			$(container).remove();
+			isAkEntityFactsTooltipOpen = false;
+		}
+	});
+
 
 });
+
+
