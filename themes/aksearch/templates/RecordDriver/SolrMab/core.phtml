@@ -183,7 +183,8 @@
 						echo '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'">';
 							echo $this->escapeHtml(str_replace(array("<", ">"), "", $name));
 						echo '</a>';
-						
+						/*
+						// Problem with HTTPS
 						// If a (valid) GND no. was found, display a "i"nfo-circle and open a tooltip when clicked on it:
 						if (isset($gnd) &&
 							!empty($gnd) &&
@@ -195,6 +196,7 @@
 							) {
 							echo '&nbsp;&nbsp;<span class="akEntityFactsOpener" data-url="https://hub.culturegraph.org/entityfacts/'.preg_replace('/\(.*?\)/', '', $gnd).'"><i class="fa fa-info-circle akEntityFactsInfo" aria-hidden="true"></i></span>';
 						}
+						*/
 						echo '<br/>';
 					}
 				echo '</td>';
