@@ -50,6 +50,9 @@ $(document).ready(function() {
 	});
 
 	
+	
+
+	
 	// Getting entity facts:
 	$('.akEntityFactsOpener').click (function() {
 		if (!isAkEntityFactsTooltipOpen) {
@@ -61,14 +64,15 @@ $(document).ready(function() {
 			
 			$.ajax({
 				url: url,
+				dataType: 'json',
 				statusCode: {
 					// No info was found:
 					404: function() {
-						var tooltipHtml =
+						var resultHtml =
 							'<div class="akEntityFactsTooltip">' +
 								'<strong>Keine weiteren Infos verfügbar</strong><div class="akEntityFactsTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
 							'</div>';
-						$(tooltipLink).after(tooltipHtml)
+						$(tooltipLink).after(resultHtml)
 				    }
 				},
 				success: function(result) {					
@@ -140,8 +144,7 @@ $(document).ready(function() {
 					
 					// Add result html to tooltip
 					$(resultHtml).appendTo('.akEntityFactsTooltip');
-				},
-				dataType: 'json'
+				}
 			});
 		} else {
 			// Remove entity facts tooltip on second click on "I":
@@ -149,6 +152,7 @@ $(document).ready(function() {
 			isAkEntityFactsTooltipOpen = false;
 		}
 	});
+	
 	
 	
 	// Remove entity facts tooltip on click on "X":
@@ -163,7 +167,7 @@ $(document).ready(function() {
 	// Remove entity facts tooltip on click outside tooltip:
 	$(document).click(function(e) {
 		var container = $('.akEntityFactsTooltip');		
-		if (!container.is(e.target) && container.has(e.target).length === 0 && $(event.target).hasClass('akEntityFactsInfo') == false) {
+		if (!container.is(e.target) && container.has(e.target).length === 0 && $(e.target).hasClass('akEntityFactsInfo') == false) {
 			$(container).remove();
 			isAkEntityFactsTooltipOpen = false;
 		}
