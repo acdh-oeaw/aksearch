@@ -13,7 +13,7 @@ error_reporting(- 1);
   
 
   // Test entity facts via PHP
-  $this->driver->getEntityFact('gndId');
+  //$this->driver->getEntityFact('118540238');
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
   <? $QRCode = $this->record($this->driver)->getQRCode("core"); 
@@ -191,8 +191,27 @@ error_reporting(- 1);
 							echo $this->escapeHtml(str_replace(array("<", ">"), "", $name));
 						echo '</a>';
 						
-						// Problem with HTTPS
+						// Entity Facts:
+						
+						// Test via PHP curl (Zend Http Object)
+						if (isset($gnd) &&
+							!empty($gnd) &&
+							$gnd != 'NoGndId' &&
+							!preg_match('/^BIP/', $gnd) &&
+							!preg_match('/PND$/', $gnd) &&
+							!preg_match('/^BIK/', $gnd) &&
+							!preg_match('/GKD$/', $gnd)
+							) {
+								/*
+								echo '<pre>';
+								print_r($this->driver->getEntityFact(preg_replace('/\(.*?\)/', '', $gnd)));
+								echo '</pre>';
+								*/
+								echo '&nbsp;&nbsp;<span class="akEntityFactsOpener" data-gndid="'.preg_replace('/\(.*?\)/', '', $gnd).'"><i class="fa fa-info-circle akEntityFactsInfo" aria-hidden="true"></i></span>';
+							}
+						
 						/*
+						// PROBLEM: jQuery Ajax Call - Problem with ajax GET to http from https
 						// If a (valid) GND no. was found, display a "i"nfo-circle and open a tooltip when clicked on it:
 						if (isset($gnd) &&
 							!empty($gnd) &&
