@@ -32,7 +32,9 @@ use VuFind\Exception\ILS as ILSException;
 use VuFind\RecordDriver\SolrDefault as SolrDefault;
 use ProxyManagerTestAsset\EmptyClass;
 
-class SolrMab extends SolrDefault {
+class SolrMab extends SolrDefault implements \VuFindHttp\HttpServiceAwareInterface {
+	
+	use \VuFindHttp\HttpServiceAwareTrait;
 
      /**
      * ILS connection
@@ -97,6 +99,33 @@ class SolrMab extends SolrDefault {
     		'corporateAuthor2NameGnd_txt_mv'*/
     ];
     
+    
+    
+    /**
+     * Call entity facts API (BETA)
+     * 
+     * @return JSON
+     */
+    public function getEntityFact($gndId) {
+    	
+    	// Example: http://hub.culturegraph.org/entityfacts/118540238
+    	$gndId = '118540238';
+    	$client = $this->httpService->createClient('http://hub.culturegraph.org/entityfacts/'.$gndId);
+    	$client->setMethod('GET');
+    	$result = $client->send();
+    	
+    	if (!$result->isSuccess()) {
+    		throw new ILSException('HTTP error');
+    	}
+    	$answer = $result->getBody();
+    	
+    	/*
+    	echo '<pre>';
+    	//print_r($client->getLastRequest ());
+    	print_r($answer);
+    	echo '</pre>';
+    	*/
+    }
     
     /**
      * Pick one line from the highlighted text (if any) to use as a snippet.
