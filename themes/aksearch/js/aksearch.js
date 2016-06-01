@@ -88,7 +88,6 @@ $(document).ready(function() {
 					
 					// Check for error
 					if (status == 'ERROR') {
-						console.log(status);
 						var errorMsg = resultString.data
 						var resultHtml =
 							'<div class="akEntityFactsTooltip">' +
@@ -146,7 +145,6 @@ $(document).ready(function() {
 					
 					// Corporation info
 					var arrDateOfEstablishment = (result.dateOfEstablishment != undefined) ? result.dateOfEstablishment : null;
-					console.log(arrDateOfEstablishment);
 					var strDateOfEstablishment = '';
 					var htmlDateOfEstablishment = '';
 					if (arrDateOfEstablishment != null) {
@@ -197,7 +195,6 @@ $(document).ready(function() {
 	// Remove entity facts tooltip on click on "X":
 	$("body").on("click", ".akEntityFactsTooltipClose", function(event) {
 		if (isAkEntityFactsTooltipOpen) {
-			console.log("Close");
 			$(this).closest('.akEntityFactsTooltip').remove();
 			isAkEntityFactsTooltipOpen = false;
 		}
