@@ -171,11 +171,11 @@ $(document).ready(function() {
 							gender +
 							htmlPlaceOfActivity +
 							htmlOccupation +
-							biographicalOrHistoricalInformation +
 							htmlDateOfEstablishment +
 							placeOfBusiness +
 							topic +
 							precedingOrganisation +
+							biographicalOrHistoricalInformation +
 						'</table>';
 					
 					// Remove "loading" spinner:
