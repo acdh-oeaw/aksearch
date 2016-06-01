@@ -175,6 +175,10 @@ a {
 	background: none repeat scroll 0 0 #be0021;
 }
 
+.akSearchbox button {
+	margin-bottom: 0;
+}
+
 .akSearchbox input[type="text"], .akSearchbox #searchForm_type {
 	background: none repeat scroll 0 0 #fff;
     border: 0 none;
@@ -182,9 +186,16 @@ a {
     font-size: 1em;
     height: 24px;
     line-height: 25px;
-    margin: 1px 0 0 0;
-    padding: 0 5px 0 8px;
+    margin: 1px 0 0 0;    
+    padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 8px;
     border-radius: 0px;
+}
+
+.akSearchbox input[type="text"] {
+	padding-right: 5px;
 }
 
 .akSearchbox label {
