@@ -56,13 +56,12 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 		$client->setMethod('GET');
 		$result = $client->send();
 		
-		
+		// If an error occurs
 		if (!$result->isSuccess()) {
-			throw new Exception('AJAX error');
+			return $this->output($this->translate('An error has occurred'), self::STATUS_ERROR);
 		}
-		
+				
 		$json = $result->getBody();
-
 		return $this->output($json, self::STATUS_OK);		
 
 	}

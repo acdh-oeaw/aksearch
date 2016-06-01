@@ -54,22 +54,9 @@ $(document).ready(function() {
 
 	
 	// Getting entity facts:
-	
 	// Ajax call via PHP
 	$('.akEntityFactsOpener').click (function() {
-		
-		/*
-		var gndid = $(this).data('gndid');
-		var url = path + '/AJAX/JSON?' + $.param({method:'getEntityFact', gndid:gndid});
-		$.ajax({
-			url: url,
-			//dataType: 'json',
-			success: function(result) {
-				alert(result);
-			}
-		});
-		*/
-		
+
 		// http://localhost/aksearch/AJAX/JSON?method=getEntityFact&gndid=119130823
 		
 		
@@ -92,15 +79,37 @@ $(document).ready(function() {
 							'<div class="akEntityFactsTooltip">' +
 								'<strong>Keine weiteren Infos verfügbar</strong><div class="akEntityFactsTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
 							'</div>';
-						$(tooltipLink).after(resultHtml)
+						
+						// Remove "loading" spinner:
+						$('.fa-cog').remove();
+					
+						// Add result html to tooltip
+						$(resultHtml).appendTo('.akEntityFactsTooltip');
 				    }
 				},
 				success: function(resultString) {
+					//console.log(resultString);
+					var status = resultString.status;
+					if (status == 'ERROR') {
+						console.log(status);
+						var errorMsg = resultString.data
+						var resultHtml =
+							'<div class="akEntityFactsTooltip">' +
+								'<strong>'+errorMsg+'</strong><div class="akEntityFactsTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
+							'</div>';
+						
+						// Remove "loading" spinner:
+						$('.fa-cog').remove();
 					
-
+						// Add result html to tooltip
+						$(resultHtml).appendTo('.akEntityFactsTooltip');
+					
+						return false;
+					}
+					
 					// Turn result (comes as string) into a JSON object:
-					var result = JSON.parse(resultString.data);					
-					console.log(result);
+					var result = JSON.parse(resultString.data);
+					//console.log(result);
 					
 					// General info
 					var preferredName = (result.preferredName != undefined) ? '<tr><th>Name:</th><td>' + result.preferredName + '</td></tr>' : '';
