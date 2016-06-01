@@ -28,28 +28,17 @@
  */
 namespace AkSearch\Controller;
 
-use Exception;
-
-// Show PHP errors:
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(- 1);
-
 class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuFindHttp\HttpServiceAwareInterface {
 
 	use \VuFindHttp\HttpServiceAwareTrait;
 	
 	/**
-	 * Call entity facts API (BETA)
-	 *
+	 * Call entity facts API
+	 * Example: http://hub.culturegraph.org/entityfacts/118540238
+	 * 
 	 * @return JSON
 	 */
 	public function getEntityFactAjax() {
-		
-		// Example: http://hub.culturegraph.org/entityfacts/118540238
-		// $gndId = '118540238';
-		
-		
 		$this->outputMode = 'json';
 		$gndid = $this->params()->fromQuery('gndid');
 		$client = $this->getServiceLocator()->get('VuFind\Http')->createClient('http://hub.culturegraph.org/entityfacts/' . $gndid);
