@@ -34,6 +34,7 @@ function ajaxLoadTab(tabid) {
 	// Request the tab via AJAX:
 	$.ajax({
 		url: path + urlroot + '/AjaxTab',
+		cache: false,
 		type: 'POST',
 		data: {tab: tabid},
 		success: function(data) {

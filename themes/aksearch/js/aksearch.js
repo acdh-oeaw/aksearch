@@ -17,6 +17,7 @@ $(document).ready(function() {
 			var searcher = extractClassParams('.autocomplete');
 			$.ajax({
 				url: path + '/AJAX/JSON',
+				cache: false,
 				data: {
 					q:query,
 					method:'getACSuggestions',
@@ -67,6 +68,7 @@ $(document).ready(function() {
 			
 			$.ajax({
 				url: url,
+				cache: false,
 				dataType: 'json',
 				statusCode: {
 					// No info was found:
