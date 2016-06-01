@@ -191,9 +191,10 @@ error_reporting(- 1);
 							echo $this->escapeHtml(str_replace(array("<", ">"), "", $name));
 						echo '</a>';
 						
-						// Entity Facts:
 						
-						// Test via PHP curl (Zend Http Object)
+						
+						// Entity Facts via PHP curl (Zend Http Object)
+						// See also AkSearch\Controller\AkAjaxController and aksearch.js in folder "themes/aksearch/js" 
 						if (isset($gnd) &&
 							!empty($gnd) &&
 							$gnd != 'NoGndId' &&
@@ -202,29 +203,8 @@ error_reporting(- 1);
 							!preg_match('/^BIK/', $gnd) &&
 							!preg_match('/GKD$/', $gnd)
 							) {
-								/*
-								echo '<pre>';
-								print_r($this->driver->getEntityFact(preg_replace('/\(.*?\)/', '', $gnd)));
-								echo '</pre>';
-								*/
 								echo '&nbsp;&nbsp;<span class="akEntityFactsOpener" data-gndid="'.preg_replace('/\(.*?\)/', '', $gnd).'"><i class="fa fa-info-circle akEntityFactsInfo" aria-hidden="true"></i></span>';
 							}
-						
-						/*
-						// PROBLEM: jQuery Ajax Call - Problem with ajax GET to http from https
-						// If a (valid) GND no. was found, display a "i"nfo-circle and open a tooltip when clicked on it:
-						if (isset($gnd) &&
-							!empty($gnd) &&
-							$gnd != 'NoGndId' &&
-							!preg_match('/^BIP/', $gnd) &&
-							!preg_match('/PND$/', $gnd) &&
-							!preg_match('/^BIK/', $gnd) &&
-							!preg_match('/GKD$/', $gnd)
-							) {
-							echo '&nbsp;&nbsp;<span class="akEntityFactsOpener" data-url="http://hub.culturegraph.org/entityfacts/'.preg_replace('/\(.*?\)/', '', $gnd).'"><i class="fa fa-info-circle akEntityFactsInfo" aria-hidden="true"></i></span>';
-						}
-						*/
-						
 						echo '<br/>';
 					}
 				echo '</td>';
