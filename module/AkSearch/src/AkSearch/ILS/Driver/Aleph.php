@@ -40,6 +40,11 @@ use VuFind\ILS\Driver\AlephTranslator as AlephTranslatorDefault;
 use VuFind\ILS\Driver\AlephRestfulException as AlephRestfulExceptionDefault;
 
 
+// Show PHP errors:
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(- 1);
+
 class Aleph extends AlephDefault {
 
 	
@@ -427,8 +432,7 @@ class Aleph extends AlephDefault {
 	 * @param int $fundId			Optional fund ID to use for limiting results (use a value returned by getFunds, or exclude for no limit); note that "fund" may be a misnomer - if funds are not an appropriate way to limit your new item results, you can return a different set of values from getFunds. The important thing is that this parameter supports an ID returned by getFunds, whatever that may mean.
 	 * @return array				Associative array with 'count' and 'results' keys
 	 */
-	public function getNewItemsArray($page, $limit, $daysOld, $fundId = null)
-    {
+	public function getNewItemsArray($page, $limit, $daysOld, $fundId = null) {
     	$newItems = null;
     	
     	$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
@@ -488,6 +492,95 @@ class Aleph extends AlephDefault {
 		
 		return $newItems;
     }
+    
+    
+    /**
+     * Change password
+     * If a function with the name "changePassword" exists and option "change_password" in config.ini is set to "true",
+     * a menu item that leads to a form for changing the pasword will appear on the user account page of a logged in user.
+     * 
+     * @param array $details An array of patron id and old and new password:
+     * 'patron'      The patron array from patronLogin
+     * 'oldPassword' Old password
+     * 'newPassword' New password
+     *
+     * @return array An array of data on the request including
+     * whether or not it was successful and a system message (if available)
+     * 
+     */
+    public function changePassword($details) {
+    	
+    	$statusMessage = 'Changing password not successful!';
+    	$success = false;
+    	
+    	$patron = $details['patron'];
+    	$barcode = trim(htmlspecialchars($patron['barcode'], ENT_COMPAT, 'UTF-8'));
+    	$catPassword = trim(htmlspecialchars($patron['cat_password'], ENT_COMPAT, 'UTF-8'));
+		
+    	$oldPassword = trim(htmlspecialchars($details['oldPassword'], ENT_COMPAT, 'UTF-8'));
+    	$newPassword = trim(htmlspecialchars($details['newPassword'], ENT_COMPAT, 'UTF-8'));
+    	
+    	if ($catPassword == $oldPassword) {
+    		if (strlen($newPassword) >= 4) {
+    			
+    			// Set XML string for updating patron:
+    			$xml_string = '<?xml version="1.0"?>
+								<p-file-20>
+									<patron-record>
+										<z303>
+											<match-id-type>01</match-id-type>
+											<match-id>' . $barcode . '</match-id>
+											<record-action>U</record-action>
+											<z303-user-library>AKW50</z303-user-library>
+											<z303-home-library>XAW1</z303-home-library>
+										</z303>
+										<z308>
+											<record-action>A</record-action>
+											<z308-key-type>01</z308-key-type>
+											<z308-key-data>' . $barcode . '</z308-key-data>
+											<z308-verification>' . $newPassword . '</z308-verification>
+											<z308-verification-type>00</z308-verification-type>
+											<z308-status>AC</z308-status>
+											<z308-encryption>N</z308-encryption>
+										</z308>
+									</patron-record>
+								</p-file-20>
+								';
+    			
+    			// Remove whitespaces from XML string:
+    			$xml_string = preg_replace("/\n/i", "", $xml_string);
+    			$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
+
+    			$xParams = ['library' => 'AKW50', 'update-flag' => 'N', 'xml_full_req' => $xml_string];
+    			$xResult = $this->doXRequest('update-bor', $xParams, false);
+    			
+    			echo '<pre>';
+    			print_r($xResult);
+    			echo '</pre>';
+    			
+    		} else {
+    			$statusMessage = 'Minimum lenght of password is 4 characters';
+    			$success = false;
+    		}
+    	} else {
+    		$statusMessage = 'Old password is wrong';
+    		$success = false;
+    	}
+    	
+    	$returnArray = array('success' => $success, 'status' => $statusMessage);
+    	
+    	return $returnArray;
+    }
+    
+    
+    /**
+     * Changing the data of a user
+     * 
+     */
+    public function changeUserData() {
+    	
+    }
+    
     
     
 	/* ################################################################################################## */
