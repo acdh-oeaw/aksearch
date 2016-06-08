@@ -549,10 +549,14 @@ class Aleph extends AlephDefault {
     			$xParams = ['library' => 'AKW50', 'update-flag' => 'Y', 'xml_full_req' => $xml_string];
     			$xResult = $this->doXRequest('update-bor', $xParams, false);
     			
+    			$statusMessage = 'Changed password';
+    			$success = true;
+    			
+    			/*
     			echo '<pre>';
     			print_r($xResult);
     			echo '</pre>';
-    			
+				*/    			
     		} else {
     			$statusMessage = 'Minimum lenght of password is 4 characters';
     			$success = false;
