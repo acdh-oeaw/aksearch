@@ -71,11 +71,11 @@ class Aleph extends AlephDefault {
 		}
 
 		$result = $this->doHTTPRequest($url);
-		if ($result->error && $result->error != 'empty set') { // Excluding "empty set" prevents error message for empty "getNewItems" result
+		if ($result->error && $result->error != 'empty set' && strpos($result-error, 'Succeeded to REWRITE table z303', 0) !== false) { // Excluding "empty set" prevents error message for empty "getNewItems" result
 			if ($this->debug_enabled) {
-				$this->debug("XServer error, URL is $url, error message: $result->error.");
+				$this->debug("XServer error, URL is $url, error message: $result->error");
 			}
-			throw new ILSException("XServer error: $result->error.");
+			throw new ILSException("XServer error: $result->error");
 		}
 		return $result;
 	}
