@@ -546,7 +546,7 @@ class Aleph extends AlephDefault {
     			$xml_string = preg_replace("/\n/i", "", $xml_string);
     			$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
 
-    			$xParams = ['library' => 'AKW50', 'update-flag' => 'N', 'xml_full_req' => $xml_string];
+    			$xParams = ['library' => 'AKW50', 'update-flag' => 'Y', 'xml_full_req' => $xml_string];
     			$xResult = $this->doXRequest('update-bor', $xParams, false);
     			
     			echo '<pre>';
