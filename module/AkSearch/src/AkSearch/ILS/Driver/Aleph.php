@@ -30,6 +30,7 @@
 namespace AkSearch\ILS\Driver;
 
 use VuFind\Exception\ILS as ILSException;
+use VuFind\Exception\Auth as AuthException;
 use Zend\Log\LoggerInterface;
 use VuFindHttp\HttpServiceInterface;
 use DateTime;
@@ -270,7 +271,7 @@ class Aleph extends AlephDefault {
 	 * @return mixed          Associative array of patron info on successful login, null on unsuccessful login.
 	 */
 	public function patronLogin($user, $password) {
-		
+				
 		// Example: https://aleph22-prod-sh2.obvsg.at/X?op=bor-auth&library=AKW50&bor_id=BARCODE&verification=PASSWORD
 		
 		if ($password == null) {
@@ -281,11 +282,6 @@ class Aleph extends AlephDefault {
 		
 		try {
 			$xml = $this->doXRequest('bor-auth', ['library' => $this->useradm, 'bor_id' => $user, 'verification' => $password], false);
-			/*
-			echo '<pre>';
-			print_r($xml);
-			echo '</pre>';
-			*/
 		} catch (\Exception $ex) {
 			throw new ILSException($ex->getMessage());
 		}
@@ -294,13 +290,16 @@ class Aleph extends AlephDefault {
 		
 		// E. g. 403 error "Forbidden"
 		if (isset($xmlErrorTitle)) {
-			throw new ILSException($xmlErrorTitle);
+			throw new AuthException($xmlErrorTitle);
 		}
 		
-		// Aleph interface error (e. g. Verification error)
+		// Aleph interface error (e. g. verification error)
 		$borauthError = ($xml->error != null && !empty($xml->error)) ? (string)$xml->error : null;
 		if (isset($borauthError)) {
-			throw new ILSException($borauthError);
+			if ($borauthError == 'Error in Verification') {
+				return null; // Show message for wrong user credentials
+			}
+			throw new AuthException($borauthError);
 		}
 		
 		$patron = [];
@@ -330,12 +329,7 @@ class Aleph extends AlephDefault {
 		$patron['cat_password'] = $password;
 		$patron['email'] = (string) $email_addr;
 		$patron['major'] = null;
-		
-		/*
-		echo '<pre>';
-		print_r($patron);
-		echo '</pre>';
-		*/
+
 		return $patron;
 	}
 
