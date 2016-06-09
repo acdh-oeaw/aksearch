@@ -254,6 +254,90 @@ class Aleph extends AlephDefault {
 			throw new \Exception("Invalid date: $date");
 		}
 	}
+	
+	
+	/**
+	 * Patron Login
+	 *
+	 * This is responsible for authenticating a patron against the catalog.
+	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
+	 * Modified by AK Bibliothek Wien (Michael Birkner): Login was possible even thoug user was not registered in ILS
+	 * 
+	 * @param string $user     The patron username
+	 * @param string $password The patron's password
+	 *
+	 * @throws ILSException
+	 * @return mixed          Associative array of patron info on successful login, null on unsuccessful login.
+	 */
+	public function patronLogin($user, $password) {
+		
+		// Example: https://aleph22-prod-sh2.obvsg.at/X?op=bor-auth&library=AKW50&bor_id=BARCODE&verification=PASSWORD
+		
+		if ($password == null) {
+			$temp = ["id" => $user];
+			$temp['college'] = $this->useradm;
+			return $this->getMyProfile($temp);
+		}
+		
+		try {
+			$xml = $this->doXRequest('bor-auth', ['library' => $this->useradm, 'bor_id' => $user, 'verification' => $password], false);
+			/*
+			echo '<pre>';
+			print_r($xml);
+			echo '</pre>';
+			*/
+		} catch (\Exception $ex) {
+			throw new ILSException($ex->getMessage());
+		}
+		
+		$xmlErrorTitle = ($xml->head->title != null && !empty($xml->head->title)) ? (string)$xml->head->title : null;
+		
+		// E. g. 403 error "Forbidden"
+		if (isset($xmlErrorTitle)) {
+			throw new ILSException($xmlErrorTitle);
+		}
+		
+		// Aleph interface error (e. g. Verification error)
+		$borauthError = ($xml->{'bor-auth'}->error != null && !empty($xml->{'bor-auth'}->error)) ? (string)$xml->{'bor-auth'}->error : null;
+		if (isset($borauthError)) {
+			throw new ILSException($borauthError);
+		}
+		
+		$patron = [];
+		$name = $xml->z303->{'z303-name'};
+		if (strstr($name, ",")) {
+			list($lastName, $firstName) = explode(",", $name);
+		} else {
+			$lastName = $name;
+			$firstName = "";
+		}
+		$email_addr = $xml->z304->{'z304-email-address'};
+		$id = $xml->z303->{'z303-id'};
+		$home_lib = $xml->z303->z303_home_library;
+		// Default the college to the useradm library and overwrite it if the
+		// home_lib exists
+		$patron['college'] = $this->useradm;
+		if (($home_lib != '') && (array_key_exists("$home_lib", $this->sublibadm))) {
+			if ($this->sublibadm["$home_lib"] != '') {
+				$patron['college'] = $this->sublibadm["$home_lib"];
+			}
+		}
+		$patron['id'] = (string) $id;
+		$patron['barcode'] = (string) $user;
+		$patron['firstname'] = (string) $firstName;
+		$patron['lastname'] = (string) $lastName;
+		$patron['cat_username'] = (string) $user;
+		$patron['cat_password'] = $password;
+		$patron['email'] = (string) $email_addr;
+		$patron['major'] = null;
+		
+		/*
+		echo '<pre>';
+		print_r($patron);
+		echo '</pre>';
+		*/
+		return $patron;
+	}
 
 	
 	
