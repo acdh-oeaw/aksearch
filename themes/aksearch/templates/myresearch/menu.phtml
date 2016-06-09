@@ -74,7 +74,7 @@
     
     <!-- Added by AK Bibliothek Wien - Begin -->
     <? if ($this->auth()->getManager()->supportsUserDataChange()): ?>
-    <a href="<?=$this->url('myresearch-changepassword') ?>" class="list-group-item<?=$this->active == 'newpassword' ? ' active' : ''?>">
+    <a href="<?=$this->url('aksites-changeuserdata') ?>" class="list-group-item<?=$this->active == 'changeuserdata' ? ' active' : ''?>">
       <?=$this->transEsc('Change UserData') ?>
       <span class="pull-right flip"><i class="fa fa-fw fa-pencil"></i></span>
     </a>
