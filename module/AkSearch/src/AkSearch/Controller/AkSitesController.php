@@ -38,9 +38,52 @@ class AkSitesController extends AbstractBase
 	 * 
 	 * @return \Zend\View\Model\ViewModel
 	 */
-	public function aboutAction()
-	{
+	public function aboutAction() {
 		return $this->createViewModel();
+	}
+	
+	/**
+	 * Call action to go to "change user data" page.
+	 *
+	 * @return \Zend\View\Model\ViewModel
+	 */
+	public function changeUserDataAction() {
+		// This shows the login form if the user is not logged in when in route /AkSites/ChangeUserData:
+		if (!is_array($patron = $this->catalogLogin())) {
+			return $patron;
+		}
+		
+		// User must be logged in at this point, so we can assume this is non-false:
+		$user = $this->getUser();
+		
+		// Process home library parameter (if present):
+		$homeLibrary = $this->params()->fromPost('home_library', false);
+		if (!empty($homeLibrary)) {
+			$user->changeHomeLibrary($homeLibrary);
+			$this->getAuthManager()->updateSession($user);
+			$this->flashMessenger()->addMessage('profile_update', 'success');
+		}
+		
+		// Begin building view object:
+		$view = $this->createViewModel();
+		
+		// Obtain user information from ILS:
+		$catalog = $this->getILS();
+		$profile = $catalog->getMyProfile($patron);
+		$profile['home_library'] = $user->home_library;
+		$view->profile = $profile;
+		try {
+			$view->pickup = $catalog->getPickUpLocations($patron);
+			$view->defaultPickupLocation = $catalog->getDefaultPickUpLocation($patron);
+		} catch (\Exception $e) {
+			// Do nothing; if we're unable to load information about pickup
+			// locations, they are not supported and we should ignore them.
+		}
+		
+		return $view;
+		
+		
+		//return $this->createViewModel();
 	}
 }
 
