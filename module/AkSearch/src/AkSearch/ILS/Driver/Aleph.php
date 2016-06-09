@@ -299,6 +299,7 @@ class Aleph extends AlephDefault {
 		
 		// Aleph interface error (e. g. Verification error)
 		$borauthError = ($xml->{'bor-auth'}->error != null && !empty($xml->{'bor-auth'}->error)) ? (string)$xml->{'bor-auth'}->error : null;
+		echo $borauthError;
 		if (isset($borauthError)) {
 			throw new ILSException($borauthError);
 		}
