@@ -333,8 +333,134 @@ class Aleph extends AlephDefault {
 
 		return $patron;
 	}
+	
+	
+	/**
+	 * Overriding "getMyProfile" method using X-server from original VuFind Aleph driver.
+	 * For our goals (changing user data) we need to gather more information (e. g. ALL
+	 * address lines and second phone number).
+	 *
+	 * @param array $user The patron array
+	 *
+	 * @throws ILSException
+	 * @return array      Array of the patron's profile data on success.
+	 */
+	public function getMyProfileX($user) {
+		// Example: curl https://aleph22-prod-sh2.obvsg.at/X?op=bor-info\&loans=N\&cash=N\&hold=N\&library=AKW50\&bor_id=BORID
+
+		$recordList = [];
+		if (!isset($user['college'])) {
+			$user['college'] = $this->useradm;
+		}
+		$xml = $this->doXRequest('bor-info', ['loans' => 'N', 'cash' => 'N', 'hold' => 'N', 'library' => $user['college'], 'bor_id' => $user['id']], false);
+		
+		$id = (string) $xml->z303->{'z303-id'};
+		// z304-address-0 is the patrons name field!
+		$address1 = (string) $xml->z304->{'z304-address-1'};
+		$address2 = (string) $xml->z304->{'z304-address-2'};
+		$address3 = (string) $xml->z304->{'z304-address-3'};
+		$address4 = (string) $xml->z304->{'z304-address-4'};
+		$zip = (string) $xml->z304->{'z304-zip'};
+		$email = (string) $xml->z304->{'z304-email-address'};
+		$email = trim($email);
+		$phone = (string) $xml->z304->{'z304-telephone'};
+		$phone2 = (string) $xml->z304->{'z304-telephone-2'};
+		$barcode = (string) $xml->z304->{'z304-address-0'};
+		$group = (string) $xml->z305->{'z305-bor-status'};
+		$expiry = (string) $xml->z305->{'z305-expiry-date'};
+		$credit_sum = (string) $xml->z305->{'z305-sum'};
+		$credit_sign = (string) $xml->z305->{'z305-credit-debit'};
+		$name = (string) $xml->z303->{'z303-name'};
+		if (strstr($name, ",")) {
+			list($lastname, $firstname) = explode(",", $name);
+		} else {
+			$lastname = $name;
+			$firstname = '';
+		}
+		if ($credit_sign == null) {
+			$credit_sign = 'C';
+		}
+		$recordList['firstname'] = $firstname;
+		$recordList['lastname'] = $lastname;
+		if (isset($email)) {
+			$recordList['email'] = $email;
+		} else if (isset($user['email'])) {
+			$recordList['email'] = trim($user['email']);
+		} else {
+			$recordList['email'] = null;
+		}
+		$recordList['address1'] = $address1;
+		$recordList['address2'] = $address2;
+		$recordList['address3'] = $address3;
+		$recordList['address4'] = $address4;
+		$recordList['zip'] = $zip;
+		$recordList['phone'] = $phone;
+		$recordList['phone2'] = $phone2;
+		$recordList['group'] = $group;
+		$recordList['barcode'] = $barcode;
+		$recordList['expire'] = $this->parseDate($expiry);
+		$recordList['credit'] = $expiry;
+		$recordList['credit_sum'] = $credit_sum;
+		$recordList['credit_sign'] = $credit_sign;
+		$recordList['id'] = $id;
+		return $recordList;
+	}
 
 	
+	/**
+	 * Overriding "getMyProfile" method using RESTful interface from original VuFind Aleph driver.
+	 * For our goals (changing user data) we need to gather more information (e. g. ALL
+	 * address lines and second phone number).
+	 * @param array $user The patron array
+	 *
+	 * @throws ILSException
+	 * @return array      Array of the patron's profile data on success.
+	 */
+	public function getMyProfileDLF($user) {
+		
+		// Example: curl https://aleph22-prod-sh2.obvsg.at/rest-dlf/patron/PATRON-ID/patronInformation/address
+		
+		$xml = $this->doRestDLFRequest(['patron', $user['id'], 'patronInformation', 'address']);
+		
+		$address = $xml->xpath('//address-information');
+		$address = $address[0];
+		// z304-address-0 does not exist in RESTful response!
+		// z304-address-1 is the name field!
+		$address1 = (string)$address->{'z304-address-2'};
+		$address2 = (string)$address->{'z304-address-3'};
+		$address3 = (string)$address->{'z304-address-4'};
+		$address4 = (string)$address->{'z304-address-5'};
+		$zip = (string)$address->{'z304-zip'};
+		$phone = (string)$address->{'z304-telephone-1'};
+		$phone2 = (string)$address->{'z304-telephone-2'};
+		$email = (string)$address->{'z404-email-address'};
+		$dateFrom = (string)$address->{'z304-date-from'};
+		$dateTo = (string)$address->{'z304-date-to'};
+		if (strpos($address2, ",") === false) {
+			$recordList['lastname'] = $address2;
+			$recordList['firstname'] = "";
+		} else {
+			list($recordList['lastname'], $recordList['firstname']) = explode(",", $address2);
+		}
+		$recordList['address1'] = $address1;
+		$recordList['address2'] = $address2;
+		$recordList['address3'] = $address3;
+		$recordList['address4'] = $address4;
+		$recordList['barcode'] = $address1;
+		$recordList['zip'] = $zip;
+		$recordList['phone'] = $phone;
+		$recordList['phone2'] = $phone2;
+		$recordList['email'] = $email;
+		$recordList['dateFrom'] = $dateFrom;
+		$recordList['dateTo'] = $dateTo;
+		$recordList['id'] = $user['id'];
+		$xml = $this->doRestDLFRequest(['patron', $user['id'], 'patronStatus', 'registration']);
+		$status = $xml->xpath("//institution/z305-bor-status");
+		$expiry = $xml->xpath("//institution/z305-expiry-date");
+		$recordList['expire'] = $this->parseDate($expiry[0]);
+		$recordList['group'] = $status[0];
+		return $recordList;
+	}
 	
 	/* ################################################################################################## */
 	/* ######################################### AkSearch Begin ######################################### */
