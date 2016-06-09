@@ -281,11 +281,11 @@ class Aleph extends AlephDefault {
 		
 		try {
 			$xml = $this->doXRequest('bor-auth', ['library' => $this->useradm, 'bor_id' => $user, 'verification' => $password], false);
-			/*
+			
 			echo '<pre>';
 			print_r($xml);
 			echo '</pre>';
-			*/
+			
 		} catch (\Exception $ex) {
 			throw new ILSException($ex->getMessage());
 		}
@@ -299,7 +299,6 @@ class Aleph extends AlephDefault {
 		
 		// Aleph interface error (e. g. Verification error)
 		$borauthError = ($xml->{'bor-auth'}->error != null && !empty($xml->{'bor-auth'}->error)) ? (string)$xml->{'bor-auth'}->error : null;
-		echo $borauthError;
 		if (isset($borauthError)) {
 			throw new ILSException($borauthError);
 		}
