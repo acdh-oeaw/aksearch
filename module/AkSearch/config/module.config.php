@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) AK Bibliothek Wien 2015.
+ * Copyright (C) AK Bibliothek Wien 2016.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -166,7 +166,8 @@ $config = [
     'service_manager' => [
         'allow_override' => true,
         'factories' => [
-            'VuFind\AuthManager' => 'VuFind\Auth\Factory::getManager',
+            //'VuFind\AuthManager' => 'VuFind\Auth\Factory::getManager',
+        	'VuFind\AuthManager' => 'AkSearch\Auth\Factory::getManager',
             'VuFind\AuthPluginManager' => 'VuFind\Service\Factory::getAuthPluginManager',
             'VuFind\AutocompletePluginManager' => 'VuFind\Service\Factory::getAutocompletePluginManager',
             'VuFind\CacheManager' => 'VuFind\Service\Factory::getCacheManager',
@@ -275,7 +276,8 @@ $config = [
             'auth' => [
                 'abstract_factories' => ['VuFind\Auth\PluginFactory'],
                 'factories' => [
-                    'ils' => 'VuFind\Auth\Factory::getILS',
+                    //'ils' => 'VuFind\Auth\Factory::getILS',
+                	'ils' => 'AkSearch\Auth\Factory::getILS',
                     'multiils' => 'VuFind\Auth\Factory::getMultiILS',
                 ],
                 'invokables' => [

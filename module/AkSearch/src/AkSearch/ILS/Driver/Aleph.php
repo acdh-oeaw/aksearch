@@ -288,10 +288,12 @@ class Aleph extends AlephDefault {
 		
 		$xmlErrorTitle = ($xml->head->title != null && !empty($xml->head->title)) ? (string)$xml->head->title : null;
 		
+		/*
 		// E. g. 403 error "Forbidden"
 		if (isset($xmlErrorTitle)) {
 			throw new AuthException($xmlErrorTitle);
 		}
+		*/
 		
 		// Aleph interface error (e. g. verification error)
 		$borauthError = ($xml->error != null && !empty($xml->error)) ? (string)$xml->error : null;
@@ -313,8 +315,7 @@ class Aleph extends AlephDefault {
 		$email_addr = $xml->z304->{'z304-email-address'};
 		$id = $xml->z303->{'z303-id'};
 		$home_lib = $xml->z303->z303_home_library;
-		// Default the college to the useradm library and overwrite it if the
-		// home_lib exists
+		// Default the college to the useradm library and overwrite it if the home_lib exists
 		$patron['college'] = $this->useradm;
 		if (($home_lib != '') && (array_key_exists("$home_lib", $this->sublibadm))) {
 			if ($this->sublibadm["$home_lib"] != '') {
