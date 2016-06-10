@@ -48,10 +48,14 @@ class Factory extends \VuFind\View\Helper\Root\Factory {
         );
     }
     
-    /*
-    public static function getAksearchConfig(ServiceManager $sm) {
-    	$akSearchConfig = $sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch');
-    	return $akSearchConfig;
+    /**
+     * Construct the Auth helper.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return Auth
+     */
+    public static function getAuth(ServiceManager $sm) {
+    	return new \AkSearch\View\Helper\Root\Auth($sm->getServiceLocator()->get('VuFind\AuthManager'));
     }
-    */
 }

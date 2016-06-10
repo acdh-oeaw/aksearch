@@ -1,24 +1,5 @@
-<?
-    // Set up page title:
-    $this->headTitle($this->translate('Change UserData'));
-
-    // Set up breadcrumbs:
-    $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li>' . '<li class="active">' . $this->transEsc('Change UserData') . '</li>';
-?>
-<? if ($this->auth()->isLoggedIn()): ?>
-  <div class="row">
-    <div class="<?=$this->layoutClass('mainbody')?>">
-<? endif; ?>
-
-<h2><?=$this->transEsc('Change UserData') ?></h2>
-<?=$this->flashmessages() ?>
-
-<? if (!$this->auth()->getManager()->supportsUserDataChange($this->auth_method)): ?>
-  <div class="error"><?=$this->transEsc('change_userdata_disabled') ?></div>
-<? else: ?>
-
-	<?php 
-	/*
+<?php 
+	
 	$address1 = (isset($this->profile['address1'])) ? $this->profile['address1'] : '';
 	$address2 = (isset($this->profile['address2'])) ? $this->profile['address2'] : '';
 	$address3 = (isset($this->profile['address3'])) ? $this->profile['address3'] : '';
@@ -27,6 +8,7 @@
 	$email = (isset($this->profile['email'])) ? $this->profile['email'] : '';
 	$phone = (isset($this->profile['phone'])) ? $this->profile['phone'] : '';
 	$phone2 = (isset($this->profile['phone2'])) ? $this->profile['phone2'] : '';
+	
 	
 	// For testing - comment out in production version:
 	$address1 = 'Address 1';
@@ -37,19 +19,14 @@
 	$email = 'eMail@test.at';
 	$phone = '123456789';
 	$phone2 = '987654321';
+	
+	/*
+	echo '<pre>';
+	print_r($this->profile);
+	echo '</pre>';
 	*/
-	//echo $_POST['cudAddress1'].'<br>';
-	?>
-
-	<?php
-	echo $this->auth()->getChangeUserDataForm();
-  
-  /*
-  <form id="changeUserData" class="form-horizontal" action="<?=$this->url('aksites-changeuserdata') ?>" method="post" data-toggle="validator" role="form">
-    <input type="hidden" value="<?=$this->escapeHtmlAttr($this->hash) ?>" name="hash"/>
-    <input type="hidden" value="<?=$this->escapeHtmlAttr($this->username) ?>" name="username"/>
-    <input type="hidden" value="<?=$this->escapeHtmlAttr($this->auth_method) ?>" name="auth_method"/>
-    <div>
+?>
+<div>
     <table class="table table-striped">
 	    <tbody>
 	    	<tr>
@@ -86,27 +63,4 @@
 	    	</tr>
 	    </tbody>
     </table>
-    </div>
-    <div class="form-group">
-      <div class="col-sm-9 col-sm-offset-3">
-        <?=$this->recaptcha()->html($this->useRecaptcha) ?>
-      </div>
-    </div>
-    <div class="form-group">
-      <div class="col-sm-9 col-sm-offset-3">
-        <input class="btn btn-primary" name="submit" type="submit" value="<?=$this->transEsc('Submit')?>" />
-      </div>
-    </div>
-  </form>
-  */
-  ?>
-<? endif; ?>
-
-
-<? if ($this->auth()->isLoggedIn()): ?>
-    </div>
-    <div class="<?=$this->layoutClass('sidebar')?>">
-      <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'changeuserdata'))?>
-    </div>
-  </div>
-<? endif; ?>
+</div>
