@@ -67,4 +67,25 @@ class Manager extends DefaultAuthManager {
         }
         return false;
     }
+    
+    /**
+     * Update user data from the request.
+     *
+     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing user data change details.
+     *
+     * @throws AuthException
+     *
+     * @return array Result array containing 'success' (true or false) and 'status' (status message)
+     */
+    public function updateUserData($request) {
+    	// 0. Click button in changeuserdata.phtml
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php->updateUserData()
+		// 4. Aleph.php->changeUserData();
+    	
+    	$result = $this->getAuth()->updateUserData($request);
+    	return $result;
+    }
+    
 }

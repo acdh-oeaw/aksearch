@@ -42,5 +42,45 @@ class ILS extends DefaultAuthILS {
     	$supportsUserDataChange = false !== $this->getCatalog()->checkCapability('changeUserData');
     	return $supportsUserDataChange;
     }
+    
+    /**
+     * Update user data from the request.
+     *
+     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing new account details.
+     *
+     * @throws \VuFind\Exception\Auth
+     * @return array Result array containing 'success' (true or false) and 'status' (status message)
+     */
+    public function updateUserData($request) {
+    	// 0. Click button in changeuserdata.phtml
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php->updateUserData()
+		// 4. Aleph.php->changeUserData();
+
+    	// Ensure that all expected parameters are populated to avoid notices in the code below.
+    	$params = [];
+    	foreach (['username', 'cudAddress1', 'cudAddress2', 'cudAddress3', 'cudAddress4', 'cudZip', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
+    		$params[$param] = $request->getPost()->get($param, '');
+    	}
+    
+    	$result = $this->getCatalog()->changeUserData([
+    			'username'	=> $params['username'],
+    			'address1'	=> $params['cudAddress1'],
+    			'address2'	=> $params['cudAddress2'],
+    			'address3'	=> $params['cudAddress3'],
+    			'address4'	=> $params['cudAddress4'],
+    			'zip'		=> $params['cudZip'],
+    			'email'		=> $params['cudEmail'],
+    			'phone'		=> $params['cudPhone'],
+    			'phone2'	=> $params['cudPhone2']
+    	]);
+    	
+    	if (!$result['success']) {
+    		throw new \VuFind\Exception\Auth($result['status']);
+    	}
+    	
+    	return $result;
+    }
 
 }

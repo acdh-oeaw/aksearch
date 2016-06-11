@@ -286,12 +286,11 @@ class Aleph extends AlephDefault {
 			throw new ILSException($ex->getMessage());
 		}
 		
-		$xmlErrorTitle = ($xml->head->title != null && !empty($xml->head->title)) ? (string)$xml->head->title : null;
-		
 		/*
-		// E. g. 403 error "Forbidden"
+		// Error handling from X-Server-Request (e. g. Error 403 "Forbidden")
+		$xmlErrorTitle = ($xml->head->title != null && !empty($xml->head->title)) ? (string)$xml->head->title : null;
 		if (isset($xmlErrorTitle)) {
-			throw new AuthException($xmlErrorTitle);
+			throw new AuthException($xmlErrorTitle. ': '. $xml->body->h1);
 		}
 		*/
 		
@@ -709,7 +708,7 @@ class Aleph extends AlephDefault {
      * 
      */
     public function changePassword($details) {
-    	
+    	    	
     	$statusMessage = 'Changing password not successful!';
     	$success = false;
     	
@@ -735,7 +734,7 @@ class Aleph extends AlephDefault {
 											<z303-home-library>XAW1</z303-home-library>
 										</z303>
 										<z308>
-											<record-action>A</record-action>
+											<record-action>U</record-action>
 											<z308-key-type>01</z308-key-type>
 											<z308-key-data>' . $barcode . '</z308-key-data>
 											<z308-verification>' . $newPassword . '</z308-verification>
@@ -754,14 +753,17 @@ class Aleph extends AlephDefault {
     			$xParams = ['library' => 'AKW50', 'update-flag' => 'Y', 'xml_full_req' => $xml_string];
     			$xResult = $this->doXRequest('update-bor', $xParams, false);
     			
+    			// Error handling from X-Server-Request (e. g. Error 403 "Forbidden")
+    			$xmlErrorTitle = ($xResult->head->title != null && !empty($xResult->head->title)) ? (string)$xResult->head->title : null;
+    			if (isset($xmlErrorTitle)) {
+					throw new AuthException($xmlErrorTitle. ': '. $xResult->body->h1);
+				}
+				
+				
+				// We got this far so the password change should be a success
     			$statusMessage = 'Changed password';
     			$success = true;
-    			
-    			/*
-    			echo '<pre>';
-    			print_r($xResult);
-    			echo '</pre>';
-				*/    			
+    			    			
     		} else {
     			$statusMessage = 'Minimum lenght of password is 4 characters';
     			$success = false;
@@ -780,8 +782,72 @@ class Aleph extends AlephDefault {
     /**
      * Changing the data of a user
      * 
+     * @param	array	$details An array of patron details that should be updated in Aleph
+     * 
+	 * @return	array	Result array containing 'success' (true or false) and 'status' (status message)
      */
-    public function changeUserData() {
+    
+    public function changeUserData($details) {
+    	// 0. Click button in changeuserdata.phtml
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php->updateUserData()
+		// 4. Aleph.php->changeUserData();
+		
+    	// Initialize variables:
+    	$success = false;
+    	$statusMessage = 'Could not change user data.';
+    	$dateToday = date("Ymd");
+    	$barcode = $details['username'];
+    	
+    	// XML string for changing data in Aleph via X-Services
+    	$xml_string = '<?xml version="1.0"?>
+		<p-file-20>
+			<patron-record>
+				<z303>
+					<match-id-type>01</match-id-type>
+					<match-id>' . $barcode . '</match-id>
+					<record-action>U</record-action>
+					<z303-user-library>AKW50</z303-user-library>
+					<z303-update-date>' . $dateToday . '</z303-update-date>
+					<z303-home-library>XAW1</z303-home-library>
+				</z303>
+				<z304>
+					<record-action>U</record-action>
+					<email-address>' . $details['email'] . '</email-address>
+					<z304-address-1>' . $details['address1'] . '</z304-address-1>
+					<z304-address-2>' . $details['address2'] . '</z304-address-2>
+					<z304-address-3>' . $details['address3'] . '</z304-address-3>
+					<z304-address-4>' . $details['address4'] . '</z304-address-4>
+					<z304-zip>' . $details['zip'] . '</z304-zip>
+					<z304-email-address>' . $details['email'] . '</z304-email-address>
+					<z304-telephone>' . $details['phone'] . '</z304-telephone>
+					<z304-telephone-2>' . $details['phone2'] . '</z304-telephone-2>
+				</z304>
+			</patron-record>
+		</p-file-20>
+		';
+		
+		// Remove whitespaces from XML string:
+		$xml_string = preg_replace("/\n/i", "", $xml_string);
+		$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
+
+		$xParams = ['library' => 'AKW50', 'update-flag' => 'N', 'xml_full_req' => $xml_string];
+		$xResult = $this->doXRequest('update-bor', $xParams, false);
+		
+		// Error handling from X-Server-Request (e. g. Error 403 "Forbidden")
+		$xmlErrorTitle = ($xResult->head->title != null && !empty($xResult->head->title)) ? (string)$xResult->head->title : null;
+		if (isset($xmlErrorTitle)) {
+			throw new AuthException($xmlErrorTitle. ': '. $xResult->body->h1);
+		}
+		
+		// We got this far so the user data update should be a success
+		$statusMessage = 'Successfully changed user data';
+		$success = true;
+    	
+    	$returnArray = array('success' => $success, 'status' => $statusMessage);
+    	 
+    	return $returnArray;
     	
     }
     

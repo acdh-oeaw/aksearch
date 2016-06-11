@@ -31,8 +31,7 @@
 namespace AkSearch\Controller;
 use VuFind\Controller\AbstractBase;
 
-class AkSitesController extends AbstractBase
-{
+class AkSitesController extends AbstractBase {
 	/**
 	 * Call action to go to "about" page.
 	 * 
@@ -53,45 +52,64 @@ class AkSitesController extends AbstractBase
 			return $this->forceLogin();
 		}
 		
-		/*
 		// If not submitted, are we logged in?
 		if (!$this->getAuthManager()->supportsPasswordChange()) {
 			$this->flashMessenger()->addMessage('recovery_new_disabled', 'error');
 			return $this->redirect()->toRoute('home');
 		}
-		*/
 		
 		// User must be logged in at this point, so we can assume this is non-false:
 		$user = $this->getUser();
 		
-		// Process home library parameter (if present):
-		$homeLibrary = $this->params()->fromPost('home_library', false);
-		if (!empty($homeLibrary)) {
-			$user->changeHomeLibrary($homeLibrary);
-			$this->getAuthManager()->updateSession($user);
-			$this->flashMessenger()->addMessage('profile_update', 'success');
-		}
-		
 		// Begin building view object:
-		$view = $this->createViewModel();
+		$view = $this->createViewModel($this->params()->fromPost());
 		
 		// Obtain user information from ILS:
 		$catalog = $this->getILS();
 		$profile = $catalog->getMyProfile($patron);
-		$profile['home_library'] = $user->home_library;
+		
+		// Set user information to view object. We can use it in our changeuserdata.phtml file.
 		$view->profile = $profile;
-		try {
-			$view->pickup = $catalog->getPickUpLocations($patron);
-			$view->defaultPickupLocation = $catalog->getDefaultPickUpLocation($patron);
-		} catch (\Exception $e) {
-			// Do nothing; if we're unable to load information about pickup
-			// locations, they are not supported and we should ignore them.
+		$view->username = $user->username;
+		
+		// Identification
+		$user->updateHash();
+		$view->hash = $user->verify_hash;
+		$view->setTemplate('aksites/changeuserdata');
+		$view->useRecaptcha = $this->recaptcha()->active('changeuserdata');
+		
+		// If cancel button was clicked, return to home page
+		if ($this->formWasSubmitted('cancel')) {
+			return $this->redirect()->toRoute('home');
+		}
+		
+		// If form was submitted
+		if ($this->formWasSubmitted('submit')) {
+			
+			// 0. Click button in changeuserdata.phtml
+			// 1. AkSitesController.php->changeUserDataAction()
+			// 2. Manager.php->updateUserData()
+			// 3. ILS.php->updateUserData()
+			// 4. Aleph.php->changeUserData();
+			try {
+				$result = $this->getAuthManager()->updateUserData($this->getRequest());
+			} catch (AuthException $e) {
+				$this->flashMessenger()->addMessage($e->getMessage(), 'error');
+				return $view;
+			}
+			
+			if ($result['success']) {
+				// Show message and go to home on success
+				$this->flashMessenger()->addMessage('changed_userdata_success', 'success');
+				return $this->redirect()->toRoute('myresearch-home');
+			} else {
+				$this->flashMessenger()->addMessage($result['status'], 'error');
+				return $view;
+			}
+
 		}
 		
 		return $view;
-		
-		
-		//return $this->createViewModel();
 	}
 }
 

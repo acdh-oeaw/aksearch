@@ -15,91 +15,40 @@
 
 <? if (!$this->auth()->getManager()->supportsUserDataChange($this->auth_method)): ?>
   <div class="error"><?=$this->transEsc('change_userdata_disabled') ?></div>
-<? else: ?>
-
-	<?php 
-	/*
-	$address1 = (isset($this->profile['address1'])) ? $this->profile['address1'] : '';
-	$address2 = (isset($this->profile['address2'])) ? $this->profile['address2'] : '';
-	$address3 = (isset($this->profile['address3'])) ? $this->profile['address3'] : '';
-	$address4 = (isset($this->profile['address4'])) ? $this->profile['address4'] : '';
-	$zip = (isset($this->profile['zip'])) ? $this->profile['zip'] : '';
-	$email = (isset($this->profile['email'])) ? $this->profile['email'] : '';
-	$phone = (isset($this->profile['phone'])) ? $this->profile['phone'] : '';
-	$phone2 = (isset($this->profile['phone2'])) ? $this->profile['phone2'] : '';
-	
-	// For testing - comment out in production version:
-	$address1 = 'Address 1';
-	$address2 = 'Address 2';
-	$address3 = 'Address 3';
-	$address4 = 'Address 4';
-	$zip = 'ZIP';
-	$email = 'eMail@test.at';
-	$phone = '123456789';
-	$phone2 = '987654321';
-	*/
-	//echo $_POST['cudAddress1'].'<br>';
-	?>
-
-	<?php
-	echo $this->auth()->getChangeUserDataForm();
-  
-  /*
+<? elseif (!isset($this->hash)): ?>
+  <div class="error"><?=$this->transEsc('recovery_user_not_found') ?></div>
+<? else: ?>	
   <form id="changeUserData" class="form-horizontal" action="<?=$this->url('aksites-changeuserdata') ?>" method="post" data-toggle="validator" role="form">
     <input type="hidden" value="<?=$this->escapeHtmlAttr($this->hash) ?>" name="hash"/>
     <input type="hidden" value="<?=$this->escapeHtmlAttr($this->username) ?>" name="username"/>
     <input type="hidden" value="<?=$this->escapeHtmlAttr($this->auth_method) ?>" name="auth_method"/>
+    
     <div>
-    <table class="table table-striped">
-	    <tbody>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('address1') ?></th>
-	    		<td><input type="text" value="<?=$address1 ?>" id="cudAddress1" name="cudAddress1" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('address2') ?></th>
-	    		<td><input type="text" value="<?=$address2 ?>" id="cudAddress2" name="cudAddress2" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('address3') ?></th>
-	    		<td><input type="text" value="<?=$address3 ?>" id="cudAddress3" name="cudAddress3" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('address4') ?></th>
-	    		<td><input type="text" value="<?=$address4 ?>" id="cudAddress4" name="cudAddress4" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('zip') ?></th>
-	    		<td><input type="text" value="<?=$zip ?>" id="cudZip" name="cudZip" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('email') ?></th>
-	    		<td><input type="text" value="<?=$email?>" id="cudEmail" name="cudEmail" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('phone') ?></th>
-	    		<td><input type="text" value="<?=$phone ?>" id="cudPhone" name="cudPhone" class="form-control" /></td>
-	    	</tr>
-	    	<tr>
-	    		<th style="vertical-align: middle;"><?=$this->transEsc('phone2') ?></th>
-	    		<td><input type="text" value="<?=$phone2 ?>" id="cudPhone2" name="cudPhone2" class="form-control" /></td>
-	    	</tr>
-	    </tbody>
-    </table>
+    	<?=$this->auth()->getChangeUserDataForm() ?>
     </div>
+    
     <div class="form-group">
       <div class="col-sm-9 col-sm-offset-3">
         <?=$this->recaptcha()->html($this->useRecaptcha) ?>
       </div>
     </div>
-    <div class="form-group">
-      <div class="col-sm-9 col-sm-offset-3">
-        <input class="btn btn-primary" name="submit" type="submit" value="<?=$this->transEsc('Submit')?>" />
-      </div>
+    
+    <div>
+	    <table class="table">
+	    	<tr>
+	    		<td>
+	    			<input class="btn btn-primary" name="cancel" type="submit" value="<?=$this->transEsc('Cancel')?>" />
+	    		</td>
+	    		<td align="right">
+	    			<input class="btn btn-primary" name="submit" type="submit" value="<?=$this->transEsc('Submit')?>" />
+	    		</td>
+	    	</tr>
+	    </table>
     </div>
   </form>
-  */
-  ?>
+
+  
+      
 <? endif; ?>
 
 
