@@ -1,6 +1,6 @@
 <?php
 /**
- * Controller for additional AK sites, e. g. "about" site.
+ * Controller for additional AK sites, e. g. "about" site, "change user data" site, etc.
  *
  * PHP version 5
  *
@@ -53,9 +53,14 @@ class AkSitesController extends AbstractBase {
 		}
 		
 		// If not submitted, are we logged in?
-		if (!$this->getAuthManager()->supportsPasswordChange()) {
+		if (!$this->getAuthManager()->supportsUserDataChange()) {
 			$this->flashMessenger()->addMessage('recovery_new_disabled', 'error');
 			return $this->redirect()->toRoute('home');
+		}
+		
+		// Stop now if the user does not have valid catalog credentials available:
+		if (!is_array($patron = $this->catalogLogin())) {
+			return $patron;
 		}
 		
 		// User must be logged in at this point, so we can assume this is non-false:
@@ -85,7 +90,6 @@ class AkSitesController extends AbstractBase {
 		
 		// If form was submitted
 		if ($this->formWasSubmitted('submit')) {
-			
 			// 0. Click button in changeuserdata.phtml
 			// 1. AkSitesController.php->changeUserDataAction()
 			// 2. Manager.php->updateUserData()
@@ -106,7 +110,6 @@ class AkSitesController extends AbstractBase {
 				$this->flashMessenger()->addMessage($result['status'], 'error');
 				return $view;
 			}
-
 		}
 		
 		return $view;

@@ -57,7 +57,6 @@ class Manager extends DefaultAuthManager {
      * Is changing user data allowed?
      *
      * @param string $authMethod	E. g. ILS. This is optional. If set, checks the given auth method rather than the one in config file
-     *
      * @return bool
      */
     public function supportsUserDataChange($authMethod = null) {
@@ -68,13 +67,12 @@ class Manager extends DefaultAuthManager {
         return false;
     }
     
+    
     /**
      * Update user data from the request.
      *
      * @param \Zend\Http\PhpEnvironment\Request $request Request object containing user data change details.
-     *
      * @throws AuthException
-     *
      * @return array Result array containing 'success' (true or false) and 'status' (status message)
      */
     public function updateUserData($request) {

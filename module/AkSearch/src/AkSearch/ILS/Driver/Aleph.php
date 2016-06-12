@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) AK Bibliothek Wien 2015.
+ * Copyright (C) AK Bibliothek Wien 2016.
  * Some functions modified by AK Bibliothek Wien, original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ class Aleph extends AlephDefault {
 		if (! $this->xserver_enabled) {
 			throw new \Exception('Call to doXRequest without X-Server configuration in Aleph.ini');
 		}
-		// $url = "http://$this->host/X?op=$op";
+		// Changed to https (original is with http)
 		$url = "https://$this->host/X?op=$op";
 		$url = $this->appendQueryString($url, $params);
 		if ($auth) {
@@ -103,7 +103,7 @@ class Aleph extends AlephDefault {
 		foreach ($path_elements as $path_element) {
 			$path .= $path_element . "/";
 		}
-		// $url = "http://$this->host:$this->dlfport/rest-dlf/" . $path;
+		// Changed to https (original is with http) and removed port (not used at AK Bibliothek Wien)
 		$url = "https://$this->host/rest-dlf/" . $path;
 		$url = $this->appendQueryString($url, $params);
 		
@@ -271,9 +271,7 @@ class Aleph extends AlephDefault {
 	 * @return mixed          Associative array of patron info on successful login, null on unsuccessful login.
 	 */
 	public function patronLogin($user, $password) {
-				
-		// Example: https://aleph22-prod-sh2.obvsg.at/X?op=bor-auth&library=AKW50&bor_id=BARCODE&verification=PASSWORD
-		
+						
 		if ($password == null) {
 			$temp = ["id" => $user];
 			$temp['college'] = $this->useradm;
@@ -343,7 +341,6 @@ class Aleph extends AlephDefault {
 	 * @return array      Array of the patron's profile data on success.
 	 */
 	public function getMyProfileX($user) {
-		// Example: curl https://aleph22-prod-sh2.obvsg.at/X?op=bor-info\&loans=N\&cash=N\&hold=N\&library=AKW50\&bor_id=BORID
 
 		$recordList = [];
 		if (!isset($user['college'])) {
@@ -414,9 +411,7 @@ class Aleph extends AlephDefault {
 	 * @return array      Array of the patron's profile data on success.
 	 */
 	public function getMyProfileDLF($user) {
-		
-		// Example: curl https://aleph22-prod-sh2.obvsg.at/rest-dlf/patron/PATRON-ID/patronInformation/address
-		
+				
 		$xml = $this->doRestDLFRequest(['patron', $user['id'], 'patronInformation', 'address']);
 		
 		$address = $xml->xpath('//address-information');
@@ -825,6 +820,7 @@ class Aleph extends AlephDefault {
 				</z303>
 				<z304>
 					<record-action>U</record-action>
+					<z304-address-type>01</z304-address-type>
 					<email-address>' . $email . '</email-address>
 					<z304-address-1>' . $address1 . '</z304-address-1>
 					<z304-address-2>' . $address2 . '</z304-address-2>
@@ -843,7 +839,7 @@ class Aleph extends AlephDefault {
 		$xml_string = preg_replace("/\n/i", "", $xml_string);
 		$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
 
-		$xParams = ['library' => 'AKW50', 'update-flag' => 'N', 'xml_full_req' => $xml_string];
+		$xParams = ['library' => 'AKW50', 'update-flag' => 'Y', 'xml_full_req' => $xml_string];
 		$xResult = $this->doXRequest('update-bor', $xParams, false);
 		
 		// Error handling from X-Server-Request (e. g. Error 403 "Forbidden")

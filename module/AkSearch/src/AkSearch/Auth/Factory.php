@@ -42,7 +42,6 @@ class Factory extends DefaultAuthFactory {
 	 * Overriding the construction of the ILS plugin because we need to return AkSearch\Auth\ILS instead of VuFind\Auth\ILS
 	 *
 	 * @param ServiceManager $sm Service manager.
-	 *
 	 * @return ILS
 	 */
 	public static function getILS(ServiceManager $sm) {
@@ -55,12 +54,12 @@ class Factory extends DefaultAuthFactory {
 	
     /**
      * Overriding the default VuFind authentication manager.
+     * 
      * This returns an extended Auth manager that conains a function called "supportsUserDataChange". This function
      * is used to check if we should show a "Change user data" page in the user account. We also get the AKsearch.ini
      * configuration here and set it to the extended Auth manager.
      *
      * @param ServiceManager $sm Service manager.
-     *
      * @return Manager
      */
     public static function getManager(ServiceManager $sm)

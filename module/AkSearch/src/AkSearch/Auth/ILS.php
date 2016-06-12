@@ -47,7 +47,6 @@ class ILS extends DefaultAuthILS {
      * Update user data from the request.
      *
      * @param \Zend\Http\PhpEnvironment\Request $request Request object containing new account details.
-     *
      * @throws \VuFind\Exception\Auth
      * @return array Result array containing 'success' (true or false) and 'status' (status message)
      */

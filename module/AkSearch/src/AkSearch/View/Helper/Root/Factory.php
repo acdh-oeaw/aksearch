@@ -1,6 +1,6 @@
 <?php
 /**
- * Factory for Root view helpers for Akfilter search.
+ * Extended factory for root view helpers for Akfilter search.
  *
  * PHP version 5
  *
