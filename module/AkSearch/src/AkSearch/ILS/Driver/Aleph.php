@@ -284,11 +284,13 @@ class Aleph extends AlephDefault {
 			throw new ILSException($ex->getMessage());
 		}
 		
+		/*
 		// Error handling from X-Server-Request (e. g. Error 403 "Forbidden")
 		$xmlErrorTitle = ($xml->head->title != null && !empty($xml->head->title)) ? (string)$xml->head->title : null;
 		if (isset($xmlErrorTitle)) {
 			throw new AuthException($xmlErrorTitle. ': '. $xml->body->h1);
 		}
+		*/
 		
 		// Aleph interface error (e. g. verification error)
 		$borauthError = ($xml->error != null && !empty($xml->error)) ? (string)$xml->error : null;
