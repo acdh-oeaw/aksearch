@@ -800,6 +800,19 @@ class Aleph extends AlephDefault {
     	$dateToday = date("Ymd");
     	$barcode = $details['username'];
     	
+    	$address1 = (isset($details['address1'])) ? trim($details['address1']) : '';
+    	$address2 = (isset($details['address2'])) ? trim($details['address2']) : '';
+    	$address3 = (isset($details['address3'])) ? trim($details['address3']) : '';
+    	$address4 = (isset($details['address4'])) ? trim($details['address4']) : '';
+    	$zip = (isset($details['zip'])) ? trim($details['zip']) : '';
+    	$email = (isset($details['email'])) ? trim($details['email']) : '';
+    	$phone = (isset($details['phone'])) ? trim($details['phone']) : '';
+    	$phone2 = (isset($details['phone2'])) ? trim($details['phone2']) : '';
+    	
+    	if (empty($address1) || empty($email)) {
+    		throw new AuthException('required_fields_empty');
+    	}
+    	
     	// XML string for changing data in Aleph via X-Services
     	$xml_string = '<?xml version="1.0"?>
 		<p-file-20>
@@ -814,15 +827,15 @@ class Aleph extends AlephDefault {
 				</z303>
 				<z304>
 					<record-action>U</record-action>
-					<email-address>' . $details['email'] . '</email-address>
-					<z304-address-1>' . $details['address1'] . '</z304-address-1>
-					<z304-address-2>' . $details['address2'] . '</z304-address-2>
-					<z304-address-3>' . $details['address3'] . '</z304-address-3>
-					<z304-address-4>' . $details['address4'] . '</z304-address-4>
-					<z304-zip>' . $details['zip'] . '</z304-zip>
-					<z304-email-address>' . $details['email'] . '</z304-email-address>
-					<z304-telephone>' . $details['phone'] . '</z304-telephone>
-					<z304-telephone-2>' . $details['phone2'] . '</z304-telephone-2>
+					<email-address>' . $email . '</email-address>
+					<z304-address-1>' . $address1 . '</z304-address-1>
+					<z304-address-2>' . $address2 . '</z304-address-2>
+					<z304-address-3>' . $address3 . '</z304-address-3>
+					<z304-address-4>' . $address4 . '</z304-address-4>
+					<z304-zip>' . $zip . '</z304-zip>
+					<z304-email-address>' . $email . '</z304-email-address>
+					<z304-telephone>' . $phone . '</z304-telephone>
+					<z304-telephone-2>' . $phone2 . '</z304-telephone-2>
 				</z304>
 			</patron-record>
 		</p-file-20>
@@ -845,10 +858,10 @@ class Aleph extends AlephDefault {
 		$statusMessage = 'Successfully changed user data';
 		$success = true;
     	
+		// Create return array
     	$returnArray = array('success' => $success, 'status' => $statusMessage);
     	 
     	return $returnArray;
-    	
     }
     
     
