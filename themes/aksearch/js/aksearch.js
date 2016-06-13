@@ -39,27 +39,29 @@ function setupAutocomplete() {
 				});
 				
 				$.fn.autocomplete.ajax({
-					url: path + '/AJAX/JSON',
-					cache: false,
+					url:		path + '/AJAX/JSON',
+					cache:		false,
 					data: {
-						q:query,
-						method:'getACSuggestions',
-						searcher:searcher['searcher'],
-						type:searcher['type'] ? searcher['type'] : $(input).closest('#searchForm').find('#searchForm_type').val(),
-								hiddenFilters:hiddenFilters
+						q:				query,
+						method:			'getACSuggestions',
+						searcher:		searcher['searcher'],
+						type:			searcher['type'] ? searcher['type'] : $(input).closest('#searchForm').find('#searchForm_type').val(),
+						hiddenFilters:	hiddenFilters
 					},
-					dataType:'json',
-					success: function(json) {
-						if (json.data.length > 0) {
-							var datums = [];
-							for (var i=0;i<json.data.length;i++) {
-								datums.push(json.data[i]);
-							}
-							cb(datums);
-						} else {
-							cb([]);
-						}
-					}
+					dataType:	'json',
+					success:	function(json) {
+									if (json.data.length > 0) {
+										var datums = [];
+										for (var i=0;i<json.data.length;i++) {
+											searchString = json.data[i];
+											searchString = searchString.replace(/[<>]/g, ''); // This line actually removes the "<" and ">" characters
+											datums.push(searchString);
+										}
+										cb(datums);
+									} else {
+										cb([]);
+									}
+								}
 				});
 			}
 		});
@@ -69,6 +71,7 @@ function setupAutocomplete() {
 		// Original uses searchForm as class (.searchForm), we need to use it as id (#searchForm)
 		var $lookfor = $(this).closest('#searchForm').find('#searchForm_lookfor[name]');
 		$lookfor.autocomplete('clear cache');
+		$lookfor.focus().val($lookfor.val()); // Set focus to search field (this re-adds the autocomplete suggestions)
 	});
 }
 
