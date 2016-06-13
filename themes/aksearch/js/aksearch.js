@@ -21,61 +21,66 @@
     }
 }());
 
-$(document).ready(function() {
 
-	var isAkEntityFactsTooltipOpen = false;
-	// Override original autocomplete method for searchbox: removing "<" and ">" (non-sorting characters in RAK-WB)
-	// INFO: Autocomplete works with typeahead.js: https://github.com/twitter/typeahead.js
-
-	// First destroy the original typeahead
-	$('.autocomplete').typeahead('destroy');
-
-	// Now re-add the typeahead with the modifications
-	$('.autocomplete').typeahead({
-		highlight: true,
-		minLength: 3
-	}, {
-		displayKey:'val',
-		source: function(query, cb) {
-			var searcher = extractClassParams('.autocomplete');
-			$.ajax({
-				url: path + '/AJAX/JSON',
-				cache: false,
-				data: {
-					q:query,
-					method:'getACSuggestions',
-					searcher:searcher['searcher'],
-					type:$('#searchForm_type').val()
-				},
-				dataType:'json',
-				success: function(json) {
-					if (json.status == 'OK' && json.data.length > 0) {
-						var datums = [];
-						for (var i=0;i<json.data.length;i++) {
-							searchString = json.data[i];
-							searchString = searchString.replace(/[<>]/g, ''); // This line actually removes the "<" and ">" characters
-							datums.push({val:searchString});
-						}
-						cb(datums);
-					} else {
-						cb([]);
-					}
-				}
-			});
-		}
-	});
+//Setup search autocomplete
+function setupAutocomplete() {
 	
-	// Override method that updates autocomplete values if search handler is changed in DropDown:
+	// Search autocomplete
+	$('.autocomplete').each(function(i, op) {
+		$(op).autocomplete({
+			maxResults: 10,
+			loadingString: VuFind.translate('loading')+'...',
+			handler: function(input, cb) {
+				var query = input.val();
+				var searcher = extractClassParams(input);
+				var hiddenFilters = [];
+				$(input).closest('#searchForm').find('input[name="hiddenFilters[]"]').each(function() {
+					hiddenFilters.push($(this).val());
+				});
+				
+				$.fn.autocomplete.ajax({
+					url: path + '/AJAX/JSON',
+					cache: false,
+					data: {
+						q:query,
+						method:'getACSuggestions',
+						searcher:searcher['searcher'],
+						type:searcher['type'] ? searcher['type'] : $(input).closest('#searchForm').find('#searchForm_type').val(),
+								hiddenFilters:hiddenFilters
+					},
+					dataType:'json',
+					success: function(json) {
+						if (json.data.length > 0) {
+							var datums = [];
+							for (var i=0;i<json.data.length;i++) {
+								datums.push(json.data[i]);
+							}
+							cb(datums);
+						} else {
+							cb([]);
+						}
+					}
+				});
+			}
+		});
+	});
+    
 	$('.searchForm_type').change(function() {
 		// Original uses searchForm as class (.searchForm), we need to use it as id (#searchForm)
 		var $lookfor = $(this).closest('#searchForm').find('#searchForm_lookfor[name]');
-		var query = $lookfor.val();
-		$lookfor.focus().typeahead('val', '').typeahead('val', query);
+		$lookfor.autocomplete('clear cache');
 	});
+}
 
+
+$(document).ready(function() {
+
+	// Setup autocomplete
+	setupAutocomplete();
 	
 	
-
+	// Set entity facts tooltip variable
+	var isAkEntityFactsTooltipOpen = false;
 	
 	// Getting entity facts: Ajax call via PHP
 	$('.akEntityFactsOpener').click (function() {

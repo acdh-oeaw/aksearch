@@ -65,7 +65,16 @@
           $this->headScript()->appendFile("keep_alive.js");
       }
     ?>
-
+    <?php
+      $root = rtrim($this->url('home'), '/');
+      $setupJS = <<<JS
+VuFind.path = '{$root}';
+VuFind.defaultSearchBackend = '{$dsb}';
+VuFind.addTranslations({$translations});
+JS;
+      $this->headScript()->appendScript($setupJS);
+    ?>
+    
     <?=$this->headScript()?> 
   </head>
   <body>
