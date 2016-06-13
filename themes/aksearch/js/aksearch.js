@@ -72,8 +72,7 @@ function setupAutocomplete() {
 		var $lookfor = $(this).closest('#searchForm').find('#searchForm_lookfor[name]');
 		$lookfor.autocomplete('clear cache');
 		
-		// PROBLEM IN IE - Gets called on every new page load:
-		//$lookfor.focus().val($lookfor.val()); // Set focus to search field (this re-adds the autocomplete suggestions)
+		$lookfor.focus().val($lookfor.val()); // Set focus to search field (this re-adds the autocomplete suggestions)
 	});
 }
 
