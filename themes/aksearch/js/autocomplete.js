@@ -161,10 +161,13 @@
     
     // Added by AK Bibliothek Wien - Begin
     // This code shows the dropdown-window when the search-type dropdown is changed.
+    // TODO: Problems with positioning the dropdown-window
+    /*
     $(options.searchtypeHandler).change(function() {
     	search(input, element);
     });
-	// Added by AK Bibliothek Wien - End
+    */
+    // Added by AK Bibliothek Wien - End
     
     input.keyup(function(event) {
       // Ignore navigation keys
