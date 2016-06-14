@@ -14,7 +14,8 @@
         highlight: true,
         loadingString: 'Loading...',
         maxResults: 20,
-        minLength: 3
+        minLength: 3,
+        searchtypeHandler: false // This option was added by AK Bibliothek Wien
       };
 
   var xhr = false;
@@ -147,9 +148,24 @@
     input.click(function() {
       search(input, element);
     });
+    
+    /*
+    // Removed by AK Bibliothek Wien - Begin
+    // This code shows the autocomplete dropdown-window every time the page is reloaded (which happens on every click
+    // on a facet) if the search field contains at least 3 characters. This could be annoying for users.
     input.focus(function() {
       search(input, element);
     });
+    // Removed by AK Bibliothek Wien - End
+    */
+    
+    // Added by AK Bibliothek Wien - Begin
+    // This code shows the dropdown-window when the search-type dropdown is changed.
+    $(options.searchtypeHandler).change(function() {
+    	search(input, element);
+    });
+	// Added by AK Bibliothek Wien - End
+    
     input.keyup(function(event) {
       // Ignore navigation keys
       // - Ignore control functions

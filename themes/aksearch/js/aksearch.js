@@ -30,6 +30,7 @@ function setupAutocomplete() {
 		$(op).autocomplete({
 			maxResults: 10,
 			loadingString: VuFind.translate('loading')+'...',
+			searchtypeHandler: '.searchForm_type',
 			handler: function(input, cb) {
 				var query = input.val();
 				var searcher = extractClassParams(input);
@@ -67,13 +68,14 @@ function setupAutocomplete() {
 		});
 	});
     
+	// If search type is changed, clear cache and set focus to search field
 	$('.searchForm_type').change(function() {
 		// Original uses searchForm as class (.searchForm), we need to use it as id (#searchForm)
 		var $lookfor = $(this).closest('#searchForm').find('#searchForm_lookfor[name]');
 		$lookfor.autocomplete('clear cache');
-		
-		$lookfor.focus().val($lookfor.val()); // Set focus to search field (this re-adds the autocomplete suggestions)
+		$lookfor.focus().val($lookfor.val()); // Set focus to search field and re-add it's value (for putting cursor to the end of the text)
 	});
+	
 }
 
 
@@ -82,7 +84,9 @@ $(document).ready(function() {
 	// Setup autocomplete
 	setupAutocomplete();
 	
-	
+	// Set focus to search field and re-add it's value (for putting cursor to the end of the text)
+	$('#searchForm_lookfor[name]').focus().val($('#searchForm_lookfor[name]').val());
+
 	// Set entity facts tooltip variable
 	var isAkEntityFactsTooltipOpen = false;
 	
