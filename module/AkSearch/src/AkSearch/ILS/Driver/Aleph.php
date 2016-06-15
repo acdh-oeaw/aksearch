@@ -70,10 +70,6 @@ class Aleph extends AlephDefault {
 		if ($auth) {
 			$url = $this->appendQueryString($url, array('user_name' => $this->wwwuser, 'user_password' => $this->wwwpasswd));
 		}
-		
-		echo '<pre>';
-		print_r($url);
-		echo '</pre>';
 
 		$result = $this->doHTTPRequest($url);
 		if ($result->error && $result->error != 'empty set' && strpos($result-error, 'Succeeded to REWRITE table z303', 0) !== false) { // Excluding "empty set" prevents error message for empty "getNewItems" result
