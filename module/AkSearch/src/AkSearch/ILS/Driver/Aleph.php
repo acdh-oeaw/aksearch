@@ -70,6 +70,10 @@ class Aleph extends AlephDefault {
 		if ($auth) {
 			$url = $this->appendQueryString($url, array('user_name' => $this->wwwuser, 'user_password' => $this->wwwpasswd));
 		}
+		
+		echo '<pre>';
+		print_r($url);
+		echo '</pre>';
 
 		$result = $this->doHTTPRequest($url);
 		if ($result->error && $result->error != 'empty set' && strpos($result-error, 'Succeeded to REWRITE table z303', 0) !== false) { // Excluding "empty set" prevents error message for empty "getNewItems" result
@@ -645,43 +649,49 @@ class Aleph extends AlephDefault {
 			
 			// Set the "count" value for the return array
 			$newItems = ['count' => $noEntries, 'results' => []];
-			
-			// Get results and add them to the return array
-			$xPresentParams = ['set_entry' => '1-3', 'set_number' => $setNumber];
-			$presentResult = $this->doXRequest('present', $xPresentParams, false);
-			$getSysNos = $presentResult->xpath('//doc_number');
-			
 			$from = 1; // Initial "from" value for the "present" request on Aleph X-Services
 			$until = 100; // Initial "until" value for the "present" request on Aleph X-Services
 			
-			while ($until <= $noEntries) {
-				
+			if ($noEntries < $until) {
 				// Get results and add them to the return array
 				$xPresentParams = ['set_entry' => $from.'-'.$until, 'set_number' => $setNumber];
 				$presentResult = $this->doXRequest('present', $xPresentParams, false);
 				$getSysNos = $presentResult->xpath('//doc_number');
 				
 				if (!empty($getSysNos)) {
-					foreach ($getSysNos as $key => $sysNo) {
+					foreach ($getSysNos as $sysNo) {
 						$newItems['results'][] = ['id' => (string)$sysNo];
 					}
 				}
+			} else {
+				while ($until <= $noEntries) {
 				
-				// If "until" is as high as the no. of entries found, we are in the last loop and can break now.
-				if ($until == $noEntries) {
-					break;
-				}
+					// Get results and add them to the return array
+					$xPresentParams = ['set_entry' => $from.'-'.$until, 'set_number' => $setNumber];
+					$presentResult = $this->doXRequest('present', $xPresentParams, false);
+					$getSysNos = $presentResult->xpath('//doc_number');
 				
-				// Set values to get the next 100 results
-				$from = $from + 100;
-				$until = $until + 100;
+					if (!empty($getSysNos)) {
+						foreach ($getSysNos as $sysNo) {
+							$newItems['results'][] = ['id' => (string)$sysNo];
+						}
+					}
 				
-				// "until" may not be higher than the no. of entries found, otherwise we get an error from Aleph
-				if ($until > $noEntries) {
-					$until = $noEntries;
+					// If "until" is as high as the no. of entries found, we are in the last loop and can break now.
+					if ($until == $noEntries) {
+						break;
+					}
+				
+					// Set values to get the next 100 results
+					$from = $from + 100;
+					$until = $until + 100;
+				
+					// "until" may not be higher than the no. of entries found, otherwise we get an error from Aleph
+					if ($until > $noEntries) {
+						$until = $noEntries;
+					}
 				}
 			}
-			
 		}
 		
 		return $newItems;
