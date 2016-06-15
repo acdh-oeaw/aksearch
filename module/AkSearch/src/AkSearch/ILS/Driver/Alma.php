@@ -29,6 +29,13 @@
 namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
+use VuFind\Exception\Auth as AuthException;
+use Zend\Log\LoggerInterface;
+use VuFindHttp\HttpServiceInterface;
+use DateTime;
+use VuFind\Exception\Date as DateException;
+use VuFind\SimpleXML;
+
 
 
 // Show PHP errors:
@@ -97,7 +104,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		
 		// Iterate over holdings and get IDs:
 		$holdingIds = []; // Create empty array
-		foreach ($holdings->holding as $holding) {
+		foreach ($holdings['xml']->holding as $holding) {
 			$holdingIds[] = (string)$holding->holding_id; // Add each ID to the array
 		}
 				
@@ -106,7 +113,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		if (!empty($holdingIds)) {
 			foreach ($holdingIds as $holdingId) {
 				$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mms_id.'/holdings/'.$holdingId.'/items?limit=10&offset=0&apikey='.$this->apiKey, 'GET');
-				foreach ($itemList as $item) {
+				foreach ($itemList['xml'] as $item) {
 					$items[] = $item;
 				}
 			}
@@ -205,39 +212,53 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @param string $url    URL of request
 	 * @param string $method HTTP method
 	 *
-	 * @return SimpleXMLElement
+	 * @return array	xml => SimpleXMLElement, status => HTTP status code
 	 */
 	protected function doHTTPRequest($url, $method = 'GET') {
+
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
 		}
-	
+			
 		$result = null;
+		$statusCode = null;
+		$returnArray = null;
+		
 		try {
 			$client = $this->httpService->createClient($url);
 			$client->setMethod($method);
 			$result = $client->send();
+			$statusCode = $result->getStatusCode();
 		} catch (\Exception $e) {
 			throw new ILSException($e->getMessage());
 		}
+		
+		echo 'HERE: '.$statusCode;
+		
 		if (!$result->isSuccess()) {
-			throw new ILSException('HTTP error');
+			throw new ILSException('HTTP error: '.$statusCode);
 		}
+		
+		
+		
 		$answer = $result->getBody();
 		if ($this->debug_enabled) {
-			$this->debug("url: $url response: $answer");
+			$this->debug("url: $url response: $answer (HTTP status code: $statusCode)");
 		}
 		$answer = str_replace('xmlns=', 'ns=', $answer);
-		$result = simplexml_load_string($answer);
-		if (!$result) {
+		$xml = simplexml_load_string($answer);
+		if (!$xml && $result->isServerError()) {
 			if ($this->debug_enabled) {
-				$this->debug("XML is not valid, URL: $url");
+				$this->debug("XML is not valid or HTTP error, URL: $url, HTTP status code: $statusCode");
 			}
 			throw new ILSException(
-					"XML is not valid, URL: $url method: $method answer: $answer."
+					"XML is not valid or HTTP error, URL: $url method: $method answer: $answer, HTTP status code: $statusCode."
 					);
 		}
-		return $result;
+		
+		$returnArray = ['xml' => $xml, 'status' => $statusCode];
+		
+		return $returnArray;
 	}
 	
 	/**
@@ -254,19 +275,17 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @return mixed          Associative array of patron info on successful login, null on unsuccessful login.
 	 */
 	public function patronLogin($user, $password) {
-	
-
+		
 		if ($password == null) {
 			$temp = ["id" => $user];
 			$temp['college'] = $this->useradm;
 			return $this->getMyProfile($temp);
 		}
 		
-		$xml = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'/$user?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST');
 		
-		echo '<pre>';
-		print_r($xml);
-		echo '</pre>';		
+		$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST');
+		
+		return null;
 	
 		/*
 		try {
