@@ -30,12 +30,12 @@ namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
 
-/*
+
 // Show PHP errors:
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(- 1);
-*/
+
 
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
@@ -241,6 +241,81 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	/**
+	 * Patron Login
+	 *
+	 * This is responsible for authenticating a patron against the catalog.
+	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
+	 * Modified by AK Bibliothek Wien (Michael Birkner): Login was possible even thoug user was not registered in ILS
+	 *
+	 * @param string $user     The patron username
+	 * @param string $password The patron's password
+	 *
+	 * @throws ILSException
+	 * @return mixed          Associative array of patron info on successful login, null on unsuccessful login.
+	 */
+	public function patronLogin($user, $password) {
+	
+
+		if ($password == null) {
+			$temp = ["id" => $user];
+			$temp['college'] = $this->useradm;
+			return $this->getMyProfile($temp);
+		}
+		
+		$xml = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'/$user?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST');
+		
+		echo '<pre>';
+		print_r($xml);
+		echo '</pre>';		
+	
+		/*
+		try {
+			$xml = $this->doXRequest('bor-auth', ['library' => $this->useradm, 'bor_id' => $user, 'verification' => $password], false);
+		} catch (\Exception $ex) {
+			throw new ILSException($ex->getMessage());
+		}
+	
+		// Aleph interface error (e. g. verification error)
+		$borauthError = ($xml->error != null && !empty($xml->error)) ? (string)$xml->error : null;
+		if (isset($borauthError)) {
+			if ($borauthError == 'Error in Verification') {
+				return null; // Show message for wrong user credentials
+			}
+			throw new AuthException($borauthError);
+		}
+	
+		$patron = [];
+		$name = $xml->z303->{'z303-name'};
+		if (strstr($name, ",")) {
+			list($lastName, $firstName) = explode(",", $name);
+		} else {
+			$lastName = $name;
+			$firstName = "";
+		}
+		$email_addr = $xml->z304->{'z304-email-address'};
+		$id = $xml->z303->{'z303-id'};
+		$home_lib = $xml->z303->z303_home_library;
+		// Default the college to the useradm library and overwrite it if the home_lib exists
+		$patron['college'] = $this->useradm;
+		if (($home_lib != '') && (array_key_exists("$home_lib", $this->sublibadm))) {
+			if ($this->sublibadm["$home_lib"] != '') {
+				$patron['college'] = $this->sublibadm["$home_lib"];
+			}
+		}
+		$patron['id'] = (string) $id;
+		$patron['barcode'] = (string) $user;
+		$patron['firstname'] = (string) $firstName;
+		$patron['lastname'] = (string) $lastName;
+		$patron['cat_username'] = (string) $user;
+		$patron['cat_password'] = $password;
+		$patron['email'] = (string) $email_addr;
+		$patron['major'] = null;
+	
+		return $patron;
+		*/
+	}
+	
+	/**
 	 * Get the sublibrary name by sublibrary code.
 	 *
 	 * @param string $subLibCode
@@ -249,7 +324,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @return string
 	 */
 	public function getSubLibName($subLibCode) {
-
 		return null;
 	}
 }
