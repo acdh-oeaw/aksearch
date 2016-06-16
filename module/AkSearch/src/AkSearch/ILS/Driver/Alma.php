@@ -37,12 +37,12 @@ use VuFind\Exception\Date as DateException;
 use VuFind\SimpleXML;
 
 
-
+/*
 // Show PHP errors:
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(- 1);
-
+*/
 
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
@@ -215,7 +215,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @return array	xml => SimpleXMLElement, status => HTTP status code
 	 */
 	protected function doHTTPRequest($url, $method = 'GET') {
-
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
 		}
@@ -233,27 +232,23 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			throw new ILSException($e->getMessage());
 		}
 		
-		echo 'HERE: '.$statusCode;
-		
-		if (!$result->isSuccess()) {
+		if ($result->isServerError()) {
 			throw new ILSException('HTTP error: '.$statusCode);
 		}
-		
-		
 		
 		$answer = $result->getBody();
 		if ($this->debug_enabled) {
 			$this->debug("url: $url response: $answer (HTTP status code: $statusCode)");
 		}
+		
 		$answer = str_replace('xmlns=', 'ns=', $answer);
 		$xml = simplexml_load_string($answer);
+		
 		if (!$xml && $result->isServerError()) {
 			if ($this->debug_enabled) {
 				$this->debug("XML is not valid or HTTP error, URL: $url, HTTP status code: $statusCode");
 			}
-			throw new ILSException(
-					"XML is not valid or HTTP error, URL: $url method: $method answer: $answer, HTTP status code: $statusCode."
-					);
+			throw new ILSException("XML is not valid or HTTP error, URL: $url method: $method answer: $answer, HTTP status code: $statusCode.");
 		}
 		
 		$returnArray = ['xml' => $xml, 'status' => $statusCode];
@@ -276,16 +271,44 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function patronLogin($user, $password) {
 		
+		$patron = null;
+		$authSuccess = false;
+		
 		if ($password == null) {
 			$temp = ["id" => $user];
 			$temp['college'] = $this->useradm;
 			return $this->getMyProfile($temp);
 		}
 		
+		try {
+			$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST');
+		} catch (\Exception $ex) {
+			throw new ILSException($ex->getMessage());
+		}
 		
-		$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST');
+		if ($result['status'] == 204) {
+			$authSuccess = true;
+		} else {
+			return null; // Show message for wrong user credentials
+		}
+
+		// We got this far, the user must be a valid user.
+		if ($authSuccess) {
+			// Get the patrons details
+			$details = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?&apikey='.$this->apiKey, 'GET');
+			$details = $details['xml']; // Get the XML of the return-array.
+			
+			/*
+			echo '<pre>';
+			print_r($details);
+			echo '</pre>';
+			*/
+
+			$patron = [];
+		}
 		
-		return null;
+		
+		return $patron;
 	
 		/*
 		try {
