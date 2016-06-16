@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) AK Bibliothek Wien 2015.
+ * Copyright (C) AK Bibliothek Wien 2016.
  * Original by: UB/FU Berlin (see VuFind Module)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,5 +42,18 @@ class Factory {
             $sm->getServiceLocator()->get('VuFind\DateConverter'),
             $sm->getServiceLocator()->get('VuFind\CacheManager')
         );
+    }
+    
+    /**
+     * Factory for Alma driver.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return Alma
+     */
+    public static function getAlma(ServiceManager $sm) {
+    	return new Alma(
+    		$sm->getServiceLocator()->get('VuFind\DateConverter')
+    	);
     }
 }
