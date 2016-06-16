@@ -52,11 +52,18 @@
       	(isset($this->profile['address2']) && !empty($this->profile['address2'])) ? $rowsArray[$this->transEsc('Address') . ' 2'] = 'address2' : null;
       	(isset($this->profile['address3']) && !empty($this->profile['address3'])) ? $rowsArray[$this->transEsc('Address') . ' 3'] = 'address3' : null;
       	(isset($this->profile['address4']) && !empty($this->profile['address4'])) ? $rowsArray[$this->transEsc('Address') . ' 4'] = 'address4' : null;
+      	(isset($this->profile['address5']) && !empty($this->profile['address5'])) ? $rowsArray[$this->transEsc('Address') . ' 5'] = 'address5' : null;
       	(isset($this->profile['zip']) && !empty($this->profile['zip'])) ? $rowsArray[$this->transEsc('Zip')] = 'zip' : null;
+      	(isset($this->profile['city']) && !empty($this->profile['city'])) ? $rowsArray[$this->transEsc('City')] = 'city' : null;
       	(isset($this->profile['country']) && !empty($this->profile['country'])) ? $rowsArray[$this->transEsc('Country')] = 'country' : null;
       	(isset($this->profile['phone']) && !empty($this->profile['phone'])) ? $rowsArray[$this->transEsc('Phone Number')] = 'phone' : null;
       	(isset($this->profile['phone2']) && !empty($this->profile['phone2'])) ? $rowsArray[$this->transEsc('Phone Number') . ' 2'] = 'phone2' : null;
       	(isset($this->profile['email']) && !empty($this->profile['email'])) ? $rowsArray[$this->transEsc('email')] = 'email' : null;
+      	if (isset($this->profile['emailsAdditional'])) {
+      		foreach($this->profile['emailsAdditional'] as $emailAdditional) {
+      			(isset($emailAdditional) && !empty($emailAdditional)) ? $rowsArray[$this->transEsc('email')] = $emailAdditional : null;
+      		}
+      	}
       	(isset($this->profile['group']) && !empty($this->profile['group'])) ? $rowsArray[$this->transEsc('Group')] = 'group' : null;
       	
       	// Render the array as table rows (see $arrTemplate above):

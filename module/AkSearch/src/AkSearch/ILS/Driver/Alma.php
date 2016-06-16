@@ -293,6 +293,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					$address2 = (isset($address->line2)) ? (string) $address->line2 : null;
 					$address3 = (isset($address->line3)) ? (string) $address->line3 : null;
 					$address4 = (isset($address->line4)) ? (string) $address->line4 : null;
+					$address5 = (isset($address->line5)) ? (string) $address->line5 : null;
 					$city = (isset($address->city)) ? (string) $address->city : null;
 					$zip = (isset($address->postal_code)) ? (string) $address->postal_code : null;
 				}
@@ -332,6 +333,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$recordList['address2'] = $address2;
 		$recordList['address3'] = $address3;
 		$recordList['address4'] = $address4;
+		$recordList['address5'] = $address5;
 		$recordList['zip'] = $zip;
 		$recordList['city'] = $city;
 		$recordList['email'] = $email;
