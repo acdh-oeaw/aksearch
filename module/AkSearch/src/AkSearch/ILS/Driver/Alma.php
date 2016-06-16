@@ -353,9 +353,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	/**
 	 * Patron Login
 	 *
-	 * This is responsible for authenticating a patron against the catalog.
-	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
-	 * Modified by AK Bibliothek Wien (Michael Birkner): Login was possible even thoug user was not registered in ILS
+	 * This is responsible for authenticating a patron against Alma.
 	 *
 	 * @param string $user     The patron username
 	 * @param string $password The patron's password
@@ -475,5 +473,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			throw new \Exception("Invalid date: $date");
 		}
 	}
+	
+	
 }
 ?>
