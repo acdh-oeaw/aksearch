@@ -28,12 +28,12 @@
  
 namespace AkSearch\Module\Config;
 
-/*
+
 // Show PHP errors:
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(- 1);
-*/
+
 
 $config = [
     'router' => [
@@ -414,6 +414,7 @@ $config = [
                 'abstract_factories' => ['VuFind\ILS\Driver\PluginFactory'],
                 'factories' => [
                     'aleph' => 'AkSearch\ILS\Driver\Factory::getAleph',
+                	'alma'	=> 'AkSearch\ILS\Driver\Factory::getAlma',
                     'daia' => 'VuFind\ILS\Driver\Factory::getDAIA',
                     'demo' => 'VuFind\ILS\Driver\Factory::getDemo',
                     'horizon' => 'VuFind\ILS\Driver\Factory::getHorizon',
@@ -425,7 +426,7 @@ $config = [
                     'voyagerrestful' => 'VuFind\ILS\Driver\Factory::getVoyagerRestful',
                 ],
                 'invokables' => [
-                	'alma' => 'AkSearch\ILS\Driver\Alma',
+                	//'alma' => 'AkSearch\ILS\Driver\Alma',
                     'amicus' => 'VuFind\ILS\Driver\Amicus',
                     'claviussql' => 'VuFind\ILS\Driver\ClaviusSQL',
                     'evergreen' => 'VuFind\ILS\Driver\Evergreen',
