@@ -29,20 +29,7 @@
 namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
-use VuFind\Exception\Auth as AuthException;
-use Zend\Log\LoggerInterface;
-use VuFindHttp\HttpServiceInterface;
-use DateTime;
-use VuFind\Exception\Date as DateException;
-use VuFind\SimpleXML;
 
-
-/*
-// Show PHP errors:
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(- 1);
-*/
 
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
@@ -63,6 +50,22 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	protected $apiUrl;
 	
+	/**
+	 * Date converter object
+	 *
+	 * @var \VuFind\Date\Converter
+	 */
+	protected $dateConverter = null;
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param \VuFind\Date\Converter $dateConverter Date converter
+	 */
+	public function __construct(\VuFind\Date\Converter $dateConverter) {
+		$this->dateConverter = $dateConverter;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -256,6 +259,97 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		return $returnArray;
 	}
 	
+	
+	
+	
+	/**
+	 * Get user profile from Alma.
+	 *
+	 * @param array $user The patron array
+	 *
+	 * @throws ILSException
+	 * @return array      Array of the patron's profile data on success.
+	 */
+	
+	public function getMyProfile($user) {
+		
+		$primaryId = $user['id'];
+		
+		// Get the patrons details
+		$details = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?&apikey='.$this->apiKey, 'GET');
+		$details = $details['xml']; // Get the XML with the patron details of the return-array.
+		
+		//$email_addr = null;
+		$address1 = null;
+		$address2 = null;
+		$address3 = null;
+		$address4 = null;
+		$city = null;
+		$zip = null;
+		foreach($details->contact_info->addresses->address as $address) {
+			foreach ($address->attributes() as $name => $value) {
+				if ($name == 'preferred' && $value == true) {
+					$address1 = (isset($address->line1)) ? (string) $address->line1 : null;
+					$address2 = (isset($address->line2)) ? (string) $address->line2 : null;
+					$address3 = (isset($address->line3)) ? (string) $address->line3 : null;
+					$address4 = (isset($address->line4)) ? (string) $address->line4 : null;
+					$city = (isset($address->city)) ? (string) $address->city : null;
+					$zip = (isset($address->postal_code)) ? (string) $address->postal_code : null;
+				}
+			}
+		}
+		$email = null;
+		$emailsAdditional = [];
+		foreach($details->contact_info->emails->email as $emailInfo) {
+			foreach ($emailInfo->attributes() as $name => $value) {
+				if ($name == 'preferred' && $value == true) {
+					$email = (isset($emailInfo->email_address)) ? (string) $emailInfo->email_address : null;
+				} else {
+					$emailsAdditional[] = (isset($emailInfo->email_address)) ? (string) $emailInfo->email_address : null;
+				}
+			}
+		}
+		$phone = null;
+		$phonesAdditional = [];
+		foreach($details->contact_info->phones->phone as $phoneInfo) {
+			foreach ($phoneInfo->attributes() as $name => $value) {
+				if ($name == 'preferred' && $value == true) {
+					$phone = (isset($phoneInfo->phone_number)) ? (string) $phoneInfo->phone_number : null;
+				} else {
+					$phonesAdditional[] = (isset($phoneInfo->phone_number)) ? (string) $phoneInfo->phone_number : null;
+				}
+			}
+		}
+		$barcode = (isset($user['barcode'])) ? (string) $user['barcode'] : null;
+		$group = (isset($details->user_group)) ? (string) $details->user_group : null;
+		$expiry = (isset($details->expiry_date)) ? (string) $details->expiry_date : null;
+		$firstname = (isset($details->first_name)) ? $details->first_name : null;
+		$lastname = (isset($details->last_name)) ? $details->last_name : null;
+		
+		$recordList['firstname'] = $firstname;
+		$recordList['lastname'] = $lastname;
+		$recordList['address1'] = $address1;
+		$recordList['address2'] = $address2;
+		$recordList['address3'] = $address3;
+		$recordList['address4'] = $address4;
+		$recordList['zip'] = $zip;
+		$recordList['city'] = $city;
+		$recordList['email'] = $email;
+		$recordList['emailsAdditional'] = $emailsAdditional;
+		$recordList['phone'] = $phone;
+		$recordList['phonesAdditional'] = $phonesAdditional;
+		$recordList['group'] = $group;
+		$recordList['barcode'] = $barcode;
+		$recordList['expire'] = $this->parseDate($expiry);
+		$recordList['credit'] = $expiry;
+		$recordList['credit_sum'] = $credit_sum;
+		$recordList['credit_sign'] = $credit_sign;
+		$recordList['id'] = $id;
+		
+		return $recordList;
+	}
+	
+	
 	/**
 	 * Patron Login
 	 *
@@ -294,67 +388,45 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 		// We got this far, the user must be a valid user.
 		if ($authSuccess) {
+			$patron = [];
+			
 			// Get the patrons details
 			$details = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?&apikey='.$this->apiKey, 'GET');
-			$details = $details['xml']; // Get the XML of the return-array.
-			
-			/*
-			echo '<pre>';
-			print_r($details);
-			echo '</pre>';
-			*/
+			$details = $details['xml']; // Get the XML with the patron details of the return-array.
 
-			$patron = [];
+			$firstName = (isset($details->first_name)) ? $details->first_name : null;
+			$lastName = (isset($details->last_name)) ? $details->last_name : null;
+			$email_addr = null;
+			foreach($details->contact_info->emails->email as $email) {
+				foreach ($email->attributes() as $name => $value) {
+					if ($name == 'preferred' && $value == true) {
+						$email_addr = (isset($email->email_address)) ? $email->email_address : null;
+					}
+				}
+			}
+			$id = $details->primary_id;
+			$barcode = null;
+			foreach ($details->user_identifiers->user_identifier as $user_identifier) {
+				if ($user_identifier->id_type == 'BARCODE') {
+					$barcode = (isset($user_identifier->value)) ? $user_identifier->value : null;
+				}
+			}
+			$college = (isset($details->campus_code)) ? $details->campus_code : null;
+
+			$patron['id'] = (string) $id;
+			$patron['barcode'] = (string) $barcode;
+			$patron['firstname'] = (string) $firstName;
+			$patron['lastname'] = (string) $lastName;
+			$patron['cat_username'] = (string) $barcode;
+			$patron['cat_password'] = $password;
+			$patron['email'] = (string) $email_addr;
+			$patron['college'] = (string) $college;
+			$patron['major'] = null;
+		
+			return $patron;
 		}
 		
-		
-		return $patron;
-	
-		/*
-		try {
-			$xml = $this->doXRequest('bor-auth', ['library' => $this->useradm, 'bor_id' => $user, 'verification' => $password], false);
-		} catch (\Exception $ex) {
-			throw new ILSException($ex->getMessage());
-		}
-	
-		// Aleph interface error (e. g. verification error)
-		$borauthError = ($xml->error != null && !empty($xml->error)) ? (string)$xml->error : null;
-		if (isset($borauthError)) {
-			if ($borauthError == 'Error in Verification') {
-				return null; // Show message for wrong user credentials
-			}
-			throw new AuthException($borauthError);
-		}
-	
-		$patron = [];
-		$name = $xml->z303->{'z303-name'};
-		if (strstr($name, ",")) {
-			list($lastName, $firstName) = explode(",", $name);
-		} else {
-			$lastName = $name;
-			$firstName = "";
-		}
-		$email_addr = $xml->z304->{'z304-email-address'};
-		$id = $xml->z303->{'z303-id'};
-		$home_lib = $xml->z303->z303_home_library;
-		// Default the college to the useradm library and overwrite it if the home_lib exists
-		$patron['college'] = $this->useradm;
-		if (($home_lib != '') && (array_key_exists("$home_lib", $this->sublibadm))) {
-			if ($this->sublibadm["$home_lib"] != '') {
-				$patron['college'] = $this->sublibadm["$home_lib"];
-			}
-		}
-		$patron['id'] = (string) $id;
-		$patron['barcode'] = (string) $user;
-		$patron['firstname'] = (string) $firstName;
-		$patron['lastname'] = (string) $lastName;
-		$patron['cat_username'] = (string) $user;
-		$patron['cat_password'] = $password;
-		$patron['email'] = (string) $email_addr;
-		$patron['major'] = null;
-	
-		return $patron;
-		*/
+		return null;
 	}
 	
 	/**
@@ -367,6 +439,41 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function getSubLibName($subLibCode) {
 		return null;
+	}
+	
+	/**
+	 * Parse a date.
+	 *
+	 * @param string $date Date to parse
+	 *
+	 * @return string
+	 */
+	public function parseDate($date) {
+		
+		// Remove Z from end of date (e. g. from Alma we get 2012-07-13Z): 
+		if (strpos($date, 'Z', (strlen($date)-1))) {
+			$date = preg_replace('/Z{1}$/', '', $date);
+		}
+		
+		if ($date == null || $date == "") {
+			return "";
+		} else if (preg_match("/^[0-9]{8}$/", $date) === 1) { // 20120725
+			return $this->dateConverter->convertToDisplayDate('Ynd', $date);
+		} else if (preg_match("/^[0-9]+\/[A-Za-z]{3}\/[0-9]{4}$/", $date) === 1) {
+			// 13/jan/2012
+			return $this->dateConverter->convertToDisplayDate('d/M/Y', $date);
+		} else if (preg_match("/^[0-9]+\/[0-9]+\/[0-9]{4}$/", $date) === 1) {
+			// 13/7/2012
+			return $this->dateConverter->convertToDisplayDate('d/m/Y', $date);
+		} else if (preg_match("/^[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2,4}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALEPH DATES
+			// 13/07/2012
+			return $this->dateConverter->convertToDisplayDate('d/m/y', $date);
+		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES
+			// 2012-07-13
+			return $this->dateConverter->convertToDisplayDate('Y-m-d', $date);
+		} else {
+			throw new \Exception("Invalid date: $date");
+		}
 	}
 }
 ?>
