@@ -217,7 +217,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 *
 	 * @return array	xml => SimpleXMLElement, status => HTTP status code
 	 */
-	protected function doHTTPRequest($url, $method = 'GET') {
+	protected function doHTTPRequest($url, $method = 'GET', $rawBody = null, $headers = null) {
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
 		}
@@ -229,6 +229,15 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		try {
 			$client = $this->httpService->createClient($url);
 			$client->setMethod($method);
+
+			if (isset($rawBody)) {
+				$client->setRawBody($rawBody);
+			}
+			
+			if (isset($headers)) {
+				$client->setHeaders($headers);
+			}
+			
 			$result = $client->send();
 			$statusCode = $result->getStatusCode();
 		} catch (\Exception $e) {
@@ -260,8 +269,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
-	
-	
 	/**
 	 * Get user profile from Alma.
 	 *
@@ -278,8 +285,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// Get the patrons details
 		$details = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?&apikey='.$this->apiKey, 'GET');
 		$details = $details['xml']; // Get the XML with the patron details of the return-array.
-		
-		//$email_addr = null;
+
 		$address1 = null;
 		$address2 = null;
 		$address3 = null;
@@ -303,9 +309,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$emailsAdditional = [];
 		foreach($details->contact_info->emails->email as $emailInfo) {
 			foreach ($emailInfo->attributes() as $name => $value) {
-				if ($name == 'preferred' && $value == true) {
+				if ($name == 'preferred' && $value == 'true') {
 					$email = (isset($emailInfo->email_address)) ? (string) $emailInfo->email_address : null;
-				} else {
+				} else if ($name == 'preferred' && $value == 'false') {
 					$emailsAdditional[] = (isset($emailInfo->email_address)) ? (string) $emailInfo->email_address : null;
 				}
 			}
@@ -314,18 +320,18 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$phonesAdditional = [];
 		foreach($details->contact_info->phones->phone as $phoneInfo) {
 			foreach ($phoneInfo->attributes() as $name => $value) {
-				if ($name == 'preferred' && $value == true) {
+				if ($name == 'preferred' && $value == 'true') {
 					$phone = (isset($phoneInfo->phone_number)) ? (string) $phoneInfo->phone_number : null;
-				} else {
+				} else if ($name == 'preferred' && $value == 'false') {
 					$phonesAdditional[] = (isset($phoneInfo->phone_number)) ? (string) $phoneInfo->phone_number : null;
 				}
 			}
 		}
 		$barcode = (isset($user['barcode'])) ? (string) $user['barcode'] : null;
-		$group = (isset($details->user_group)) ? (string) $details->user_group : null;
+		$group = (isset($details->user_group)) ? (string) $details->user_group->attributes()->desc : null;
 		$expiry = (isset($details->expiry_date)) ? (string) $details->expiry_date : null;
-		$firstname = (isset($details->first_name)) ? $details->first_name : null;
-		$lastname = (isset($details->last_name)) ? $details->last_name : null;
+		$firstname = (isset($details->first_name)) ? (string) $details->first_name : null;
+		$lastname = (isset($details->last_name)) ? (string) $details->last_name : null;
 		
 		$recordList['firstname'] = $firstname;
 		$recordList['lastname'] = $lastname;
@@ -349,6 +355,82 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$recordList['id'] = $id;
 		
 		return $recordList;
+	}
+	
+	
+	/**
+	 * Change password
+	 * If a function with the name "changePassword" exists and option "change_password" in config.ini is set to "true",
+	 * a menu item that leads to a form for changing the pasword will appear on the user account page of a logged in user.
+	 *
+	 * @param array $details An array of patron id and old and new password:
+	 * 'patron'      The patron array from patronLogin
+	 * 'oldPassword' Old password
+	 * 'newPassword' New password
+	 *
+	 * @return array An array of data on the request including
+	 * whether or not it was successful and a system message (if available)
+	 *
+	 */
+	public function changePassword($details) {
+		// 0. Click button in newpassword.phtml
+		// 1. \VuFind\Controller\MyResearchController.php->newPasswordAction()
+		// 2. \VuFind\Auth\Manager.php->updatePassword()
+		// 3. \VuFind\Auth\ILS.php->updatePassword()
+		// 4. Alma.php->changePassword();
+		
+		$statusMessage = 'Changing password not successful!';
+		$success = false;
+		
+		$patron = $details['patron'];
+		$primaryId = $patron['id'];
+		$barcode = trim(htmlspecialchars($patron['barcode'], ENT_COMPAT, 'UTF-8'));
+		$catPassword = trim(htmlspecialchars($patron['cat_password'], ENT_COMPAT, 'UTF-8'));
+		$oldPassword = trim(htmlspecialchars($details['oldPassword'], ENT_COMPAT, 'UTF-8'));
+		$newPassword = trim(htmlspecialchars($details['newPassword'], ENT_COMPAT, 'UTF-8'));
+		
+		if ($catPassword == $oldPassword) {
+			if (strlen($newPassword) >= 4) {
+				
+				// Get the alma user XML object from API
+				$almaUserObject = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?&apikey='.$this->apiKey, 'GET');
+				$almaUserObject = $almaUserObject['xml']; // Get the user XML object from the return-array.
+				
+				// Remove user roles (they are not touched)
+				unset($almaUserObject->user_roles);
+				
+				// Set new password to XML
+				$almaUserObject->password = $newPassword;
+				
+				// Get XML for update process via API
+				$almaUserObjectForUpdate = $almaUserObject->asXML();
+				
+				// Send update via HTTP PUT
+				$updateResult = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?user_id_type=all_unique&apikey='.$this->apiKey, 'PUT', $almaUserObjectForUpdate, ['Content-type' => 'application/xml']);
+				
+				if ($updateResult['status'] == '200') {
+					$statusMessage = 'Changed password';
+					$success = true;
+				} else {
+					$statusMessage = 'Changing password not successful! HTTP error code: '.$updateResult['status'];
+				}
+				/*
+				echo '<pre>';
+				print_r($updateResult);
+				echo '</pre>';
+				*/
+			} else {
+    			$statusMessage = 'Minimum lenght of password is 4 characters';
+    			$success = false;
+    		}
+		} else {
+    		$statusMessage = 'Old password is wrong';
+    		$success = false;
+    	}
+    	
+    	$returnArray = array('success' => $success, 'status' => $statusMessage);
+    	
+    	return $returnArray;
 	}
 	
 	

@@ -10,6 +10,19 @@
 
     // Template for use by the renderArray helper:
     $arrTemplate = '<tr><th>%%LABEL%%:</th><td> %%VALUE%%</td></tr>';
+
+    // Flatten 2-dimentional array to a 1-dimentional array. If not, we cannot use it for renderArray() method:
+    $profileFlat = [];
+    foreach ($this->profile as $key => $value) {
+    	if (is_array($value)) {
+    		foreach ($value as $key2 => $value2) {
+    			$profileFlat[$key.$key2] = $value2;
+    		}
+    	} else {
+    		$profileFlat[$key] = $value;
+    	}
+    }
+    
 ?>
 
 <div class="row">
@@ -48,29 +61,34 @@
       <? endif; ?>
       <?
       	$rowsArray = [];      	
-      	(isset($this->profile['address1']) && !empty($this->profile['address1'])) ? $rowsArray[$this->transEsc('Address') . ' 1'] = 'address1' : null;
-      	(isset($this->profile['address2']) && !empty($this->profile['address2'])) ? $rowsArray[$this->transEsc('Address') . ' 2'] = 'address2' : null;
-      	(isset($this->profile['address3']) && !empty($this->profile['address3'])) ? $rowsArray[$this->transEsc('Address') . ' 3'] = 'address3' : null;
-      	(isset($this->profile['address4']) && !empty($this->profile['address4'])) ? $rowsArray[$this->transEsc('Address') . ' 4'] = 'address4' : null;
-      	(isset($this->profile['address5']) && !empty($this->profile['address5'])) ? $rowsArray[$this->transEsc('Address') . ' 5'] = 'address5' : null;
-      	(isset($this->profile['zip']) && !empty($this->profile['zip'])) ? $rowsArray[$this->transEsc('Zip')] = 'zip' : null;
-      	(isset($this->profile['city']) && !empty($this->profile['city'])) ? $rowsArray[$this->transEsc('City')] = 'city' : null;
-      	(isset($this->profile['country']) && !empty($this->profile['country'])) ? $rowsArray[$this->transEsc('Country')] = 'country' : null;
-      	(isset($this->profile['phone']) && !empty($this->profile['phone'])) ? $rowsArray[$this->transEsc('Phone Number')] = 'phone' : null;
-      	(isset($this->profile['phone2']) && !empty($this->profile['phone2'])) ? $rowsArray[$this->transEsc('Phone Number') . ' 2'] = 'phone2' : null;
-      	(isset($this->profile['email']) && !empty($this->profile['email'])) ? $rowsArray[$this->transEsc('email')] = 'email' : null;
-      	if (isset($this->profile['emailsAdditional'])) {
-      		foreach($this->profile['emailsAdditional'] as $emailAdditional) {
-      			(isset($emailAdditional) && !empty($emailAdditional)) ? $rowsArray[$this->transEsc('email')] = $emailAdditional : null;
-      		}
-      	}
-      	(isset($this->profile['group']) && !empty($this->profile['group'])) ? $rowsArray[$this->transEsc('Group')] = 'group' : null;
+      	(isset($profileFlat['address1']) && !empty($profileFlat['address1'])) ? $rowsArray[$this->transEsc('Address') . ' 1'] = 'address1' : null;
+      	(isset($profileFlat['address2']) && !empty($profileFlat['address2'])) ? $rowsArray[$this->transEsc('Address') . ' 2'] = 'address2' : null;
+      	(isset($profileFlat['address3']) && !empty($profileFlat['address3'])) ? $rowsArray[$this->transEsc('Address') . ' 3'] = 'address3' : null;
+      	(isset($profileFlat['address4']) && !empty($profileFlat['address4'])) ? $rowsArray[$this->transEsc('Address') . ' 4'] = 'address4' : null;
+      	(isset($profileFlat['address5']) && !empty($profileFlat['address5'])) ? $rowsArray[$this->transEsc('Address') . ' 5'] = 'address5' : null;
+      	(isset($profileFlat['zip']) && !empty($profileFlat['zip'])) ? $rowsArray[$this->transEsc('Zip')] = 'zip' : null;
+      	(isset($profileFlat['city']) && !empty($profileFlat['city'])) ? $rowsArray[$this->transEsc('City')] = 'city' : null;
+      	(isset($profileFlat['country']) && !empty($profileFlat['country'])) ? $rowsArray[$this->transEsc('Country')] = 'country' : null;
+      	(isset($profileFlat['phone']) && !empty($profileFlat['phone'])) ? $rowsArray[$this->transEsc('Phone Number')] = 'phone' : null;
+      	(isset($profileFlat['phonesAdditional0']) && !empty($profileFlat['phonesAdditional0'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 1'] = 'phonesAdditional0' : null;
+      	(isset($profileFlat['phonesAdditional1']) && !empty($profileFlat['phonesAdditional1'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 2'] = 'phonesAdditional1' : null;
+      	(isset($profileFlat['phonesAdditional2']) && !empty($profileFlat['phonesAdditional2'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 3'] = 'phonesAdditional2' : null;
+      	(isset($profileFlat['phonesAdditional3']) && !empty($profileFlat['phonesAdditional3'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 4'] = 'phonesAdditional3' : null;
+      	(isset($profileFlat['phonesAdditional4']) && !empty($profileFlat['phonesAdditional4'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 5'] = 'phonesAdditional4' : null;
+      	(isset($profileFlat['email']) && !empty($profileFlat['email'])) ? $rowsArray[$this->transEsc('email')] = 'email' : null;
+      	(isset($profileFlat['emailsAdditional0']) && !empty($profileFlat['emailsAdditional0'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 1'] = 'emailsAdditional0' : null;
+      	(isset($profileFlat['emailsAdditional1']) && !empty($profileFlat['emailsAdditional1'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 2'] = 'emailsAdditional1' : null;
+      	(isset($profileFlat['emailsAdditional2']) && !empty($profileFlat['emailsAdditional2'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 3'] = 'emailsAdditional2' : null;
+      	(isset($profileFlat['emailsAdditional3']) && !empty($profileFlat['emailsAdditional3'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 4'] = 'emailsAdditional3' : null;
+      	(isset($profileFlat['emailsAdditional4']) && !empty($profileFlat['emailsAdditional4'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 5'] = 'emailsAdditional4' : null;
+      	(isset($profileFlat['group']) && !empty($profileFlat['group'])) ? $rowsArray[$this->transEsc('Group')] = 'group' : null;
       	
       	// Render the array as table rows (see $arrTemplate above):
-        echo $this->renderArray($arrTemplate, $this->profile, $rowsArray);
+        echo $this->renderArray($arrTemplate, $profileFlat, $rowsArray);
       ?>
     </table>
   </div>
+  
 
   <div class="<?=$this->layoutClass('sidebar')?>">
     <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'profile'))?>
