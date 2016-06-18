@@ -21,7 +21,6 @@
     }
 }());
 
-
 //Setup search autocomplete
 function setupAutocomplete() {
 	

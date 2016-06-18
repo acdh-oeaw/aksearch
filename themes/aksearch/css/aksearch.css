@@ -107,7 +107,6 @@ a {
 }
 
 
-
 .navbar-brand {
 	float: left;
 	font-size: 18px;
@@ -148,6 +147,7 @@ a {
 .akAdvancedSearchForm {
 	padding-left: 15px;
 }
+ 
 
 #advSearchForm .row .col-sm-9 .row fieldset {
 	margin-top: 20px;
@@ -317,6 +317,10 @@ a {
 	padding-bottom: 10px;
 	padding-top: 10px;
 	border-top: solid 1px #eee;
+}
+
+#akMyListContainer .resultItemLine1 {
+	font-weight: bold;
 }
 
 
