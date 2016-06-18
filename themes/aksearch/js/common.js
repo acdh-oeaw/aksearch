@@ -253,6 +253,193 @@ function keyboardShortcuts() {
   }
 }
 
+
+//Lightbox
+/*
+ * This function adds jQuery events to elements in the lightbox
+ *
+ * This is a default open action, so it runs every time changeContent
+ * is called and the 'shown' lightbox event is triggered
+ */
+function bulkActionSubmit($form) {
+  var button = $form.find('[type="submit"][clicked=true]');
+  var submit = button.attr('name');
+  var checks = $form.find('input.checkbox-select-item:checked');
+  if(checks.length == 0 && submit != 'empty') {
+    Lightbox.displayError(vufindString['bulk_noitems_advice']);
+    return false;
+  }
+  if (submit == 'print') {
+    //redirect page
+    var url = path+'/Records/Home?print=true';
+    for(var i=0;i<checks.length;i++) {
+      url += '&id[]='+checks[i].value;
+    }
+    document.location.href = url;
+  } else {
+    $('#modal .modal-title').html(button.attr('title'));
+    Lightbox.titleSet = true;
+    Lightbox.submit($form, Lightbox.changeContent);
+  }
+  return false;
+}
+function registerLightboxEvents() {
+	  var modal = $("#modal");
+	  // New list
+	  $('#make-list').click(function() {
+	    var get = deparam(this.href);
+	    get['id'] = 'NEW';
+	    return Lightbox.get('MyResearch', 'EditList', get);
+	  });
+	  // New account link handler
+	  $('.createAccountLink').click(function() {
+	    var get = deparam(this.href);
+	    return Lightbox.get('MyResearch', 'Account', get);
+	  });
+	  $('.back-to-login').click(function() {
+	    Lightbox.getByUrl(Lightbox.openingURL);
+	    return false;
+	  });
+	  // Select all checkboxes
+	  $(modal).find('.checkbox-select-all').change(function() {
+	    $(this).closest('.modal-body').find('.checkbox-select-item').prop('checked', this.checked);
+	  });
+	  $(modal).find('.checkbox-select-item').change(function() {
+	    $(this).closest('.modal-body').find('.checkbox-select-all').prop('checked', false);
+	  });
+	  // Highlight which submit button clicked
+	  $(modal).find("form [type=submit]").click(function() {
+	    // Abort requests triggered by the lightbox
+	    $('#modal .fa-spinner').remove();
+	    // Remove other clicks
+	    $(modal).find('[type="submit"][clicked=true]').attr('clicked', false);
+	    // Add useful information
+	    $(this).attr("clicked", "true");
+	    // Add prettiness
+	    if($(modal).find('.has-error,.sms-error').length == 0 && !$(this).hasClass('dropdown-toggle')) {
+	      $(this).after(' <i class="fa fa-spinner fa-spin"></i> ');
+	    }
+	  });
+	  /**
+	   * Hide the header in the lightbox content
+	   * if it matches the title bar of the lightbox
+	   */
+	  var header = $('#modal .modal-title').html();
+	  var contentHeader = $('#modal .modal-body h2');
+	  contentHeader.each(function(i,op) {
+	    if (op.innerHTML == header) {
+	      $(op).hide();
+	    }
+	  });
+	}
+function updatePageForLogin() {
+	  // Hide "log in" options and show "log out" options:
+	  $('#loginOptions').addClass('hidden');
+	  $('.logoutOptions').removeClass('hidden');
+
+	  var recordId = $('#record_id').val();
+
+	  // Update user save statuses if the current context calls for it:
+	  if (typeof(checkSaveStatuses) == 'function') {
+	    checkSaveStatuses();
+	  }
+
+	  // refresh the comment list so the "Delete" links will show
+	  $('.commentList').each(function(){
+	    var recordSource = extractSource($('#record'));
+	    refreshCommentList(recordId, recordSource);
+	  });
+
+	  var summon = false;
+	  $('.hiddenSource').each(function(i, e) {
+	    if(e.value == 'Summon') {
+	      summon = true;
+	      // If summon, queue reload for when we close
+	      Lightbox.addCloseAction(function(){document.location.reload(true);});
+	    }
+	  });
+
+	  // Refresh tab content
+	  var recordTabs = $('.recordTabs');
+	  if(!summon && recordTabs.length > 0) { // If summon, skip: about to reload anyway
+	    var tab = recordTabs.find('.active a').attr('id');
+	    ajaxLoadTab(tab);
+	  }
+
+	  // Refresh tag list
+	  if(typeof refreshTagList === "function") {
+	    refreshTagList(true);
+	  }
+	}
+	function newAccountHandler(html) {
+	  updatePageForLogin();
+	  var params = deparam(Lightbox.openingURL);
+	  if (params['subaction'] != 'UserLogin') {
+	    Lightbox.getByUrl(Lightbox.openingURL);
+	    Lightbox.openingURL = false;
+	  } else {
+	    Lightbox.close();
+	  }
+	}
+
+//This is a full handler for the login form
+function ajaxLogin(form) {
+  Lightbox.ajax({
+    url: path + '/AJAX/JSON?method=getSalt',
+    dataType: 'json',
+    success: function(response) {
+      if (response.status == 'OK') {
+        var salt = response.data;
+
+        // extract form values
+        var params = {};
+        for (var i = 0; i < form.length; i++) {
+          // special handling for password
+          if (form.elements[i].name == 'password') {
+            // base-64 encode the password (to allow support for Unicode)
+            // and then encrypt the password with the salt
+            var password = rc4Encrypt(
+                salt, btoa(unescape(encodeURIComponent(form.elements[i].value)))
+            );
+            // hex encode the encrypted password
+            params[form.elements[i].name] = hexEncode(password);
+          } else {
+            params[form.elements[i].name] = form.elements[i].value;
+          }
+        }
+
+        // login via ajax
+        Lightbox.ajax({
+          type: 'POST',
+          url: path + '/AJAX/JSON?method=login',
+          dataType: 'json',
+          data: params,
+          success: function(response) {
+            if (response.status == 'OK') {
+              updatePageForLogin();
+              // and we update the modal
+              var params = deparam(Lightbox.lastURL);
+              if (params['subaction'] == 'UserLogin') {
+                Lightbox.close();
+              } else {
+                Lightbox.getByUrl(
+                  Lightbox.lastURL,
+                  Lightbox.lastPOST,
+                  Lightbox.changeContent
+                );
+              }
+            } else {
+              Lightbox.displayError(response.data);
+            }
+          }
+        });
+      } else {
+        Lightbox.displayError(response.data);
+      }
+    }
+  });
+}
+
 $(document).ready(function commonDocReady() {
   // Start up all of our submodules
   VuFind.init();
@@ -307,5 +494,89 @@ $(document).ready(function commonDocReady() {
   $('.facetOR').click(function facetBlocking() {
     $(this).closest('.collapse').html('<div class="list-group-item">' + VuFind.translate('loading') + '...</div>');
     window.location.assign($(this).attr('href'));
+  });
+  
+  $('[name=bulkActionForm]').submit(function() {
+    return bulkActionSubmit($(this));
+  });
+  $('[name=bulkActionForm]').find("[type=submit]").click(function() {
+    // Abort requests triggered by the lightbox
+    $('#modal .fa-spinner').remove();
+    // Remove other clicks
+    $(this).closest('form').find('[type="submit"][clicked=true]').attr('clicked', false);
+    // Add useful information
+    $(this).attr("clicked", "true");
+  });
+  
+  
+  /******************************
+   * LIGHTBOX DEFAULT BEHAVIOUR *
+   ******************************/
+  Lightbox.addOpenAction(registerLightboxEvents);
+
+  Lightbox.addFormCallback('newList', Lightbox.changeContent);
+  Lightbox.addFormCallback('accountForm', newAccountHandler);
+  Lightbox.addFormCallback('bulkDelete', function(html) {
+    location.reload();
+  });
+  Lightbox.addFormCallback('bulkSave', function(html) {
+    Lightbox.addCloseAction(updatePageForLogin);
+    Lightbox.confirm(vufindString['bulk_save_success']);
+  });
+  Lightbox.addFormCallback('bulkRecord', function(html) {
+    Lightbox.close();
+    checkSaveStatuses();
+  });
+  Lightbox.addFormCallback('emailSearch', function(html) {
+    Lightbox.confirm(vufindString['bulk_email_success']);
+  });
+  Lightbox.addFormCallback('saveRecord', function(html) {
+    Lightbox.close();
+    checkSaveStatuses();
+  });
+
+  Lightbox.addFormHandler('exportForm', function(evt) {
+    $.ajax({
+      url: path + '/AJAX/JSON?' + $.param({method:'exportFavorites'}),
+      type:'POST',
+      dataType:'json',
+      data:Lightbox.getFormData($(evt.target)),
+      success:function(data) {
+        if(data.data.export_type == 'download' || data.data.needs_redirect) {
+          document.location.href = data.data.result_url;
+          Lightbox.close();
+          return false;
+        } else {
+          Lightbox.changeContent(data.data.result_additional);
+        }
+      },
+      error:function(d,e) {
+        //console.log(d,e); // Error reporting
+      }
+    });
+    return false;
+  });
+  Lightbox.addFormHandler('feedback', function(evt) {
+    var $form = $(evt.target);
+    // Grabs hidden inputs
+    var formSuccess     = $form.find("input#formSuccess").val();
+    var feedbackFailure = $form.find("input#feedbackFailure").val();
+    var feedbackSuccess = $form.find("input#feedbackSuccess").val();
+    // validate and process form here
+    var name  = $form.find("input#name").val();
+    var email = $form.find("input#email").val();
+    var comments = $form.find("textarea#comments").val();
+    if (name.length == 0 || comments.length == 0) {
+      Lightbox.displayError(feedbackFailure);
+    } else {
+      Lightbox.get('Feedback', 'Email', {}, {'name':name,'email':email,'comments':comments}, function() {
+        Lightbox.changeContent('<div class="alert alert-info">'+formSuccess+'</div>');
+      });
+    }
+    return false;
+  });
+  Lightbox.addFormHandler('loginForm', function(evt) {
+    ajaxLogin(evt.target);
+    return false;
   });
 });
