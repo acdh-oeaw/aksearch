@@ -1,12 +1,6 @@
 <?
   // Grab list object from search results (if applicable):
   $list = $this->results->getListObject();
-
-  /*
-  echo '<pre>';
-  print_r(get_class($this->results));
-  echo '</pre>';
-  */
   
   // Set up page title:
   $this->headTitle(isset($list) ? $list->title : $this->translate('Favorites'));

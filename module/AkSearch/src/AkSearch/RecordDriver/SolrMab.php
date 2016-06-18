@@ -1071,6 +1071,15 @@ class SolrMab extends SolrDefault  {
 	public function getPublicationPlace() {
 		return isset($this->fields['publishPlace_str']) ? $this->fields['publishPlace_str'] : null;
 	}
+	
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return string
+	 */
+	public function getTitle() {
+		return isset($this->fields['title']) ? str_replace(array('<', '>'), '', $this->fields['title']) : '';
+	}
 
 	/**
 	 * Get Solrfield title_alt (alternative title)
