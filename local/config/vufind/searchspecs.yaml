@@ -327,7 +327,8 @@ Subject:
     - authUseForWork_txt_mv^30
 #    - authUseForAdditionsWork_txt_mv^20
 #    - authOtherAdditionsWork_txt_mv^10
-    - subjectSWD_txt_mv^70
+    - swdTopic_txt_mv^70
+    - swdGeographic_txt_mv^70
     - subjectBKL_txt_mv^70
     - subjectAdditional_txt_mv^70
 #    - subjectPER_txt_mv^30
