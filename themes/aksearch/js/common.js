@@ -579,4 +579,33 @@ $(document).ready(function commonDocReady() {
     ajaxLogin(evt.target);
     return false;
   });
+  
+  //Feedback
+  $('#feedbackLink').click(function() {
+    return Lightbox.get('Feedback', 'Home');
+  });
+  // Help links
+  $('.help-link').click(function() {
+    var split = this.href.split('=');
+    return Lightbox.get('Help','Home',{topic:split[1]});
+  });
+  // Hierarchy links
+  $('.hierarchyTreeLink a').click(function() {
+    var id = $(this).parent().parent().parent().find(".hiddenId")[0].value;
+    var hierarchyID = $(this).parent().find(".hiddenHierarchyId")[0].value;
+    return Lightbox.get('Record','AjaxTab',{id:id},{hierarchy:hierarchyID,tab:'HierarchyTree'});
+  });
+  // Login link
+  $('#loginOptions a.modal-link').click(function() {
+    return Lightbox.get('MyResearch','UserLogin');
+  });
+  // Email search link
+  $('.mailSearch').click(function() {
+    return Lightbox.get('Search','Email',{url:document.URL});
+  });
+  // Save record links
+  $('.save-record').click(function() {
+    var parts = this.href.split('/');
+    return Lightbox.get(parts[parts.length-3],'Save',{id:$(this).attr('id')});
+  });
 });
