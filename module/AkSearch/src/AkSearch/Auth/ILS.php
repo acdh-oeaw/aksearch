@@ -59,6 +59,17 @@ class ILS extends DefaultAuthILS {
 
     	// Ensure that all expected parameters are populated to avoid notices in the code below.
     	$params = [];
+    	foreach (['username', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
+    		$params[$param] = $request->getPost()->get($param, '');
+    	}
+    	
+    	$result = $this->getCatalog()->changeUserData([
+    			'username'	=> $params['username'],
+    			'email'		=> $params['cudEmail'],
+    			'phone'		=> $params['cudPhone'],
+    			'phone2'	=> $params['cudPhone2']
+    	]);
+    	/*
     	foreach (['username', 'cudAddress1', 'cudAddress2', 'cudAddress3', 'cudAddress4', 'cudZip', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
     		$params[$param] = $request->getPost()->get($param, '');
     	}
@@ -74,7 +85,7 @@ class ILS extends DefaultAuthILS {
     			'phone'		=> $params['cudPhone'],
     			'phone2'	=> $params['cudPhone2']
     	]);
-    	
+    	*/
     	if (!$result['success']) {
     		throw new \VuFind\Exception\Auth($result['status']);
     	}

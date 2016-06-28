@@ -801,20 +801,49 @@ class Aleph extends AlephDefault {
     	$dateToday = date("Ymd");
     	$barcode = $details['username'];
     	
-    	$address1 = (isset($details['address1'])) ? trim($details['address1']) : '';
-    	$address2 = (isset($details['address2'])) ? trim($details['address2']) : '';
-    	$address3 = (isset($details['address3'])) ? trim($details['address3']) : '';
-    	$address4 = (isset($details['address4'])) ? trim($details['address4']) : '';
-    	$zip = (isset($details['zip'])) ? trim($details['zip']) : '';
+    	//$address1 = (isset($details['address1'])) ? trim($details['address1']) : '';
+    	//$address2 = (isset($details['address2'])) ? trim($details['address2']) : '';
+    	//$address3 = (isset($details['address3'])) ? trim($details['address3']) : '';
+    	//$address4 = (isset($details['address4'])) ? trim($details['address4']) : '';
+    	//$zip = (isset($details['zip'])) ? trim($details['zip']) : '';
     	$email = (isset($details['email'])) ? trim($details['email']) : '';
     	$phone = (isset($details['phone'])) ? trim($details['phone']) : '';
     	$phone2 = (isset($details['phone2'])) ? trim($details['phone2']) : '';
     	
+    	/*
     	if (empty($address1) || empty($email)) {
+    		throw new AuthException('required_fields_empty');
+    	}
+    	*/
+    	if (empty($email)) {
     		throw new AuthException('required_fields_empty');
     	}
     	
     	// XML string for changing data in Aleph via X-Services
+    	$xml_string = '<?xml version="1.0"?>
+		<p-file-20>
+			<patron-record>
+				<z303>
+					<match-id-type>01</match-id-type>
+					<match-id>' . $barcode . '</match-id>
+					<record-action>U</record-action>
+					<z303-user-library>AKW50</z303-user-library>
+					<z303-update-date>' . $dateToday . '</z303-update-date>
+					<z303-home-library>XAW1</z303-home-library>
+				</z303>
+				<z304>
+					<record-action>U</record-action>
+					<z304-address-type>01</z304-address-type>
+					<email-address>' . $email . '</email-address>
+					<z304-email-address>' . $email . '</z304-email-address>
+					<z304-telephone>' . $phone . '</z304-telephone>
+					<z304-telephone-2>' . $phone2 . '</z304-telephone-2>
+				</z304>
+			</patron-record>
+		</p-file-20>
+		';
+    	
+    	/*
     	$xml_string = '<?xml version="1.0"?>
 		<p-file-20>
 			<patron-record>
@@ -842,7 +871,8 @@ class Aleph extends AlephDefault {
 			</patron-record>
 		</p-file-20>
 		';
-		
+		*/
+    	
 		// Remove whitespaces from XML string:
 		$xml_string = preg_replace("/\n/i", "", $xml_string);
 		$xml_string = preg_replace("/>\s*</i", "><", $xml_string);

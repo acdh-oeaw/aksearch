@@ -1,9 +1,9 @@
 <?php 
-	$address1 = (isset($this->profile['address1'])) ? $this->profile['address1'] : '';
-	$address2 = (isset($this->profile['address2'])) ? $this->profile['address2'] : '';
-	$address3 = (isset($this->profile['address3'])) ? $this->profile['address3'] : '';
-	$address4 = (isset($this->profile['address4'])) ? $this->profile['address4'] : '';
-	$zip = (isset($this->profile['zip'])) ? $this->profile['zip'] : '';
+	//$address1 = (isset($this->profile['address1'])) ? $this->profile['address1'] : '';
+	//$address2 = (isset($this->profile['address2'])) ? $this->profile['address2'] : '';
+	//$address3 = (isset($this->profile['address3'])) ? $this->profile['address3'] : '';
+	//$address4 = (isset($this->profile['address4'])) ? $this->profile['address4'] : '';
+	//$zip = (isset($this->profile['zip'])) ? $this->profile['zip'] : '';
 	$email = (isset($this->profile['email'])) ? $this->profile['email'] : '';
 	$phone = (isset($this->profile['phone'])) ? $this->profile['phone'] : '';
 	$phone2 = (isset($this->profile['phone2'])) ? $this->profile['phone2'] : '';
@@ -11,6 +11,8 @@
 <div>
     <table class="table table-striped">
 	    <tbody>
+	    	<?php
+	    	/*
 	    	<tr>
 	    		<th style="vertical-align: middle;"><?=$this->transEsc('address1') ?></th>
 	    		<td class="form-group"><input type="text" value="<?=$address1 ?>" id="cudAddress1" name="cudAddress1" class="form-control" required aria-required="true"/><div class="help-block with-errors"></div></td>
@@ -31,6 +33,8 @@
 	    		<th style="vertical-align: middle;"><?=$this->transEsc('zip') ?></th>
 	    		<td class="form-group"><input type="text" value="<?=$zip ?>" id="cudZip" name="cudZip" class="form-control" /></td>
 	    	</tr>
+	    	*/
+	    	?>
 	    	<tr>
 	    		<th style="vertical-align: middle;"><?=$this->transEsc('email') ?></th>
 	    		<td class="form-group"><input type="email" value="<?=$email?>" id="cudEmail" name="cudEmail" class="form-control" required aria-required="true" /><div class="help-block with-errors"></div></td>
