@@ -1373,23 +1373,31 @@ class SolrMab extends SolrDefault  {
     	}
     	try {
     		$holdings = $this->holdLogic->getHoldings($this->getSysNo());
-    		
-    		// Masking call no 1, call no 2, collection and collection description
+
     		foreach ($holdings as &$holdingsOfLocation) {
     			$items = &$holdingsOfLocation['items'];
-    			foreach ($items as &$item) {
+    			
+    			foreach ($items as $key => &$item) {
+    				
+    				// Masking call no 1, call no 2, collection and collection description
     				$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
     				$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
     				$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
     				$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
-    				
     				$item['callnumber'] = ($callNo1 != null) ? $this->getMaskedValue($callNo1) : null;
     				$item['callnumber_second'] = ($callNo2 != null) ? $this->getMaskedValue($callNo2) : null;
     				$item['collection'] = ($collection != null) ? $this->getMaskedValue($collection) : null;
     				$item['collection_desc'] = ($collection_desc != null) ? $this->getMaskedValue($collection_desc) : null;
+    				
+    				// Hide items according to user configuration in AKsearch.ini
+    				foreach ($this->akConfig->HideItems as $configKey => $configValue) {
+    					if (isset($item[$configKey]) && $item[$configKey] == $configValue) {
+    						unset($items[$key]);
+    					}
+    				}
     			}
     		}
-    		
+
     		return $holdings;
     	} catch (ILSException $e) {
     		return array();
