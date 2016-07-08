@@ -916,7 +916,7 @@ DvdaifAll:
         - [onephrase, ~]
       sysNo_txt:
         - [onephrase, ~]
-  FilterQuery: "locationCode_str:\"ZSF\""
+  FilterQuery: "locationCode_str_mv:\"ZSF\""
 
 
 # Title fields of DVD collection "Arbeit im Film"
@@ -964,7 +964,7 @@ DvdaifTitle:
     series2:
       - [onephrase, 50]
       - [and , ~]
-  FilterQuery: "locationCode_str:\"ZSF\""
+  FilterQuery: "locationCode_str_mv:\"ZSF\""
 
 
 # Person fields of DVD collection "Arbeit im Film"
@@ -1049,7 +1049,7 @@ DvdaifPersons:
 #      - [onephrase, 100]
 #      - [and, 50]
 #      - [or, ~]
-  FilterQuery: "locationCode_str:\"ZSF\""
+  FilterQuery: "locationCode_str_mv:\"ZSF\""
 
 LnAll:
   DismaxFields:
@@ -1194,7 +1194,7 @@ LnAll:
         - [onephrase, ~]
       sysNo_txt:
         - [onephrase, ~]
-  FilterQuery: "locationCode_str:\"LN\""
+  FilterQuery: "locationCode_str_mv:\"LN\""
   
 LnTitle:
   DismaxFields:
@@ -1240,7 +1240,7 @@ LnTitle:
     series2:
       - [onephrase, 50]
       - [and , ~]
-  FilterQuery: "locationCode_str:\"LN\""
+  FilterQuery: "locationCode_str_mv:\"LN\""
 
 LnPersons:
   DismaxFields:
@@ -1323,7 +1323,7 @@ LnPersons:
 #      - [onephrase, 100]
 #      - [and, 50]
 #      - [or, ~]
-  FilterQuery: "locationCode_str:\"LN\""
+  FilterQuery: "locationCode_str_mv:\"LN\""
 
 
 DigitalerWandel:
