@@ -40,7 +40,8 @@ class Factory {
     public static function getAleph(ServiceManager $sm) {
         return new Aleph(
             $sm->getServiceLocator()->get('VuFind\DateConverter'),
-            $sm->getServiceLocator()->get('VuFind\CacheManager')
+            $sm->getServiceLocator()->get('VuFind\CacheManager'),
+        	$sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch') // Get AKsearch.ini
         );
     }
     

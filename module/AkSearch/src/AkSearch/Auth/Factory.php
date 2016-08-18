@@ -66,7 +66,7 @@ class Factory extends DefaultAuthFactory {
     {
         // Set up configuration:
         $config = $sm->get('VuFind\Config')->get('config');
-        $akConfig = $sm->get('VuFind\Config')->get('AKsearch');
+        $akConfig = $sm->get('VuFind\Config')->get('AKsearch'); // Get AKsearch.ini
         
         try {
             // Check if the catalog wants to hide the login link, and override

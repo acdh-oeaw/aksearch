@@ -43,6 +43,20 @@ use VuFind\ILS\Driver\AlephRestfulException as AlephRestfulExceptionDefault;
 
 class Aleph extends AlephDefault {
 
+	protected $akConfig = null;
+	
+	/**
+	 * Constructor
+	 *
+	 * @param \VuFind\Date\Converter $dateConverter Date converter
+	 * @param \VuFind\Cache\Manager  $cacheManager  Cache manager (optional)
+	 * @param \Zend\Config\Config    $akConfig      Contents of AKconfig.ini
+	 */
+	public function __construct(\VuFind\Date\Converter $dateConverter, \VuFind\Cache\Manager $cacheManager = null, $akConfig = null) {
+				$this->dateConverter = $dateConverter;
+				$this->cacheManager = $cacheManager;
+				$this->akConfig = $akConfig;
+	}
 	
 	/**
 	 * Perform an XServer request.
@@ -141,6 +155,13 @@ class Aleph extends AlephDefault {
 	 *         duedate, number, barcode.
 	 */
 	public function getHolding($id, array $patron = null) {
+		
+
+		//$akSearchSettings = $pm->('config');
+		echo '<pre>';
+		print_r($this->akConfig);
+		echo '</pre>';
+		
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;
@@ -180,6 +201,7 @@ class Aleph extends AlephDefault {
 			if (in_array($status, $this->available_statuses)) {
 				$availability = true;
 			}
+
 			if ($item_status['request'] == 'Y' && $availability == false) {
 				$addLink = true;
 			}
