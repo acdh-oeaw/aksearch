@@ -120,7 +120,11 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 							}
 								
 							if (isset($holdingOfLocation['requests_placed']) && $holdingOfLocation['requests_placed'] > 0) {
-								echo '<span>' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
+								echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
+							}
+							
+							if (!$holdingOfLocation['duedate'] && !$holdingOfLocation['requests_placed'] && !$holdingOfLocation['returnDate']) {
+								echo '<span class="statusExtra">' . $this->transEsc("not_available_at_the_moment") . '</span>';
 							}
 							echo '</span>';
 								

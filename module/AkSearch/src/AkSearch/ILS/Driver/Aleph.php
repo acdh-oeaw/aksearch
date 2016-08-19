@@ -156,12 +156,6 @@ class Aleph extends AlephDefault {
 	 */
 	public function getHolding($id, array $patron = null) {
 		
-
-		//$akSearchSettings = $pm->('config');
-		echo '<pre>';
-		print_r($this->akConfig);
-		echo '</pre>';
-		
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;
@@ -201,7 +195,13 @@ class Aleph extends AlephDefault {
 			if (in_array($status, $this->available_statuses)) {
 				$availability = true;
 			}
-
+			
+			// Check for "not available item statuses" in AKsearch.ini:
+			$not_available_item_statuses = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->AlephItemStatus->not_available_item_statuses);
+			if (in_array($z30->{'z30-item-status'}, $not_available_item_statuses)) {
+				$availability = false;
+			}
+			
 			if ($item_status['request'] == 'Y' && $availability == false) {
 				$addLink = true;
 			}
@@ -209,6 +209,7 @@ class Aleph extends AlephDefault {
 				$hold_request = $item->xpath('info[@type="HoldRequest"]/@allowed');
 				$addLink = ($hold_request[0] == 'Y');
 			}
+			
 			$matches = array();
 			if (preg_match("/([0-9]*\\/[a-zA-Z]*\\/[0-9]*);([a-zA-Z ]*)/", $status, $matches)) {
 				$duedate = $this->parseDate($matches[1]);
