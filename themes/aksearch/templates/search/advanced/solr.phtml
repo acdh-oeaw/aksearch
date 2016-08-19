@@ -7,6 +7,16 @@
         <?=$this->render('search/advanced/checkbox-filters.phtml')?>
       <? endif; ?>
       <div class="row">
+      
+      <!--
+      <div class="col-sm-4">
+      	<select class="form-control" id="limit_akcustom" name="filter[]" multiple="multiple" size="10">
+      		<option value="~locationCode_str:ZSF">ZSF</option>
+      		<option value="~customField_txt_mv:'Digitaler Wandel'">DW</option>
+      	</select>
+      </div>
+      -->
+      
         <? foreach ($this->facetList as $field => $list): ?>
         
         <?php 
