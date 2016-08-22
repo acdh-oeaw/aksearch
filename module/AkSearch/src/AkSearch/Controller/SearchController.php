@@ -5,6 +5,7 @@ namespace AkSearch\Controller;
 class SearchController extends \VuFind\Controller\SearchController
 {
     
+	protected $akConfig;
 
     /**
      * Process the facets to be used as limits on the Advanced Search screen.
@@ -47,7 +48,13 @@ class SearchController extends \VuFind\Controller\SearchController
             }
         }
         
+        
+        
         // TODO: Read custom facet config from AKsearch.ini and add to facetList here:
+        $this->akConfig = $this->getServiceLocator()->get('\VuFind\Config')->get('AKsearch'); // Get AKsearch.ini
+        echo '<pre>';
+        print_r($this->akConfig);
+        echo '</pre>'; 
         $facetList['test_facet']['label'] = 'Spezial-Sammlung';
         $facetList['customField_txt_mv']['list'][] = array('value' => 'Digitaler Wandel', 'displayText' => 'Digitaler Wandel', 'operator' => 'OR');
         $facetList['locationCode_str_mv']['list'][]= array('value' => 'ZSF', 'displayText' => 'DVDs Arbeit im Film', 'operator' => 'OR');
