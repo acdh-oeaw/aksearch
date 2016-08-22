@@ -27,6 +27,10 @@
         	$aksort = true;
         	$label = preg_replace('/\[aksort\]/', "", $label);
         }
+        
+        
+        // Check for AK custom advanced facets
+        $akCustomAdvFacets = false;
         ?>
         
           <div class="col-sm-<?=floor(12/count($this->facetList)) ?>">
@@ -60,7 +64,16 @@
 	                // correct order.
 	                foreach ($list['list'] as $i => $value) {
 	                  if (!empty($value['displayText'])) {
-	                    $sorted[$i] = $this->transEsc($value['displayText']);
+	                    
+	                    if (!array_key_exists('akCustomAdvancedFacetField', $value)) {
+	                    	// Default
+	                    	$sorted[$i] = $this->transEsc(str_replace(array("<", ">"), "", $value['displayText']));
+	                    } else {
+	                    	// AK custom advanced facets
+	                    	$akCustomAdvFacets = true;
+	                    	$sorted[$i]['displayText'] = $this->transEsc(str_replace(array("<", ">"), "", $value['displayText']));
+	                    	$sorted[$i]['akCustomAdvancedFacetField'] = $value['akCustomAdvancedFacetField'];
+	                    }
 	                  }
 	                }
 	                natcasesort($sorted);
@@ -72,17 +85,23 @@
                   if ($aksort) {
                   	$value = $list['list'][$display['key']];
                   	$displayText = $display['displayText'];
+                  } else if ($akCustomAdvFacets) {
+                  	$value = $list['list'][$i];
+                  	$displayText = $display['displayText'];
+                  	$field = $display['akCustomAdvancedFacetField'];
                   } else {
                   	$value = $list['list'][$i];
                   	$displayText = $display;
                   }
                   ?>
+                  
                   <option value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>"<?=(isset($value['selected']) && $value['selected'])?' selected="selected"':''?>><?=$this->escapeHtml($this->transEsc($displayText))?></option>
                 <? endforeach; ?>
 
               <? endif; ?>
 
             </select>
+            
           </div>
         <? endforeach; ?>
       </div>

@@ -48,17 +48,17 @@ class SearchController extends \VuFind\Controller\SearchController
             }
         }
         
-        
-        
-        // TODO: Read custom facet config from AKsearch.ini and add to facetList here:
+        // Read custom facets specified in AKsearch.ini and add them to the return array
+        // This has to be processed in THEME_FOLDER/templates/search/advanced/solr.phtml
         $this->akConfig = $this->getServiceLocator()->get('\VuFind\Config')->get('AKsearch'); // Get AKsearch.ini
-        echo '<pre>';
-        print_r($this->akConfig);
-        echo '</pre>'; 
-        $facetList['test_facet']['label'] = 'Spezial-Sammlung';
-        $facetList['customField_txt_mv']['list'][] = array('value' => 'Digitaler Wandel', 'displayText' => 'Digitaler Wandel', 'operator' => 'OR');
-        $facetList['locationCode_str_mv']['list'][]= array('value' => 'ZSF', 'displayText' => 'DVDs Arbeit im Film', 'operator' => 'OR');
-        
+        $akCustomAdvFacets = $this->akConfig->CustomAdvancedFacet;
+        foreach ($akCustomAdvFacets as $key => $value) {
+        	$facetList[$key]['label'] = $key;
+        	foreach ($value as $value1) {
+        		$arrList = preg_split("/\s*,\s*/", $value1);
+        		$facetList[$key]['list'][] = array('value' => $arrList[1], 'displayText' => $arrList[2], 'operator' => 'OR', 'akCustomAdvancedFacetField' => $arrList[0]);
+        	}
+        }
 
         return $facetList;
     }
