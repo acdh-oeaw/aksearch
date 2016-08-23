@@ -87,7 +87,63 @@ $(document).ready(function() {
 	var tempSearchValue = $('#searchForm_lookfor[name]').focus().val();
 	$('#searchForm_lookfor[name]').val('').val(tempSearchValue);
 	
+	
+	// Set info tooltip variable
+	var isAkInfoTooltipOpen = false;
+	
+	// Open AK info tooltip
+	$('.akInfoTooltipOpener').click (function(event) {
+		if (!isAkInfoTooltipOpen) {
 
+			isAkInfoTooltipOpen = true;
+			var tooltipLink = $(this);
+			$("body").append('<div class="akInfoTooltip"></i></div>');
+			
+			// Position the tooltip near the mouse pointer
+			var mousePosX = event.pageX;
+	        var mousePosY = event.pageY;
+		    $(".akInfoTooltip").css("left", (mousePosX-310));
+		    $(".akInfoTooltip").css("top", (mousePosY+10));
+			
+		    // TODO: Translateable texts!
+			var resultHtml =
+				'<strong>Was sind Schlagwortketten?</strong><div class="akInfoTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
+				'<div class="akClearer"></div>' + 
+				'<div>Schlagwortketten erläutern einen oder mehrere wesentliche Aspekte eines Werkes. Sie helfen Ihnen, den Inhalt besser zu erfassen.</div>';
+			
+			// Add html to AK info tooltip
+			$(resultHtml).appendTo('.akInfoTooltip');
+			
+		} else {
+			// Remove AK info tooltip on second click on "I":
+			$('.akInfoTooltip').remove();
+			isAkInfoTooltipOpen = false;
+		}
+	});
+	
+	// Remove AK info tooltip on click on "X":
+	$("body").on("click", ".akInfoTooltipClose", function(event) {
+		if (isAkInfoTooltipOpen) {
+			$(this).closest('.akInfoTooltip').remove();
+			isAkInfoTooltipOpen = false;
+		}
+	});
+	
+	
+	// Remove AK info tooltip on click outside tooltip:
+	$(document).click(function(e) {
+		var container = $('.akInfoTooltip');		
+		if (!container.is(e.target) && container.has(e.target).length === 0 && $(e.target).hasClass('akInfoTooltipInfo') == false) {
+			$(container).remove();
+			isAkInfoTooltipOpen = false;
+		}
+	});
+	
+
+	
+	// TODO: Merge code for AK info tooltip and entity facts tooltip because right now we are doing quite the same thing with two separate methods.
+	
+	
 	// Set entity facts tooltip variable
 	var isAkEntityFactsTooltipOpen = false;
 	
@@ -101,7 +157,7 @@ $(document).ready(function() {
 			var tooltipLink = $(this);
 			var url = path + '/AJAX/JSON?' + $.param({method:'getEntityFact', gndid:gndid});
 
-			$(tooltipLink).after('<div class="akEntityFactsTooltip"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i></div>');
+			$(tooltipLink).after('<div class="akEntityFactsTooltip"></div>');
 			
 			$.ajax({
 				url: url,

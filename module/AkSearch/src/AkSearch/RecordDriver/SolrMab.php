@@ -1290,6 +1290,37 @@ class SolrMab extends SolrDefault  {
 		return array_map($callback, array_unique($headings));
 	}
 	
+	/**
+	 * Get all keyword chains
+	 * 
+	 * @return array
+	 */
+	public function getAllKeywordChains() {
+		$allKeywordChains = null;
+		for ($i = 1; $i <= 10; $i++) {
+			$noWithLeadingZero = sprintf('%02d', $i);
+			$keywordChain = $this->getKeywordChainByNo($noWithLeadingZero);
+			if ($keywordChain != null) {
+				$allKeywordChains[$noWithLeadingZero] = $keywordChain;
+			}
+		}
+		return $allKeywordChains;
+	}
+	
+	/**
+	 * Get a keyword chain by it's number
+	 * 
+	 * @param string $no	The number (with leading zero) of the keyword chain. Possible are values from 01 to 10.
+	 * @return array		Array of all values of the keyword chain or null if the keyword chain does not exist.
+	 */
+	public function getKeywordChainByNo($no = '01') {
+		$keywordChain = null;
+		if (isset($this->fields['keywordChain'.$no.'_txt_mv'])) {
+			$keywordChain = $this->fields['keywordChain'.$no.'_txt_mv'];
+		}
+		return $keywordChain;
+	}
+	
 	
 
 

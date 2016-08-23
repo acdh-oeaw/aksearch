@@ -310,6 +310,8 @@
       </tr>
       <? endif; ?>
 
+<?php
+/*
       <? $subjects = $this->driver->getAllSubjectHeadings(); if (!empty($subjects)): ?>
       <tr>
         <th><?=$this->transEsc('Subjects')?>: </th>
@@ -328,6 +330,37 @@
         </td>
       </tr>
       <? endif; ?>
+*/
+?>      
+      <?
+      // Keyword chains
+      $allKeywordChains = $this->driver->getAllKeywordChains();
+      if (!empty($allKeywordChains)) {
+      	echo '<tr>';
+	      	echo '<td colspan="2">';
+	      	echo '<b>Keyword chains:</b> <span class="akInfoTooltipOpener"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
+	      	
+
+	      	
+	      	foreach ($allKeywordChains as $keywordChain) {
+	      		// Get the array key of last element in a keyword chain
+	      		$arrayKeys = array_keys($keywordChain);
+	      		$lastElement = array_pop($arrayKeys);
+	      		echo '<hr class="akKeywordChainsSeparator" />';
+	      		foreach ($keywordChain as $key => $keyword) {
+	      			//echo $keyword;
+	      			$keyword = trim($keyword);
+	      			echo '<a class="akKeywordChainLink" title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->record($this->driver)->getLink('subject', $keyword).'" rel="nofollow">'.trim($this->escapeHtml(str_replace(array("<", ">"), "", $keyword))).'</a>';
+	      			if ($key != $lastElement) {
+	      				echo ' <i class="fa fa-arrow-left akKeywordChainArrow" aria-hidden="true"></i> ';
+	      			}
+	      		}
+	      	}
+	      	echo '</td>';
+	      	
+      	echo '</tr>';
+      }
+      ?>
 
       <? $childRecordCount = $this->driver->tryMethod('getChildRecordCount'); if ($childRecordCount): ?>
       <tr>
