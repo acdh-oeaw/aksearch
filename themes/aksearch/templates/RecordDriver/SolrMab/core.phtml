@@ -338,7 +338,7 @@
       if (!empty($allKeywordChains)) {
       	echo '<tr>';
 	      	echo '<td colspan="2">';
-	      	echo '<b>Keyword chains:</b> <span class="akInfoTooltipOpener" data-aktooltiptitle="'.$this->transEsc('akTtKeywordChainTitle').'" data-aktooltiptext="'.$this->transEsc('akTtKeywordChainText').'"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
+	      	echo '<b>'.$this->transEsc('keyword_chains').'</b> <span class="akInfoTooltipOpener" data-aktooltiptitle="'.$this->transEsc('akTtKeywordChainTitle').'" data-aktooltiptext="'.$this->transEsc('akTtKeywordChainText').'"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
 
 	      	foreach ($allKeywordChains as $keywordChain) {
 	      		// Get the array key of last element in a keyword chain
@@ -346,7 +346,6 @@
 	      		$lastElement = array_pop($arrayKeys);
 	      		echo '<hr class="akKeywordChainsSeparator" />';
 	      		foreach ($keywordChain as $key => $keyword) {
-	      			//echo $keyword;
 	      			$keyword = trim($keyword);
 	      			echo '<a class="akKeywordChainLink" title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->record($this->driver)->getLink('subject', $keyword).'" rel="nofollow">'.trim($this->escapeHtml(str_replace(array("<", ">"), "", $keyword))).'</a>';
 	      			if ($key != $lastElement) {
