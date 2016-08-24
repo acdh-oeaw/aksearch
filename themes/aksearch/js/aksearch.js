@@ -96,8 +96,9 @@ $(document).ready(function() {
 		if (!isAkInfoTooltipOpen) {
 
 			isAkInfoTooltipOpen = true;
-			var tooltipLink = $(this);
-			$("body").append('<div class="akInfoTooltip"></i></div>');
+			var akTooltipTitle = $(this).data('aktooltiptitle');
+			var akTooltipText = $(this).data('aktooltiptext');
+			$("body").append('<div class="akInfoTooltip"></div>');
 			
 			// Position the tooltip near the mouse pointer
 			var mousePosX = event.pageX;
@@ -105,12 +106,11 @@ $(document).ready(function() {
 		    $(".akInfoTooltip").css("left", (mousePosX-310));
 		    $(".akInfoTooltip").css("top", (mousePosY+10));
 			
-		    // TODO: Translateable texts!
-			var resultHtml =
-				'<strong>Was sind Schlagwortketten?</strong><div class="akInfoTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
+		    var resultHtml =
+				'<strong>' + akTooltipTitle + '</strong><div class="akInfoTooltipClose"><i class="fa fa-times-circle" aria-hidden="true"></i></div>' +
 				'<div class="akClearer"></div>' + 
-				'<div>Schlagwortketten erläutern einen oder mehrere wesentliche Aspekte eines Werkes. Sie helfen Ihnen, den Inhalt besser zu erfassen.</div>';
-			
+				'<div>' + akTooltipText + '</div>';
+		    
 			// Add html to AK info tooltip
 			$(resultHtml).appendTo('.akInfoTooltip');
 			

@@ -338,10 +338,8 @@
       if (!empty($allKeywordChains)) {
       	echo '<tr>';
 	      	echo '<td colspan="2">';
-	      	echo '<b>Keyword chains:</b> <span class="akInfoTooltipOpener"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
-	      	
+	      	echo '<b>Keyword chains:</b> <span class="akInfoTooltipOpener" data-aktooltiptitle="'.$this->transEsc('akTtKeywordChainTitle').'" data-aktooltiptext="'.$this->transEsc('akTtKeywordChainText').'"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
 
-	      	
 	      	foreach ($allKeywordChains as $keywordChain) {
 	      		// Get the array key of last element in a keyword chain
 	      		$arrayKeys = array_keys($keywordChain);
