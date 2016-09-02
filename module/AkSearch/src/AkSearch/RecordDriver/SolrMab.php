@@ -146,50 +146,59 @@ class SolrMab extends SolrDefault  {
      */
     public function getXML($format = null, $baseUrl = null, $recordLink = null) {
     	$xmlOrFullRecord = $this->fields['fullrecord'];
+    	$simpleXML = simplexml_load_string($xmlOrFullRecord);
     	
     	// Masking call nos. and collections
     	$strMarcFieldsForMasking = $this->akConfig->Masking->marcfields;
+
     	if (isset($strMarcFieldsForMasking) && !empty($strMarcFieldsForMasking)) {
     		$arrMarcFieldsForMasking = explode(',', $strMarcFieldsForMasking);
-    		$simpleXML = simplexml_load_string($xmlOrFullRecord);
-    		foreach ($simpleXML->record->datafield as $datafield) {
-    			foreach ($arrMarcFieldsForMasking as $marcFieldForMasking) {
-    				$marcFieldForMasking = trim($marcFieldForMasking);
-    				$tagToMask = substr($marcFieldForMasking, 0, 3);
-    				$ind1ToMask = substr($marcFieldForMasking, 4, 1);
-    				$ind2ToMask = substr($marcFieldForMasking, 5, 1);
-    				$subfToMask = substr($marcFieldForMasking, 7, 1);
-    				$mode = trim(substr($marcFieldForMasking, 8, strlen($marcFieldForMasking)));
-    				if ($mode == '[all]') {
-    					$mode = 'all';
-    				} else {
-    					$mode = 'begins';
-    				}
-    				
-    				$tag = $datafield->attributes()->tag;
-    				$ind1 = $datafield->attributes()->ind1;
-    				$ind2 = $datafield->attributes()->ind2;
-    				 
-    				if ($tag == $tagToMask) { // Check for tag
-    					if ($ind1 == $ind1ToMask || $ind1ToMask == '*') { // Check for indicator 1
-    						if ($ind2 == $ind2ToMask || $ind2ToMask == '*') { // Check for indicator 2
-    							$subfieldCounter = -1;
-    							foreach ($datafield->subfield as $subfield) {
-    								$subfieldCounter = $subfieldCounter + 1;
-    								foreach ($subfield->attributes() as $subfieldCode) {
-    									if ($subfieldCode == $subfToMask) {
-    										$datafield->subfield->$subfieldCounter = $this->getMaskedValue($subfield, $mode);
-    									}
-    								}
-    							}
-    						}
-    					}
-    				}
-    			}
+    		
+    		if ($simpleXML) {
+	    		foreach ($simpleXML->record->datafield as $datafield) {
+	    			foreach ($arrMarcFieldsForMasking as $marcFieldForMasking) {
+	    				$marcFieldForMasking = trim($marcFieldForMasking);
+	    				$tagToMask = substr($marcFieldForMasking, 0, 3);
+	    				$ind1ToMask = substr($marcFieldForMasking, 4, 1);
+	    				$ind2ToMask = substr($marcFieldForMasking, 5, 1);
+	    				$subfToMask = substr($marcFieldForMasking, 7, 1);
+	    				$mode = trim(substr($marcFieldForMasking, 8, strlen($marcFieldForMasking)));
+	    				if ($mode == '[all]') {
+	    					$mode = 'all';
+	    				} else {
+	    					$mode = 'begins';
+	    				}
+	    				
+	    				$tag = $datafield->attributes()->tag;
+	    				$ind1 = $datafield->attributes()->ind1;
+	    				$ind2 = $datafield->attributes()->ind2;
+	    				 
+	    				if ($tag == $tagToMask) { // Check for tag
+	    					if ($ind1 == $ind1ToMask || $ind1ToMask == '*') { // Check for indicator 1
+	    						if ($ind2 == $ind2ToMask || $ind2ToMask == '*') { // Check for indicator 2
+	    							$subfieldCounter = -1;
+	    							foreach ($datafield->subfield as $subfield) {
+	    								$subfieldCounter = $subfieldCounter + 1;
+	    								foreach ($subfield->attributes() as $subfieldCode) {
+	    									if ($subfieldCode == $subfToMask) {
+	    										$datafield->subfield->$subfieldCounter = $this->getMaskedValue($subfield, $mode);
+	    									}
+	    								}
+	    							}
+	    						}
+	    					}
+	    				}
+	    			}
+	    		}
     		}
     	}
     	
-    	return $simpleXML->asXML();
+    	$returnValue = '<noxml></noxml>'; // Fallback if $simpleXML is corrupted
+    	if ($simpleXML) {
+    		$returnValue = $simpleXML->asXML();
+    	}
+    	
+    	return $returnValue;
     }
     
     /**
