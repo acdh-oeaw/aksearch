@@ -157,7 +157,7 @@ $(document).ready(function() {
 			var tooltipLink = $(this);
 			var url = path + '/AJAX/JSON?' + $.param({method:'getEntityFact', gndid:gndid});
 
-			$(tooltipLink).after('<div class="akEntityFactsTooltip"></div>');
+			$(tooltipLink).after('<div class="akEntityFactsTooltip"><div class="entityFactsLoader" style="text-align: center;"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i></div></div>');
 			
 			$.ajax({
 				url: url,
@@ -172,7 +172,7 @@ $(document).ready(function() {
 							'</div>';
 						
 						// Remove "loading" spinner:
-						$('.fa-cog').remove();
+						$('.entityFactsLoader').remove();
 					
 						// Add result html to tooltip
 						$(resultHtml).appendTo('.akEntityFactsTooltip');
@@ -190,7 +190,7 @@ $(document).ready(function() {
 							'</div>';
 						
 						// Remove "loading" spinner:
-						$('.fa-cog').remove();
+						$('.entityFactsLoader').remove();
 					
 						// Add result html to tooltip
 						$(resultHtml).appendTo('.akEntityFactsTooltip');
@@ -272,7 +272,7 @@ $(document).ready(function() {
 						'</table>';
 					
 					// Remove "loading" spinner:
-					$('.fa-cog').remove();
+					$('.entityFactsLoader').remove();
 					
 					// Add result html to tooltip
 					$(resultHtml).appendTo('.akEntityFactsTooltip');
