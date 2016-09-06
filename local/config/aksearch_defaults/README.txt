@@ -1,1 +1,1 @@
-Local VuFind configurations go here.  You can copy defaults from /config/vufind.
+Here are the default files for AKsearch that you can copy to /local/config/vufind.
