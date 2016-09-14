@@ -4,4 +4,4 @@ AkSearch
 Documentation
 -------------
 Documentation is in german language only!
-See: http://emedien.arbeiterkammer.at/wiki/doku.php?id=aksearch
+See: https://emedien.arbeiterkammer.at/wiki/aksearch
