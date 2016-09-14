@@ -40,24 +40,34 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
   <h3><?=$this->transEsc("Internet")?></h3>
   <? if (!empty($urls)): ?>
     <? foreach ($urls as $current): ?>
-      <a href="<?=$this->escapeHtml($this->proxyUrl($current['url']))?>"><?=$this->escapeHtml($current['desc'])?></a><br/>
+      <a href="<?=$this->escapeHtml($this->proxyUrl($current['url']))?>" target="new"><?=$this->escapeHtml($this->transEsc($current['desc']))?></a><br/>
     <? endforeach; ?>
   <? endif; ?>
   <? if ($openUrlActive): ?><?=$openUrl->renderTemplate()?><? endif; ?>
 <? endif; ?>
 
 
-<?php 
-
-$holdings = $this->driver->getRealTimeHoldings();
+<?php
 
 foreach ($holdings as $location => $holdingsOfLocation) {
-	echo '<p>' . $this->driver->getSubLibraryName($location) . '</p><br />';
 	
+	// Check for second call number (for label in table heading)
+	$hasSecondCallNo = false;
+	foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
+
+		if (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) {
+			$hasSecondCallNo = true;
+		}
+	}
+	
+	echo '<p>' . $this->driver->getSubLibraryName($location) . '</p><br />';
 	echo '<table class="table" summary="'.$this->transEsc('Holdings details from').' '.$this->transEsc($location).'">';
 		
 		echo '<tr>';
 			echo '<th>'.$this->transEsc('Call Number').'</th>';
+			if ($hasSecondCallNo) { // There is a second call no, so show an additional table column
+				echo '<th>'.$this->transEsc('Call Number 2').'</th>';
+			}
 			echo '<th>'.$this->transEsc('Location').'</th>';
 			echo '<th>'.$this->transEsc('Status').'</th>';
 			echo '<th>'.$this->transEsc('availability').'</th>';
@@ -67,11 +77,18 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 			
 			$check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 			
-			if (isset($holdingOfLocation['barcode']) && $holdingOfLocation['barcode'] != "") {
+			// Call Numbers (first and second)
+			$callNoFirst = (isset($holdingOfLocation['callnumber']) && !empty(trim($holdingOfLocation['callnumber']))) ? $holdingOfLocation['callnumber'] : $this->transEsc('n. A.');
+			$callNoSecond = (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) ? $holdingOfLocation['callnumber_second'] : $this->transEsc('n. A.');
+			
+			if (isset($holdingOfLocation['barcode']) && !empty(trim($holdingOfLocation['barcode']))) {
 				echo '<tr>';
-					echo '<td>' . $holdingOfLocation['callnumber'] . '</td>';
-					echo '<td>' . $holdingOfLocation['collection'] . '</td>';
-					echo '<td>' . $holdingOfLocation['status'] . '</td>';
+					echo '<td>' . $callNoFirst . '</td>';
+					if ($hasSecondCallNo) { // There is a second call no, so show an additional table column
+						echo '<td>' . $callNoSecond . '</td>';
+					}
+					echo '<td>' . ((isset($holdingOfLocation['collection'])) ? $holdingOfLocation['collection'] : $this->transEsc('n. A.')) . '</td>';
+					echo '<td>' . ((isset($holdingOfLocation['status'])) ? $holdingOfLocation['status'] : $this->transEsc('n. A.')) . '</td>';
 						
 					// Show status of item
 					echo '<td>';
@@ -103,7 +120,11 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 							}
 								
 							if (isset($holdingOfLocation['requests_placed']) && $holdingOfLocation['requests_placed'] > 0) {
-								echo '<span>' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
+								echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
+							}
+							
+							if (!$holdingOfLocation['duedate'] && !$holdingOfLocation['requests_placed'] && !$holdingOfLocation['returnDate']) {
+								echo '<span class="statusExtra">' . $this->transEsc("not_available_at_the_moment") . '</span>';
 							}
 							echo '</span>';
 								

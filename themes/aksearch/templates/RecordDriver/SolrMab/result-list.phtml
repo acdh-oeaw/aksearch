@@ -14,10 +14,17 @@
     <div class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
 			<div>
 				<a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
-          <?=str_replace(array('&lt;', '&gt;'), "", $this->record($this->driver)->getTitleHtml())?>
-        </a>
+          			<?=str_replace(array('&lt;', '&gt;'), "", $this->record($this->driver)->getTitleHtml())?>
+        		</a>
 			</div>
-
+			<div class="akSubtitle">
+			<?php
+        	$subTitle = $this->escapeHtml(str_replace(array("<", ">"), "", ucfirst($this->driver->getSubtitle())));
+        	if (!empty($subTitle)) {
+        		echo $subTitle;
+        	}
+        	?>
+			</div>
 			<div>
         <? if($this->driver->isCollection()): ?>
           <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
@@ -62,7 +69,7 @@
 	<?php
 	$typeOfPublication = $this->driver->getPublicationTypeFromIndex();
 	if (isset($typeOfPublication)) {
-		echo $typeOfPublication . '<br />';
+		echo $this->transEsc($typeOfPublication) . '<br />';
 	}
 	?>
           
@@ -162,12 +169,25 @@
 			$urls = array();
 				if (!$this->driver->isCollection()) :
 					foreach ($urls as $current) : ?>
+              			<?php
+              			/*
+              			// Removed by AK Bibliothek Wien for adding translation of url text from language file (see addition below)
               			<br /><a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new"><i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($current['desc'])?></a>
+          				*/
+          				?>
+          				<!-- Added by AK Bibliothek Wien for adding translation of url text from language file -->
+          				<br /><a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new"><i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($this->transEsc($current['desc']))?></a>     			
+          			
           			<? endforeach; ?>
         		<? endif; ?>
       <? endif; ?>
 
-      <?=str_replace('class="', 'class="label label-info ', $this->record($this->driver)->getFormatList())?>
+	
+	  <?php
+	  	// Shows "format" badge:
+	  	//echo '<br />'.str_replace('class="', 'class="label label-info ', $this->record($this->driver)->getFormatList());
+	  ?>
+      
 
       <? if (!$openUrlActive && empty($urls) && $this->driver->supportsAjaxStatus()): ?>
         <span class="status ajax-availability hidden"> <span

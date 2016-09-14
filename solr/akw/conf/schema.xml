@@ -18,7 +18,7 @@
       </analyzer>
     </fieldType>
     
-    <!-- AK BIBLIOTHEK WIEN: Replacing field type "text" with german language specific text field  -->
+    <!-- ORIGINAL Text field -->
     <!-- 
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -27,7 +27,7 @@
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.SnowballPorterFilterFactory" language="German2" />
+        <filter class="solr.SnowballPorterFilterFactory" language="English"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
       <analyzer type="query">
@@ -37,19 +37,13 @@
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.SnowballPorterFilterFactory" language="German2" />
+        <filter class="solr.SnowballPorterFilterFactory" language="English"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
     -->
-    <!-- <filter class="solr.SnowballPorterFilterFactory" language="English"/>  -->
-    
-    
-    
-    
-    
-    
-    <!-- Field type "text" added by AK Bibliothek Wien for german language -->
+ 
+    <!-- Field type "text" added by AK Bibliothek Wien for german language (original: see above) -->
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
       	<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
@@ -57,8 +51,8 @@
         <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/> <!-- TEST -->
-        <filter class="solr.SnowballPorterFilterFactory" language="German2" /> <!-- TEST -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
       <analyzer type="query">
@@ -67,44 +61,13 @@
         <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.ICUFoldingFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/> <!-- TEST -->
-        <filter class="solr.SnowballPorterFilterFactory" language="German2" /> <!-- TEST -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
     </fieldType>
     
-    <!-- Field type "textDe" added by AK Bibliothek Wien - first tests for german language - WORX-->
-    <!-- 
-    <fieldType name="textDe" class="solr.TextField" positionIncrementGap="100">
-      <analyzer type="index">
-      	<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
-        <tokenizer class="solr.ICUTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
-        <filter class="solr.ICUFoldingFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
-      </analyzer>
-      <analyzer type="query">
-      	<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
-      	<tokenizer class="solr.ICUTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
-        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
-        <filter class="solr.ICUFoldingFilterFactory"/>
-        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
-      </analyzer>
-    </fieldType>
-    -->
-      <!--
-      Examples
-      <filter class="solr.CollationKeyFilterFactory" custom="aksCollationKeyFilter.dat" strength="primary" />
-      <filter class="solr.GermanNormalizationFilterFactory" />
-      <filter class="solr.SnowballPorterFilterFactory" language="German2" />
-      <filter class="solr.ICUCollationKeyFilterFactory" locale="de@collation=phonebook" strength="primary"/>
-      -->
-      
-      <!-- Field type "textWildcard" added by AK Bibliothek Wien - V1 - WORX -->
+    <!-- Field type "textWildcard" added by AK Bibliothek Wien -->
 	<fieldType name="textWildcard" class="solr.TextField" positionIncrementGap="100">
 		<analyzer type="index">
 			<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
@@ -124,34 +87,18 @@
 	        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
 		</analyzer>
 	</fieldType>
-
-	<!-- Field type "textWildcard" added by AK Bibliothek Wien - V1 BACKUP - WORX -->
-	<!-- 
-	<fieldType name="textWildcard" class="solr.TextField" positionIncrementGap="100">
+	
+	<!-- Field type "text_sort" added by AK Bibliothek Wien -->
+	<fieldType name="text_sort" class="solr.TextField" sortMissingLast="true" omitNorms="true" >
 		<analyzer type="index">
-			<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
 			<tokenizer class="solr.KeywordTokenizerFactory"/>
-	        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="1" splitOnCaseChange="1" preserveOriginal="0"/>
-	        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
-	        <filter class="solr.ICUFoldingFilterFactory"/>
-	        <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="20" side="front" />
-	        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+			<filter class="solr.LowerCaseFilterFactory"/>
 		</analyzer>
 		<analyzer type="query">
-			<charFilter class="solr.MappingCharFilterFactory" mapping="aksCharFilter.txt" />
 			<tokenizer class="solr.KeywordTokenizerFactory"/>
-	        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="1" splitOnCaseChange="1" preserveOriginal="0"/>
-	        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
-	        <filter class="solr.ICUFoldingFilterFactory"/>
-	        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+			<filter class="solr.LowerCaseFilterFactory"/>
 		</analyzer>
 	</fieldType>
-    -->
-    
-    
-    
-    
-      
     
     <!-- Text Field without Stemming and Synonyms -->
     <fieldType name="textProper" class="solr.TextField" positionIncrementGap="100">
@@ -170,7 +117,9 @@
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>      
       </analyzer>
     </fieldType>
-    <!-- Basic Text Field for use with Spell Correction -->
+    
+    <!-- ORIGINAL: Basic Text Field for use with Spell Correction -->
+    <!-- 
     <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100">
       <analyzer>
         <tokenizer class="solr.ICUTokenizerFactory"/>
@@ -180,7 +129,9 @@
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
-    <!-- More advanced spell checking field. -->
+     -->
+    <!-- ORIGINAL: More advanced spell checking field. -->
+    <!-- 
     <fieldType name="textSpellShingle" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.ICUTokenizerFactory"/>
@@ -197,6 +148,44 @@
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
+    -->
+    
+    <!-- Field type "textSpell" added by AK Bibliothek Wien for german language (original: see above) -->
+    <!-- This is used when settings for spelling in config.ini is "simple = false" -->
+    <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <tokenizer class="solr.ICUTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.ICUTokenizerFactory"/>
+		<filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" /> <!-- German - for Umlauts like ö, ä, ... -->
+      </analyzer>
+    </fieldType>
+    
+    <!-- Field type "textSpellShingle" added by AK Bibliothek Wien for german language (original: see above) -->
+    <fieldType name="textSpellShingle" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <tokenizer class="solr.ICUTokenizerFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+        <filter class="solr.ShingleFilterFactory" maxShingleSize="2" outputUnigrams="false"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.ICUTokenizerFactory"/>
+        <filter class="solr.ICUFoldingFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+        <filter class="solr.ShingleFilterFactory" maxShingleSize="2" outputUnigrams="false"/>
+        <filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" />       
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    
     <!-- Text Field for Normalized ISBN/ISSN Numbers - take first chunk of text
          prior to whitespace, force to lowercase, strip non-ISBN/ISSN characters,
          omit results that are empty after stripping. -->
@@ -243,6 +232,8 @@
    <field name="author" type="textProper" indexed="true" stored="true" termVectors="true"/>
    <field name="author-letter" type="string" indexed="true" stored="true"/>
    <field name="authorStr" type="textFacet" indexed="true" stored="false"/>
+   <field name="author_sort" type="text_sort" indexed="true" stored="true"/>
+   <field name="author_role" type="string" indexed="true" stored="true"/>
    <field name="title" type="text" indexed="true" stored="true"/>
    <field name="title_sort" type="string" indexed="true" stored="true"/>
    <field name="title_sub" type="text" indexed="true" stored="true"/>
@@ -282,7 +273,7 @@
    <field name="dewey-search" type="callnumberSearch" indexed="true" stored="true" multiValued="true" />
    <field name="author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
-   <field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="author2_role" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="author_fuller" type="textProper" indexed="true" stored="true" />
    <field name="author_additional" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author_additionalStr" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -388,6 +379,11 @@
  <copyField source="title" dest="title_wildcard" />
  <!-- <copyField source="author" dest="author_de" /> -->
  <copyField source="author" dest="author_wildcard" />
+ <copyField source="author" dest="participants_txtF_mv" />
+ <copyField source="author2" dest="participants_txtF_mv" />
+ <copyField source="author_additional" dest="participants_txtF_mv" />
+ <copyField source="corporateAuthorName_txt" dest="participants_txtF_mv" />
+ <copyField source="corporateAuthor2Name_txt_mv" dest="participants_txtF_mv" />
  <!-- ADDED BY AK BIBLIOTHEK WIEN - END -->
    
    

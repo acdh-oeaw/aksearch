@@ -1,0 +1,35 @@
+<?php
+// Set page title.
+$this->headTitle($this->translate('Staff View') . ': ' . $this->driver->getBreadcrumb());
+
+$marcView = \AkSearch\XSLT\Processor::process('record-mab.xsl', $this->driver->getXML());
+if (!empty($marcView)) {
+	echo '<h4>MAB/MARC Original</h4>';
+	echo $marcView;
+}
+
+
+$arrayView = $this->driver->getRawData();
+if (!empty($arrayView) && isset($arrayView)) {
+	echo '<h4>SOLR Index</h4>';
+	
+	echo '<table class="citation table table-striped">';
+	foreach ($this->driver->getRawData() as $field => $values) {
+		if ($field != 'fullrecord') {
+			echo '<tr>';
+			echo '<th>'.$this->escapeHtml($field).'</th>';
+			echo '<td>';
+				if (!is_array($values)) {
+					$values = array($values);
+				}
+				foreach ($values as $value) {
+					echo $this->escapeHtml(is_array($value) ? print_r($value, true) : $value);
+					echo '<br />';
+				}
+			echo '</td>';
+			echo '</tr>';
+		}
+	}
+	echo '</table>';
+}
+?>

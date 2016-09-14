@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) AK Bibliothek Wien 2015.
+ * Copyright (C) AK Bibliothek Wien 2016.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -27,6 +27,7 @@
  */
  
 namespace AkSearch\Module\Config;
+
 /*
 // Show PHP errors:
 ini_set('display_errors', 1);
@@ -103,7 +104,9 @@ $config = [
         ],
         'invokables' => [
         	'akfilter' => 'AkSearch\Controller\AkfilterController',
-            'ajax' => 'VuFind\Controller\AjaxController',
+        	'aksites' => 'AkSearch\Controller\AkSitesController',
+        	'ajax' => 'AkSearch\Controller\AkAjaxController',
+            //'ajax' => 'VuFind\Controller\AjaxController',
             'alphabrowse' => 'VuFind\Controller\AlphabrowseController',
             'author' => 'VuFind\Controller\AuthorController',
             'authority' => 'VuFind\Controller\AuthorityController',
@@ -131,7 +134,8 @@ $config = [
             'primorecord' => 'VuFind\Controller\PrimorecordController',
             'qrcode' => 'VuFind\Controller\QRCodeController',
             'records' => 'VuFind\Controller\RecordsController',
-            'search' => 'VuFind\Controller\SearchController',
+            //'search' => 'VuFind\Controller\SearchController',
+        	'search' => 'AkSearch\Controller\SearchController',
             'summon' => 'VuFind\Controller\SummonController',
             'summonrecord' => 'VuFind\Controller\SummonrecordController',
             'tag' => 'VuFind\Controller\TagController',
@@ -163,7 +167,8 @@ $config = [
     'service_manager' => [
         'allow_override' => true,
         'factories' => [
-            'VuFind\AuthManager' => 'VuFind\Auth\Factory::getManager',
+            //'VuFind\AuthManager' => 'VuFind\Auth\Factory::getManager',
+        	'VuFind\AuthManager' => 'AkSearch\Auth\Factory::getManager',
             'VuFind\AuthPluginManager' => 'VuFind\Service\Factory::getAuthPluginManager',
             'VuFind\AutocompletePluginManager' => 'VuFind\Service\Factory::getAutocompletePluginManager',
             'VuFind\CacheManager' => 'VuFind\Service\Factory::getCacheManager',
@@ -272,7 +277,8 @@ $config = [
             'auth' => [
                 'abstract_factories' => ['VuFind\Auth\PluginFactory'],
                 'factories' => [
-                    'ils' => 'VuFind\Auth\Factory::getILS',
+                    //'ils' => 'VuFind\Auth\Factory::getILS',
+                	'ils' => 'AkSearch\Auth\Factory::getILS',
                     'multiils' => 'VuFind\Auth\Factory::getMultiILS',
                 ],
                 'invokables' => [
@@ -409,6 +415,7 @@ $config = [
                 'abstract_factories' => ['VuFind\ILS\Driver\PluginFactory'],
                 'factories' => [
                     'aleph' => 'AkSearch\ILS\Driver\Factory::getAleph',
+                	'alma'	=> 'AkSearch\ILS\Driver\Factory::getAlma',
                     'daia' => 'VuFind\ILS\Driver\Factory::getDAIA',
                     'demo' => 'VuFind\ILS\Driver\Factory::getDemo',
                     'horizon' => 'VuFind\ILS\Driver\Factory::getHorizon',
@@ -420,6 +427,7 @@ $config = [
                     'voyagerrestful' => 'VuFind\ILS\Driver\Factory::getVoyagerRestful',
                 ],
                 'invokables' => [
+                	//'alma' => 'AkSearch\ILS\Driver\Alma',
                     'amicus' => 'VuFind\ILS\Driver\Amicus',
                     'claviussql' => 'VuFind\ILS\Driver\ClaviusSQL',
                     'evergreen' => 'VuFind\ILS\Driver\Evergreen',
@@ -473,6 +481,7 @@ $config = [
                     'summondatabasesdeferred' => 'VuFind\Recommend\SummonDatabasesDeferred',
                     'summonresultsdeferred' => 'VuFind\Recommend\SummonResultsDeferred',
                     'switchtype' => 'VuFind\Recommend\SwitchType',
+                	'akswitchtype' => 'AkSearch\Recommend\AkSwitchType'
                 ],
             ],
             'recorddriver' => [
@@ -729,7 +738,7 @@ $config = [
         				'Excerpt' => 'Excerpt',
         				'HierarchyTree' => 'HierarchyTree',
         				'Map' => 'Map',
-        				'Details' => 'StaffViewArray',
+        				'Details' => 'AkSearch\RecordTab\StaffViewAll', // Tab changed by AK Bibliothek Wien
         				],
         	]
         ],
@@ -785,7 +794,8 @@ $dynamicRoutes = [
 
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
-	'Akfilter/Home', 'Akfilter/Search', 'Akfilter/Advanced',
+	'Akfilter/Home', 'Akfilter/Results', 'Akfilter/Advanced',
+	'AkSites/About', 'AkSites/ChangeUserData',
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',

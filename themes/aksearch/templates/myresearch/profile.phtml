@@ -1,0 +1,96 @@
+<?
+    // Set up page title:
+    $this->headTitle($this->translate('My Profile'));
+
+    // Set up breadcrumbs:
+    $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Profile') . '</li>';
+
+    // Only display home library form if we have multiple pickup locations:
+    $showHomeLibForm = (isset($this->pickup) && count($this->pickup) > 1);
+
+    // Template for use by the renderArray helper:
+    $arrTemplate = '<tr><th>%%LABEL%%:</th><td> %%VALUE%%</td></tr>';
+
+    // Flatten 2-dimentional array to a 1-dimentional array. If not, we cannot use it for renderArray() method:
+    $profileFlat = [];
+    foreach ($this->profile as $key => $value) {
+    	if (is_array($value)) {
+    		foreach ($value as $key2 => $value2) {
+    			$profileFlat[$key.$key2] = $value2;
+    		}
+    	} else {
+    		$profileFlat[$key] = $value;
+    	}
+    }
+    
+?>
+
+<div class="row">
+  <div class="<?=$this->layoutClass('mainbody')?>">
+    <h2><?=$this->transEsc('Your Profile')?></h2>
+    <?=$this->flashmessages();?>
+
+    <?=$this->context($this)->renderInContext('librarycards/selectcard.phtml', array('user' => $this->auth()->isLoggedIn())); ?>
+
+    <table class="table table-striped">
+      <?
+        echo $this->renderArray(
+          $arrTemplate, $this->profile,
+          array(
+            $this->transEsc('First Name') => 'firstname',
+            $this->transEsc('Last Name') => 'lastname'
+          )
+        );
+       ?>
+      <? if ($showHomeLibForm): ?>
+        <tr><th><?=$this->transEsc('Preferred Library')?>:</th>
+        <?
+          $selected = (isset($this->profile['home_library']) && $this->profile['home_library'] != "")
+              ? $this->profile['home_library'] : $this->defaultPickupLocation
+        ?>
+        <td>
+          <form id="profile_form" class="form-inline" method="post">
+            <select id="home_library" name="home_library" class="form-control">
+              <? foreach ($this->pickup as $lib): ?>
+                <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+              <? endforeach; ?>
+            </select>
+            <input class="btn btn-default" type="submit" value="<?=$this->transEsc('Save')?>" />
+          </form>
+        </td>
+      <? endif; ?>
+      <?
+      	$rowsArray = [];      	
+      	(isset($profileFlat['address1']) && !empty($profileFlat['address1'])) ? $rowsArray[$this->transEsc('Address') . ' 1'] = 'address1' : null;
+      	(isset($profileFlat['address2']) && !empty($profileFlat['address2'])) ? $rowsArray[$this->transEsc('Address') . ' 2'] = 'address2' : null;
+      	(isset($profileFlat['address3']) && !empty($profileFlat['address3'])) ? $rowsArray[$this->transEsc('Address') . ' 3'] = 'address3' : null;
+      	(isset($profileFlat['address4']) && !empty($profileFlat['address4'])) ? $rowsArray[$this->transEsc('Address') . ' 4'] = 'address4' : null;
+      	(isset($profileFlat['address5']) && !empty($profileFlat['address5'])) ? $rowsArray[$this->transEsc('Address') . ' 5'] = 'address5' : null;
+      	(isset($profileFlat['zip']) && !empty($profileFlat['zip'])) ? $rowsArray[$this->transEsc('Zip')] = 'zip' : null;
+      	(isset($profileFlat['city']) && !empty($profileFlat['city'])) ? $rowsArray[$this->transEsc('City')] = 'city' : null;
+      	(isset($profileFlat['country']) && !empty($profileFlat['country'])) ? $rowsArray[$this->transEsc('Country')] = 'country' : null;
+      	(isset($profileFlat['phone']) && !empty($profileFlat['phone'])) ? $rowsArray[$this->transEsc('Phone Number')] = 'phone' : null;
+      	(isset($profileFlat['phonesAdditional0']) && !empty($profileFlat['phonesAdditional0'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 1'] = 'phonesAdditional0' : null;
+      	(isset($profileFlat['phonesAdditional1']) && !empty($profileFlat['phonesAdditional1'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 2'] = 'phonesAdditional1' : null;
+      	(isset($profileFlat['phonesAdditional2']) && !empty($profileFlat['phonesAdditional2'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 3'] = 'phonesAdditional2' : null;
+      	(isset($profileFlat['phonesAdditional3']) && !empty($profileFlat['phonesAdditional3'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 4'] = 'phonesAdditional3' : null;
+      	(isset($profileFlat['phonesAdditional4']) && !empty($profileFlat['phonesAdditional4'])) ? $rowsArray[$this->transEsc('PhoneAdditional') . ' 5'] = 'phonesAdditional4' : null;
+      	(isset($profileFlat['email']) && !empty($profileFlat['email'])) ? $rowsArray[$this->transEsc('email')] = 'email' : null;
+      	(isset($profileFlat['emailsAdditional0']) && !empty($profileFlat['emailsAdditional0'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 1'] = 'emailsAdditional0' : null;
+      	(isset($profileFlat['emailsAdditional1']) && !empty($profileFlat['emailsAdditional1'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 2'] = 'emailsAdditional1' : null;
+      	(isset($profileFlat['emailsAdditional2']) && !empty($profileFlat['emailsAdditional2'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 3'] = 'emailsAdditional2' : null;
+      	(isset($profileFlat['emailsAdditional3']) && !empty($profileFlat['emailsAdditional3'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 4'] = 'emailsAdditional3' : null;
+      	(isset($profileFlat['emailsAdditional4']) && !empty($profileFlat['emailsAdditional4'])) ? $rowsArray[$this->transEsc('EmailAdditional') . ' 5'] = 'emailsAdditional4' : null;
+      	(isset($profileFlat['group']) && !empty($profileFlat['group'])) ? $rowsArray[$this->transEsc('Group')] = 'group' : null;
+      	
+      	// Render the array as table rows (see $arrTemplate above):
+        echo $this->renderArray($arrTemplate, $profileFlat, $rowsArray);
+      ?>
+    </table>
+  </div>
+  
+
+  <div class="<?=$this->layoutClass('sidebar')?>">
+    <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'profile'))?>
+  </div>
+</div>

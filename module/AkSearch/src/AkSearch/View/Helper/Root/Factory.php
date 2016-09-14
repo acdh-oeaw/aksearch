@@ -1,6 +1,6 @@
 <?php
 /**
- * Factory for Root view helpers for Akfilter search.
+ * Extended factory for root view helpers for Akfilter search.
  *
  * PHP version 5
  *
@@ -46,5 +46,16 @@ class Factory extends \VuFind\View\Helper\Root\Factory {
             $sm->getServiceLocator()->get('VuFind\SearchOptionsPluginManager'),
             $config->get('searchbox')->toArray()
         );
+    }
+    
+    /**
+     * Construct the Auth helper.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return Auth
+     */
+    public static function getAuth(ServiceManager $sm) {
+    	return new \AkSearch\View\Helper\Root\Auth($sm->getServiceLocator()->get('VuFind\AuthManager'));
     }
 }

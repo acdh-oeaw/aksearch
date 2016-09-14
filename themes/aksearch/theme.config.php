@@ -12,7 +12,8 @@ return array(
         'vendor/jquery.min.js',
         'vendor/bootstrap.min.js',
         'vendor/bootstrap-accessibility.min.js',
-        'vendor/typeahead.js',
+        //'vendor/typeahead.js',
+        'autocomplete.js',
         'vendor/rc4.js',
         'common.js',
     	'aksearch.js',
@@ -25,6 +26,7 @@ return array(
     'favicon' => 'vufind-favicon.ico',
     'helpers' => array(
         'factories' => array(
+        	'auth' => 'AkSearch\View\Helper\Root\Factory::getAuth',
             'flashmessages' => 'VuFind\View\Helper\Bootstrap3\Factory::getFlashmessages',
             'layoutclass' => 'VuFind\View\Helper\Bootstrap3\Factory::getLayoutClass',
         	'searchbox' => 'AkSearch\View\Helper\Root\Factory::getSearchBox',

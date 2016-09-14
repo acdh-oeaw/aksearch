@@ -1,10 +1,15 @@
 <?
+
   if($loggedin = $this->auth()->isLoggedIn()) {
     $user_id = $loggedin->id;
     $loggedin = true;
   } else {
     $user_id = false;
   }
+  
+
+  // Test entity facts via PHP
+  //$this->driver->getEntityFact('118540238');
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
   <? $QRCode = $this->record($this->driver)->getQRCode("core"); 
@@ -104,7 +109,7 @@
     <tr valign="top">
       <th><?=$this->transEsc('Publication Type')?>:</th>
       <td>
-      	<?=$this->escapeHtml($publicationType)?>
+      	<?=$this->transEsc($publicationType)?>
       </td>
     </tr>
     <? endif; ?>
@@ -153,7 +158,9 @@
     }
     
     ?>
-      
+	<?php
+      /*
+      // ORIGINAL
       <? $authors = $this->driver->getAuthors(); if (!empty($authors)): ?>
       <tr>
       	<th><?=$this->transEsc('Authors')?>: </th>
@@ -164,7 +171,45 @@
         </td>
       </tr>
       <? endif; ?>
+      */
       
+	// PARTICIPANTS (with role and authority info)
+	$participants = $this->driver->getParticipants();
+	if (isset($participants) && !empty($participants)) {
+		foreach ($participants as $role => $participant) {
+			echo '<tr>';
+				echo '<th>'.$this->transEsc($role).':</th>';
+				echo '<td>';
+					foreach ($participant as $key => $gndName) {
+						$gnd = key($gndName);
+						$name = $gndName[key($gndName)];
+						echo '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'">';
+							echo $this->escapeHtml(str_replace(array("<", ">"), "", $name));
+						echo '</a>';
+						
+						
+						
+						// Entity Facts via PHP curl (Zend Http Object)
+						// See also AkSearch\Controller\AkAjaxController and aksearch.js in folder "themes/aksearch/js" 
+						if (isset($gnd) &&
+							!empty($gnd) &&
+							$gnd != 'NoGndId' &&
+							!preg_match('/^BIP/', $gnd) &&
+							!preg_match('/PND$/', $gnd) &&
+							!preg_match('/^BIK/', $gnd) &&
+							!preg_match('/GKD$/', $gnd)
+							) {
+								echo '&nbsp;&nbsp;<span class="akEntityFactsOpener" data-gndid="'.preg_replace('/\(.*?\)/', '', $gnd).'"><i class="fa fa-info-circle akEntityFactsInfo" aria-hidden="true"></i></span>';
+							}
+						echo '<br/>';
+					}
+				echo '</td>';
+        	echo '</tr>';
+		}
+	}
+	?>
+     
+     
 	 <? $corporateAuthors = $this->driver->getCorporateAuthors(); if (!empty($corporateAuthors)): ?>
       <tr>
       	<th><?=$this->transEsc('Corporate Author')?>: </th>
@@ -265,6 +310,8 @@
       </tr>
       <? endif; ?>
 
+<?php
+/*
       <? $subjects = $this->driver->getAllSubjectHeadings(); if (!empty($subjects)): ?>
       <tr>
         <th><?=$this->transEsc('Subjects')?>: </th>
@@ -283,6 +330,34 @@
         </td>
       </tr>
       <? endif; ?>
+*/
+?>      
+      <?
+      // Keyword chains
+      $allKeywordChains = $this->driver->getAllKeywordChains();
+      if (!empty($allKeywordChains)) {
+      	echo '<tr>';
+	      	echo '<td colspan="2">';
+	      	echo '<b>'.$this->transEsc('keyword_chains').'</b> <span class="akInfoTooltipOpener" data-aktooltiptitle="'.$this->transEsc('akTtKeywordChainTitle').'" data-aktooltiptext="'.$this->transEsc('akTtKeywordChainText').'"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
+
+	      	foreach ($allKeywordChains as $keywordChain) {
+	      		// Get the array key of last element in a keyword chain
+	      		$arrayKeys = array_keys($keywordChain);
+	      		$lastElement = array_pop($arrayKeys);
+	      		echo '<hr class="akKeywordChainsSeparator" />';
+	      		foreach ($keywordChain as $key => $keyword) {
+	      			$keyword = trim($keyword);
+	      			echo '<a class="akKeywordChainLink" title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->record($this->driver)->getLink('subject', $keyword).'" rel="nofollow">'.trim($this->escapeHtml(str_replace(array("<", ">"), "", $keyword))).'</a>';
+	      			if ($key != $lastElement) {
+	      				echo ' <i class="fa fa-arrow-left akKeywordChainArrow" aria-hidden="true"></i> ';
+	      			}
+	      		}
+	      	}
+	      	echo '</td>';
+	      	
+      	echo '</tr>';
+      }
+      ?>
 
       <? $childRecordCount = $this->driver->tryMethod('getChildRecordCount'); if ($childRecordCount): ?>
       <tr>
@@ -304,7 +379,7 @@
         <th><?=$this->transEsc('Online Access')?>: </th>
         <td>
           <? foreach ($urls as $current): ?>
-            <a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>"><?=$this->escapeHtml($current['desc'])?></a><br/>
+          <a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" target="new"><?=$this->escapeHtml($this->transEsc($current['desc']))?></a><br/>
           <? endforeach; ?>
           <? if ($openUrlActive): ?>
             <?=$openUrl->renderTemplate()?><br/>

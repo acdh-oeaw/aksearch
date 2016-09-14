@@ -1,0 +1,1 @@
+Here are the default files for AKsearch that you can copy to /local/config/vufind.

@@ -29,6 +29,7 @@
         $cart = $this->cart();
         $this->jsTranslations()->addStrings(
           array(
+          	'add_tag_success' => 'add_tag_success',
             'bulk_email_success' => 'bulk_email_success',
             'bulk_save_success' => 'bulk_save_success',
             'close' => 'close',
@@ -56,6 +57,11 @@
           );
         }
         $this->headScript()->appendScript($this->jsTranslations()->getScript());
+        
+        // Added by AK Bibliothek Wien
+        $this->headScript()->appendScript(
+        	'var userIsLoggedIn = ' . ($this->auth()->isLoggedIn() ? 'true' : 'false') . ';'
+        );
       }
 
       // Session keep-alive
@@ -65,7 +71,16 @@
           $this->headScript()->appendFile("keep_alive.js");
       }
     ?>
-
+    <?php
+      $root = rtrim($this->url('home'), '/');
+      $setupJS = <<<JS
+VuFind.path = '{$root}';
+VuFind.defaultSearchBackend = '{$dsb}';
+VuFind.addTranslations({$translations});
+JS;
+      $this->headScript()->appendScript($setupJS);
+    ?>
+    
     <?=$this->headScript()?> 
   </head>
   <body>

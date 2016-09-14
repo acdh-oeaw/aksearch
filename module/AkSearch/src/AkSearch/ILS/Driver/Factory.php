@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) AK Bibliothek Wien 2015.
+ * Copyright (C) AK Bibliothek Wien 2016.
  * Original by: UB/FU Berlin (see VuFind Module)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1335, USA.
  *
  * @category AkSearch
- * @package  RecordDrivers
+ * @package  ILS Drivers
  * @author   Michael Birkner <michael.birkner@akwien.at>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://wien.arbeiterkammer.at/service/bibliothek/
@@ -40,7 +40,21 @@ class Factory {
     public static function getAleph(ServiceManager $sm) {
         return new Aleph(
             $sm->getServiceLocator()->get('VuFind\DateConverter'),
-            $sm->getServiceLocator()->get('VuFind\CacheManager')
+            $sm->getServiceLocator()->get('VuFind\CacheManager'),
+        	$sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch') // Get AKsearch.ini
         );
+    }
+    
+    /**
+     * Factory for Alma driver.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return Alma
+     */
+    public static function getAlma(ServiceManager $sm) {
+    	return new Alma(
+    		$sm->getServiceLocator()->get('VuFind\DateConverter')
+    	);
     }
 }

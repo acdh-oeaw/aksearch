@@ -12,7 +12,7 @@ body {
 
 a {
 	text-decoration: none;
-	color: #1079a5
+	color: #1079a5;
 }
 
 .form-control {
@@ -29,7 +29,7 @@ a {
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 	-webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s
+	transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 
 
@@ -72,11 +72,15 @@ a {
 	outline: none;
 }
 
+.btn-primary.disabled, .btn-primary[disabled], fieldset[disabled] .btn-primary, .btn-primary.disabled:hover, .btn-primary[disabled]:hover, fieldset[disabled] .btn-primary:hover, .btn-primary.disabled:focus, .btn-primary[disabled]:focus, fieldset[disabled] .btn-primary:focus, .btn-primary.disabled.focus, .btn-primary[disabled].focus, fieldset[disabled] .btn-primary.focus, .btn-primary.disabled:active, .btn-primary[disabled]:active, fieldset[disabled] .btn-primary:active, .btn-primary.disabled.active, .btn-primary[disabled].active, fieldset[disabled] .btn-primary.active {
+    background-color: #333;
+}
+
 .btn-link {
 	font-weight: normal;
 	cursor: pointer;
 	border-radius: 0;
-	color: #f4f4f2;
+	color: #1079a5;
 }
 
 .btn-link:hover, .btn-link:focus {
@@ -103,7 +107,6 @@ a {
 }
 
 
-
 .navbar-brand {
 	float: left;
 	font-size: 18px;
@@ -128,7 +131,7 @@ a {
 	right: 0;
 	bottom: 0;
 	left: 0;
-	background-color: #000
+	background-color: #000;
 }
 
 .twitter-typeahead {
@@ -144,6 +147,7 @@ a {
 .akAdvancedSearchForm {
 	padding-left: 15px;
 }
+ 
 
 #advSearchForm .row .col-sm-9 .row fieldset {
 	margin-top: 20px;
@@ -161,10 +165,48 @@ a {
 .search-controls {
 	margin-top: 15px;
 }
+
+/* Autocomplete results */
+/* crhallberg/autocomplete.js 0.14 */
+.autocomplete-results {
+  position: absolute;
+  margin: 0;
+  margin-top: 2px;
+  padding: 0;
+  border: 1px solid #d3d3d3;
+  background-color: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 50;
+}
+.autocomplete-results .item {
+  display: block;
+  margin: 0;
+  padding: .75rem 1.25rem;
+  border-bottom: 1px solid #d3d3d3;
+  cursor: pointer;
+}
+.autocomplete-results .item:last-child {
+  border: 0;
+}
+.autocomplete-results .item:hover {
+  background-color: #f5f5f5;
+}
+.autocomplete-results .item.loading {
+  background-color: #ffffff;
+}
+.autocomplete-results .item.selected {
+  background-color: #265680;
+  color: #ffffff;
+}
+.autocomplete-results .item small {
+  display: block;
+  color: #a9a9a9;
+}
+
 /* ################################################################################################################################## */
 /* ###################################### OVERRIDING ORIGINAL CSS WITH SOME MODIFICATIONS - END ##################################### */
 /* ################################################################################################################################## */
-
 
 
 
@@ -176,6 +218,10 @@ a {
 	background: none repeat scroll 0 0 #be0021;
 }
 
+.akSearchbox button {
+	margin-bottom: 0;
+}
+
 .akSearchbox input[type="text"], .akSearchbox #searchForm_type {
 	background: none repeat scroll 0 0 #fff;
     border: 0 none;
@@ -183,13 +229,27 @@ a {
     font-size: 1em;
     height: 24px;
     line-height: 25px;
-    margin: 1px 0 0 0;
-    padding: 0 5px 0 8px;
+    margin: 1px 0 0 0;    
+    padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 8px;
     border-radius: 0px;
+}
+
+.akSearchbox input[type="text"] {
+	padding-right: 5px;
 }
 
 .akSearchbox label {
 	color: #f4f4f2;
+}
+
+.akSubtitle {
+	text-overflow: ellipsis;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 #searchForm_lookfor {
@@ -212,11 +272,114 @@ a {
     margin-top: 10px;
 }
 
+.akEntityFactsOpener {
+	float: right;
+}
+
+.akEntityFactsOpener .fa, .akEntityFactsTooltipClose .fa {
+	cursor: pointer;
+}
+
+.akEntityFactsTooltip {
+	position: absolute;
+	z-index: 999;
+	background-color: #dedede;
+	padding: 5px;
+	border: 1px solid #fff;
+	width: 300px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.akEntityFactsTooltipClose {
+	cursor: pointer !important;
+	font-size: 16px;
+	float: right;
+}
+
+.akEntitiyFactsTable th, .akEntitiyFactsTable td {
+	padding: 2px;
+	vertical-align: top;
+}
+
+.akClearer {
+	clear: both;
+}
+
+#akMyListContainer {
+	margin-top: 20px;
+}
+
+#akMyListContainer .label-info {
+	display: none;
+}
+
+#akMyListContainer .row {
+	padding-bottom: 10px;
+	padding-top: 10px;
+	border-top: solid 1px #eee;
+}
+
+#akMyListContainer .resultItemLine1 {
+	font-weight: bold;
+}
+
+.akKeywordChainsSeparator {
+	-moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    border-color: #eee -moz-use-text-color -moz-use-text-color;
+    border-image: none;
+    border-style: solid none none;
+    border-width: 1px 0 0;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    box-sizing: content-box;
+    height: 0;
+}
+
+.akKeywordChainArrow {
+	font-size: 90%;
+}
+
+.akInfoTooltipOpener {
+	float: right;
+}
+
+.akInfoTooltipOpener .fa, .akInfoTooltipClose .fa {
+	cursor: pointer;
+}
+
+.akInfoTooltip {
+	position: absolute;
+	z-index: 999;
+	background-color: #dedede;
+	padding: 5px;
+	border: 1px solid #fff;
+	width: 300px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.akInfoTooltipClose {
+	cursor: pointer !important;
+	font-size: 16px;
+	float: right;
+}
+
+
 @media ( max-width : 767px) {
 	.btn {
 		margin-top: 5px;
 	}
+	.akEntityFactsTooltip {
+		width: 250px;
+		margin-left: -25px;
+	}
+	h4{
+		font-size: 14px;
+	}
 }
+
 
 /* ###################################################################################################### */
 /* ###################################### AK BIBLIOTHEK WIEN - END ###################################### */

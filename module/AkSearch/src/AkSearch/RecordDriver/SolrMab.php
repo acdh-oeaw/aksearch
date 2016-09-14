@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1335, USA.
  *
- * @category AkSearch
+ * @category AKsearch
  * @package  RecordDrivers
  * @author   Michael Birkner <michael.birkner@akwien.at>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
@@ -30,8 +30,11 @@
 namespace AkSearch\RecordDriver;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\RecordDriver\SolrDefault as SolrDefault;
+use ProxyManagerTestAsset\EmptyClass;
 
-class SolrMab extends SolrDefault {
+class SolrMab extends SolrDefault  {
+	
+
 
      /**
      * ILS connection
@@ -52,7 +55,28 @@ class SolrMab extends SolrDefault {
      *
      * @var \VuFind\ILS\Logic\TitleHolds
      */
-    protected $titleHoldLogic;  
+    protected $titleHoldLogic;
+    
+    /**
+     * AKsearch.ini configuration
+     */
+    protected $akConfig;
+
+    
+    /**
+     * Constructor
+     * 
+     * Geting values from AKsearch.ini
+     */
+    public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null) {
+    	
+    	// Get AKsearch.ini config
+    	// See 4th parameter for "new SolrMab(...)" in method "getSolrMab()" of class "AkSearch\RecordDriver\Factory"
+    	$this->akConfig = (isset($akConfig)) ? $akConfig : null;
+    	
+    	// Call parent constructor
+    	parent::__construct($mainConfig, $recordConfig, $searchSettings);
+    }
     
     
     /**
@@ -74,6 +98,7 @@ class SolrMab extends SolrDefault {
     		/*'corporateAuthorName_txt', 'corporateAuthor2Name_txt_mv',
     		'corporateAuthor2NameGnd_txt_mv'*/
     ];
+    
     
     
     /**
@@ -117,6 +142,120 @@ class SolrMab extends SolrDefault {
     
     
     /**
+     * Return an XML representation of the record.
+     */
+    public function getXML($format = null, $baseUrl = null, $recordLink = null) {
+    	$xmlOrFullRecord = $this->fields['fullrecord'];
+    	$simpleXML = simplexml_load_string($xmlOrFullRecord);
+    	
+    	// Masking call nos. and collections
+    	$strMarcFieldsForMasking = $this->akConfig->Masking->marcfields;
+
+    	if (isset($strMarcFieldsForMasking) && !empty($strMarcFieldsForMasking)) {
+    		$arrMarcFieldsForMasking = explode(',', $strMarcFieldsForMasking);
+    		
+    		if ($simpleXML) {
+	    		foreach ($simpleXML->record->datafield as $datafield) {
+	    			foreach ($arrMarcFieldsForMasking as $marcFieldForMasking) {
+	    				$marcFieldForMasking = trim($marcFieldForMasking);
+	    				$tagToMask = substr($marcFieldForMasking, 0, 3);
+	    				$ind1ToMask = substr($marcFieldForMasking, 4, 1);
+	    				$ind2ToMask = substr($marcFieldForMasking, 5, 1);
+	    				$subfToMask = substr($marcFieldForMasking, 7, 1);
+	    				$mode = trim(substr($marcFieldForMasking, 8, strlen($marcFieldForMasking)));
+	    				if ($mode == '[all]') {
+	    					$mode = 'all';
+	    				} else {
+	    					$mode = 'begins';
+	    				}
+	    				
+	    				$tag = $datafield->attributes()->tag;
+	    				$ind1 = $datafield->attributes()->ind1;
+	    				$ind2 = $datafield->attributes()->ind2;
+	    				 
+	    				if ($tag == $tagToMask) { // Check for tag
+	    					if ($ind1 == $ind1ToMask || $ind1ToMask == '*') { // Check for indicator 1
+	    						if ($ind2 == $ind2ToMask || $ind2ToMask == '*') { // Check for indicator 2
+	    							$subfieldCounter = -1;
+	    							foreach ($datafield->subfield as $subfield) {
+	    								$subfieldCounter = $subfieldCounter + 1;
+	    								foreach ($subfield->attributes() as $subfieldCode) {
+	    									if ($subfieldCode == $subfToMask) {
+	    										$datafield->subfield->$subfieldCounter = $this->getMaskedValue($subfield, $mode);
+	    									}
+	    								}
+	    							}
+	    						}
+	    					}
+	    				}
+	    			}
+	    		}
+    		}
+    	}
+    	
+    	$returnValue = '<noxml></noxml>'; // Fallback if $simpleXML is corrupted
+    	if ($simpleXML) {
+    		$returnValue = $simpleXML->asXML();
+    	}
+    	
+    	return $returnValue;
+    }
+    
+    /**
+     * Getting raw solr field for staff view ... but first apply masking.
+     * 
+     * {@inheritDoc}
+     * @see \VuFind\RecordDriver\AbstractBase::getRawData()
+     */
+    public function getRawData() {
+    	$raw = $this->fields;
+    	
+    	// Masking solr fields
+    	$strMaskingSolrFields = $this->akConfig->Masking->solrfields;
+    	if (isset($strMaskingSolrFields) && !empty($strMaskingSolrFields)) {
+    		$arrMaskingSolrFields = preg_split('/\s*,\s*/', trim($strMaskingSolrFields));
+
+    		foreach ($raw as $fieldname => &$fieldvalue) {
+    			if (is_array($fieldvalue)) {
+    				foreach ($fieldvalue as &$value) {
+    					foreach ($arrMaskingSolrFields as $solrFieldToMask) {
+	    					$mode = 'begins';
+	    					if (preg_match('/\[all\]/', $solrFieldToMask)) {
+	    						$mode = 'all';
+	    						$solrFieldToMask = preg_replace('/\[all\]/', '', $solrFieldToMask);
+	    					} else if (preg_match('/\[begins\]/', $solrFieldToMask)) {
+	    						$mode = 'begins';
+	    						$solrFieldToMask = preg_replace('/\[begins\]/', '', $solrFieldToMask);
+	    					}
+	    					if ($fieldname == $solrFieldToMask) {
+	    						$value = $this->getMaskedValue($value, $mode);
+	    					}
+	    				}
+    				}
+    			} else {
+    				foreach ($arrMaskingSolrFields as $solrFieldToMask) {
+    					$mode = 'begins';
+    					if (preg_match('/\[all\]/', $solrFieldToMask)) {
+    						$mode = 'all';
+    						$solrFieldToMask = preg_replace('/\[all\]/', '', $solrFieldToMask);
+    					} else if (preg_match('/\[begins\]/', $solrFieldToMask)) {
+    						$mode = 'begins';
+    						$solrFieldToMask = preg_replace('/\[begins\]/', '', $solrFieldToMask);
+    					}
+    					if ($fieldname == $solrFieldToMask) {
+    						$fieldvalue = $this->getMaskedValue($fieldvalue, $mode);
+    					}
+    				}
+    			}
+    		}
+    		
+    	}
+    	
+    	return $raw;
+    }
+    
+    
+    /**
      * Get text that can be displayed to represent this record in breadcrumbs.
      *
      * @return string: Breadcrumb text to represent this record.
@@ -154,6 +293,125 @@ class SolrMab extends SolrDefault {
 	}
 
 	
+	/**
+	 * Getting the cover or icon (according to format and/or publication type)
+	 * 
+	 * {@inheritDoc}
+	 * @see \VuFind\RecordDriver\SolrDefault::getThumbnail()
+	 */
+	public function getThumbnail($size = 'small') {
+		
+		if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
+			return $this->fields['thumbnail'];
+		}
+		
+		// Get publication type as string:
+		$publicationTypeCode = $this->getPublicationTypeCode();
+		
+		// Get formats as array:
+		$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
+		$format = null;
+		if (isset($formats)) {
+			if (in_array('printed', $formats)) {
+				// Default for "printed" format. Overwrite below if other format is available.
+				$format = 'book';
+				
+				if (isset($publicationTypeCode)) {
+					if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
+						$format = 'book';
+					} else if ($publicationTypeCode == 'n' || $publicationTypeCode == 't' || $publicationTypeCode == 'r') {
+						$format = 'books';
+					} else if ($publicationTypeCode == 'a') {
+						$format = 'article';
+					} else if ($publicationTypeCode == 'j' || $publicationTypeCode == 'p' || $publicationTypeCode == 'f') {
+						$format = 'journal';
+					} else if ($publicationTypeCode == 'z') {
+						$format = 'newspaper';
+					}
+				}
+			} else if (in_array('manuscript', $formats)) {
+				$format = 'manuscript';
+			} else if (in_array('mixedmedia', $formats)) {
+				$format = 'mixedmedia';
+			} else if (in_array('microform', $formats)) {
+				$format = 'microform';
+			} else if (in_array('soundcarrier', $formats)) {
+				$format = 'music';
+			} else if (in_array('avunknown', $formats)) {
+				$format = 'avunknown';
+			} else if (in_array('filmforprojection', $formats)) {
+				$format = 'filmforprojection';
+			} else if (in_array('videorecording', $formats)) {
+				$format = 'video';
+			} else if (in_array('dvd', $formats)) {
+				$format = 'dvd';
+			} else if (in_array('compactdisc', $formats)) {
+				$format = 'compactdisc';
+			} else if (in_array('figurative', $formats)) {
+				$format = 'figurative';
+			} else if (in_array('poster', $formats)) {
+				$format = 'poster';
+			} else if (in_array('file', $formats)) {
+				$format = 'file';
+			} else if (in_array('electronic', $formats)) {
+				$format = 'electronic';
+			} else if (in_array('game', $formats)) {
+				$format = 'game';
+			} else if (in_array('map', $formats)) {
+				$format = 'map';
+			} else {
+				$format = 'unknown';
+			}
+		} else {
+			// Default format. Overwrite below if other format is available.
+			$format = 'book';
+			if (isset($publicationTypeCode)) {
+				if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
+					$format = 'book';
+				} else if ($publicationTypeCode == 'n' || $publicationTypeCode == 't' || $publicationTypeCode == 'r') {
+					$format = 'books';
+				} else if ($publicationTypeCode == 'a') {
+					$format = 'article';
+				} else if ($publicationTypeCode == 'j' || $publicationTypeCode == 'p' || $publicationTypeCode == 'f') {
+					$format = 'journal';
+				} else if ($publicationTypeCode == 'z') {
+					$format = 'newspaper';
+				}
+			}
+		}
+		
+		// Preparing return array:
+		$arr = [
+				'contenttype'	=> $format,
+				'author'		=> mb_substr($this->getPrimaryAuthor(), 0, 300, 'utf-8'),
+				'callnumber'	=> $this->getCallNumber(),
+				'size'			=> $size,
+				'title'			=> mb_substr($this->getTitle(), 0, 300, 'utf-8')
+		];
+		if ($isbn = $this->getCleanISBN()) {
+			$arr['isbn'] = $isbn;
+		}
+		if ($issn = $this->getCleanISSN()) {
+			$arr['issn'] = $issn;
+		}
+		if ($oclc = $this->getCleanOCLCNum()) {
+			$arr['oclc'] = $oclc;
+		}
+		if ($upc = $this->getCleanUPC()) {
+			$arr['upc'] = $upc;
+		}
+		
+		// If an ILS driver has injected extra details, check for IDs in there to fill gaps:
+		if ($ilsDetails = $this->getExtraDetail('ils_details')) {
+			foreach (['isbn', 'issn', 'oclc', 'upc'] as $key) {
+				if (!isset($arr[$key]) && isset($ilsDetails[$key])) {
+					$arr[$key] = $ilsDetails[$key];
+				}
+			}
+		}
+		
+		return $arr;
+	}
 	
 	
 	
@@ -726,15 +984,18 @@ class SolrMab extends SolrDefault {
 	}
 	
 	/**
-	 * Get Solrfield publishDate
+	 * Get Solrfield publishDate or datePublishSort_str
 	 *
-	 * @return array or null if empty
+	 * @return string or null if empty
 	 */
 	public function getPublishDate() {
 		$arrPublishDates = isset($this->fields['publishDate']) ? $this->fields['publishDate'] : null;
-
+		$strPublishDateSort = isset($this->fields['datePublishSort_str']) ? $this->fields['datePublishSort_str'] : null;
+		
 		if ($arrPublishDates != null) {
 			$publishDates = implode(', ', $arrPublishDates);
+		} else if ($strPublishDateSort != null) {
+			$publishDates = $strPublishDateSort;
 		} else {
 			$publishDates = null;
 		}
@@ -818,6 +1079,15 @@ class SolrMab extends SolrDefault {
 	 */
 	public function getPublicationPlace() {
 		return isset($this->fields['publishPlace_str']) ? $this->fields['publishPlace_str'] : null;
+	}
+	
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return string
+	 */
+	public function getTitle() {
+		return isset($this->fields['title']) ? str_replace(array('<', '>'), '', $this->fields['title']) : '';
 	}
 
 	/**
@@ -913,6 +1183,82 @@ class SolrMab extends SolrDefault {
 	}
 	
 	/**
+	 * Get all all involved / participants incl. their role and authoirty no.
+	 * 
+	 *  @return array or null if empty
+	 */
+	public function getParticipants() {
+		
+		// First participant
+		$author1 = isset($this->fields['author']) ? $this->fields['author'] : null;
+		$author1Role = isset($this->fields['author_role']) ? $this->fields['author_role'] : 'NoRole';
+		$author1Gnd = isset($this->fields['author_GndNo_str']) ? $this->fields['author_GndNo_str'] : 'NoGndId';
+		
+		// Second participant
+		$author2 = isset($this->fields['author2']) ? $this->fields['author2'][0] : null;
+		$author2Role = isset($this->fields['author2_role']) ? $this->fields['author2_role'][0] : 'NoRole';
+		$author2Gnd = isset($this->fields['author2_GndNo_str']) ? $this->fields['author2_GndNo_str'] : 'NoGndId';
+		
+		// All other participants
+		$author_additional_NameRoleGnd = (isset($this->fields['author_additional_NameRoleGnd_str_mv']) && !empty($this->fields['author_additional_NameRoleGnd_str_mv'])) ? $this->fields['author_additional_NameRoleGnd_str_mv'] : null;
+		
+		// First Corporate participant
+		$corp1 = isset($this->fields['corporateAuthorName_txt']) ? $this->fields['corporateAuthorName_txt'] : null;
+		$corp1Role = isset($this->fields['corporateAuthorRole_str']) ? $this->fields['corporateAuthorRole_str'] : 'NoRole';
+		$corp1Gnd = isset($this->fields['corporateAuthorGndNo_str']) ? $this->fields['corporateAuthorGndNo_str'] : 'NoGndId';
+		
+		// All other corporate participants
+		$corp_additional_NameRoleGnd = (isset($this->fields['corporateAuthor2NameRoleGnd_str_mv']) && !empty($this->fields['corporateAuthor2NameRoleGnd_str_mv']))? $this->fields['corporateAuthor2NameRoleGnd_str_mv'] : null;
+		
+		
+		$participants = [];
+		if ($author1 != null && $author1Role != null && $author1Gnd != null) {
+			$participants[$author1Role][] = array($author1Gnd => $author1);
+		}
+		if ($author2 != null && $author2Role != null && $author2Gnd != null) {
+			$participants[$author2Role][] = array($author2Gnd => $author2);
+		}
+		if ($corp1 != null && $corp1Role != null && $corp1Gnd != null) {
+			$participants[$corp1Role][] = array($corp1Gnd => $corp1);
+		}
+		
+		if ($author_additional_NameRoleGnd != null) {
+    		foreach ($author_additional_NameRoleGnd as $key => $value) {
+    			
+    			if (($key % 3) == 0) { // First of 3 values
+    				$name = $author_additional_NameRoleGnd[$key];
+    			} else if (($key % 3) == 1) { // Second of 3 values
+    				$role = $author_additional_NameRoleGnd[$key];
+    			}  else if (($key % 3) == 2) { // Third and last of 3 values
+    				$gnd = $author_additional_NameRoleGnd[$key];
+    				
+    				// We have all values now, add them to the return array:
+    				$participants[$role][] = array($gnd => $name);
+    			}
+    		}
+    	}
+    	
+    	if ($corp_additional_NameRoleGnd != null) {
+    		foreach ($corp_additional_NameRoleGnd as $key => $value) {
+    			 
+    			if (($key % 3) == 0) { // First of 3 values
+    				$name = $corp_additional_NameRoleGnd[$key];
+    			} else if (($key % 3) == 1) { // Second of 3 values
+    				$role = $corp_additional_NameRoleGnd[$key];
+    			}  else if (($key % 3) == 2) { // Third and last of 3 values
+    				$gnd = $corp_additional_NameRoleGnd[$key];
+    	
+    				// We have all values now, add them to the return array:
+    				$participants[$role][] = array($gnd => $name);
+    			}
+    		}
+    	}
+			
+		return (isset($participants) && !empty($participants)) ? $participants : null;
+	}
+	
+	
+	/**
 	 * Get all corporate authors
 	 *
 	 * @return array or null if empty
@@ -925,6 +1271,63 @@ class SolrMab extends SolrDefault {
 		$corpAll = array_merge((array)$corp, $corp2Gnd, $corp2);
 
 		return isset($corpAll) ? $corpAll : null;
+	}
+	
+	
+	/**
+	 * Get all subjects
+	 *
+	 * @return array
+	 */
+	public function getAllSubjectHeadings() {		
+		
+		$headings = [];
+		foreach (['topic', 'authHeadingSubject_txt_mv', 'authUseForSubject_txt_mv', 'geographic', 'authHeadingGeographic_txt_mv', 'authUseForGeographic_txt_mv', 'authHeadingCongress_txt_mv', 'authUseForCongress_txt_mv', 'authHeadingWork_txt_mv', 'authUseForWork_txt_mv', 'genre', 'era'] as $field) {
+			if (isset($this->fields[$field])) {
+				$headings = array_merge($headings, $this->fields[$field]);
+			}
+		}
+		
+		sort($headings, SORT_ASC);
+	
+		// The Solr index doesn't currently store subject headings in a broken-down
+		// format, so we'll just send each value as a single chunk.  Other record
+		// drivers (i.e. MARC) can offer this data in a more granular format.
+		$callback = function ($i) {
+			return [$i];
+		};
+		return array_map($callback, array_unique($headings));
+	}
+	
+	/**
+	 * Get all keyword chains
+	 * 
+	 * @return array
+	 */
+	public function getAllKeywordChains() {
+		$allKeywordChains = null;
+		for ($i = 1; $i <= 10; $i++) {
+			$noWithLeadingZero = sprintf('%02d', $i);
+			$keywordChain = $this->getKeywordChainByNo($noWithLeadingZero);
+			if ($keywordChain != null) {
+				$allKeywordChains[$noWithLeadingZero] = $keywordChain;
+			}
+		}
+		return $allKeywordChains;
+	}
+	
+	/**
+	 * Get a keyword chain by it's number
+	 * 
+	 * @param string $no	The number (with leading zero) of the keyword chain. Possible are values from 01 to 10.
+	 * @return array		Array of all values of the keyword chain or null if the keyword chain does not exist.
+	 */
+	public function getKeywordChainByNo($no = '01') {
+		$keywordChain = null;
+		if (isset($this->fields['keywordChain'.$no.'_txt_mv'])) {
+			$keywordChain = $this->fields['keywordChain'.$no.'_txt_mv'];
+		}
+		return $keywordChain;
 	}
 	
 	
@@ -992,25 +1395,89 @@ class SolrMab extends SolrDefault {
     	}
     }
     
+    
 
+    
     /**
      * Get an array of information about record holdings, obtained in real-time from the ILS.
+     * Mask call nos and collections if value set in AKsearch.ini
      * 
      * Adopted from VuFind\RecordDriver\SolrMarc.
      * 
      * @return array
      */
-    public function getRealTimeHoldings()
-    {
+    public function getRealTimeHoldings() {
     	// Get real time holdings
     	if (!$this->hasILS()) {
     		return array();
     	}
     	try {
-    		return $this->holdLogic->getHoldings($this->getSysNo());
+    		$holdings = $this->holdLogic->getHoldings($this->getSysNo());
+
+    		foreach ($holdings as &$holdingsOfLocation) {
+    			$items = &$holdingsOfLocation['items'];
+    			
+    			foreach ($items as $key => &$item) {
+    				
+    				// Masking call no 1, call no 2, collection and collection description
+    				$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
+    				$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
+    				$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
+    				$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
+    				$item['callnumber'] = ($callNo1 != null) ? $this->getMaskedValue($callNo1) : null;
+    				$item['callnumber_second'] = ($callNo2 != null) ? $this->getMaskedValue($callNo2) : null;
+    				$item['collection'] = ($collection != null) ? $this->getMaskedValue($collection) : null;
+    				$item['collection_desc'] = ($collection_desc != null) ? $this->getMaskedValue($collection_desc) : null;
+    				
+    				// Hide items according to user configuration in AKsearch.ini
+    				foreach ($this->akConfig->HideItems as $configKey => $configValue) {
+    					if (isset($item[$configKey]) && $item[$configKey] == $configValue) {
+    						unset($items[$key]);
+    					}
+    				}
+    			}
+    		}
+
+    		return $holdings;
     	} catch (ILSException $e) {
     		return array();
     	}
+    }
+
+    private function getMaskedValue($stringToMask, $mode = 'begins') {
+    	
+    	if ($mode == 'begins') {
+    		$akConfigMasking = trim($this->akConfig->Masking->beginswith);
+    		 
+    		// Masking call no 1, call no 2, collection and collection description
+    		if (isset($akConfigMasking) && !empty($akConfigMasking)) {
+    			$arrBeginswith = array_reverse(explode(',', $akConfigMasking));
+    			$beginswithExceptions = trim($this->akConfig->Masking->beginswithExceptions);
+    			$arrBeginswithExceptions = array_reverse(explode(',', $beginswithExceptions));
+    		
+    			foreach ($arrBeginswith as $beginswith) {
+    				$beginswith = trim($beginswith);
+    				 
+    				if (isset($beginswithExceptions) && !empty($beginswithExceptions)) {
+    					foreach ($arrBeginswithExceptions as $beginswithException) {
+    						$beginswithException = trim($beginswithException);
+    						if (substr($stringToMask, 0, strlen($beginswithException)) == $beginswithException) {
+    							return $stringToMask;
+    						}
+    					}
+    				}
+    		
+    				if (substr($stringToMask, 0, strlen($beginswith)) == $beginswith) {
+    					return $beginswith.preg_replace("/./", '*', substr($stringToMask, strlen($beginswith), strlen($stringToMask)));
+    				}
+    			}
+    		}
+    	} else if ($mode == 'all') {
+    		return preg_replace("/./", '*', substr($stringToMask, 0, strlen($stringToMask)));
+    	}
+    	
+    	
+    	return $stringToMask;
     }
 
     /**
@@ -1073,9 +1540,15 @@ class SolrMab extends SolrDefault {
      * 
      * @return array
      */
-    public function getJournalHoldings() {
-    	$arrHolResult = $this->ils->getJournalHoldings($this->getSysNo());
-    	return $arrHolResult;
+    public function getJournalHoldings() {    	
+    	if (!$this->hasILS()) {
+    		return array();
+    	}
+    	try {
+    		return $this->ils->getJournalHoldings($this->getSysNo());
+    	} catch (ILSException $e) {
+    		return array();
+    	}
     }
     
     /**
@@ -1100,22 +1573,28 @@ class SolrMab extends SolrDefault {
     		$urls =  $this->fields['url'];
     	}
     	
-    	if (isset($this->fields['urlText_str_mv']) && is_array($this->fields['urlText_str_mv'])) {
-    		$descs = $this->fields['urlText_str_mv'];
-    	}
-    	
     	if (isset($urls)) {
-	    	foreach ($urls as $key => $value) {
-	    		if (isset($descs)) {
-	    			$retVal[] = ['url' => $urls[$key], 'desc' => $descs[$key]];
-	    		} else {
-	    			$retVal[] = ['url' => $urls[$key], 'desc' => 'DefaultUrlText'];
-	    		}
-	    	}
+    		$counter = 0;
+    		foreach ($urls as $key => $value) {
+    			
+    			if (($key % 3) == 0) { // First of 3 values
+    				$url = $urls[$key];
+    			} else if (($key % 3) == 1) { // Second of 3 values
+    				$desc = $urls[$key];
+    			}  else if (($key % 3) == 2) { // Third and last of 3 values
+    				$mime = $urls[$key];
+    				
+    				// We have all values now, add them to the return array:
+    				$counter = $counter + 1;
+    				$retVal[$counter]['url'] = $url;
+    				$retVal[$counter]['desc'] = $desc;
+    				$retVal[$counter]['mime'] = $mime;
+    			}
+    		}
     	}
     	
-    	return $retVal;
-	}
-
+   		return $retVal;
+    }
+    
 }
 ?>
