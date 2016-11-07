@@ -809,12 +809,12 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
-	 * Get Solrfield articleParentTitle_str (title of parent record of the article)
+	 * Get Solrfield articleParentTitle_txt (title of parent record of the article)
 	 *
 	 * @return string or null if empty
 	 */
 	public function getArticleParentTitle() {		
-		return isset($this->fields['articleParentTitle_str']) ? $this->fields['articleParentTitle_str'] : null;
+		return isset($this->fields['articleParentTitle_txt']) ? $this->fields['articleParentTitle_txt'] : null;
 	}
 	
 	/**
