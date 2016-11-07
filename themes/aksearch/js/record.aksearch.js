@@ -52,10 +52,11 @@ function ajaxLoadTab(tabid) {
 	var urlWithoutFragment = urlParts[0];
 	var pathInUrl = urlWithoutFragment.indexOf(path);
 	var chunks = urlWithoutFragment.substring(pathInUrl + path.length + 1).split('/');
-
-	// If chunks 2 and 3 are undefined, use chunks 0 and 1 (same as in original code)
+	
+	
+	// If chunks 2 or 3 are undefined, use chunks 0 and 1 (same as in original code)
 	var urlroot = null;
-	if (chunks[2] == undefined && chunks[3] == undefined) {
+	if (chunks[2] == undefined || chunks[3] == undefined) {
 		urlroot = '/' + chunks[0] + '/' + chunks[1];
 	} else {
 		urlroot = '/' + chunks[2] + '/' + chunks[3];
