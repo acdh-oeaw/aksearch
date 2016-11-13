@@ -818,12 +818,53 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
+	 * Get Solrfield articleParentYear_str (year of parent record of the article)
+	 *
+	 * @return string or null if empty
+	 */
+	public function getArticleParentYear() {
+		return isset($this->fields['articleParentYear_str']) ? $this->fields['articleParentYear_str'] : null;
+	}
+	
+	/**
 	 * Get Solrfield articleParentVolumeNo_str (vol. no. of parent record of the article)
 	 *
 	 * @return string or null if empty
 	 */
-	public function getParentArticleVolumeNo() {
+	public function getArticleParentVolumeNo() {
 		return isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
+	}
+	
+	/**
+	 * Get Solrfield articleParentIssue_str (issue. no. of parent record of the article)
+	 * 
+	 * @return string or null if empty
+	 */
+	public function getArticleParentIssueNo() {
+		return isset($this->fields['articleParentIssue_str']) ? $this->fields['articleParentIssue_str'] : null;
+	}
+	
+	/**
+	 * Get "from" and "to" pages of an article
+	 *
+	 * @return string or null if empty
+	 */
+	public function getArticlePages() {
+		$articlePages = null;
+		
+		$pageFrom = isset($this->fields['pageFrom_str']) ? $this->fields['pageFrom_str'] : null;
+		$pageTo = isset($this->fields['pageTo_str']) ? $this->fields['pageTo_str'] : null;
+		
+		if ($pageFrom == $pageTo) {
+			$articlePages = $pageFrom;
+		} else {
+			$articlePages = $pageFrom;
+			if ($pageTo != null && !empty($pageTo)) {
+				$articlePages .= ' - '.$pageTo;
+			}
+		}
+		
+		return $articlePages;
 	}
 	
 	/*
@@ -834,7 +875,7 @@ class SolrMab extends SolrDefault  {
 			if ($this->getParentSYSs() != null) { // We have at least one SYS-No to which we can link
 				// Get the titel of the parent record
 				$parentTitle = (isset($this->getArticleParentTitle())) ? $this->getArticleParentTitle() : "k. A.";
-				$parentVolumeNo = (isset($this->getParentArticleVolumeNo())) ? $this->getParentArticleVolumeNo() : null;				
+				$parentVolumeNo = (isset($this->getArticleParentVolumeNo())) ? $this->getArticleParentVolumeNo() : null;				
 				$returnValue = (isset($parentVolumeNo)) ? $parentTitle.' ('.$parentVolumeNo.')' : $parentTitle;
 			} else { // We have 
 				
@@ -974,6 +1015,38 @@ class SolrMab extends SolrDefault  {
 	// #######################################################################################
 	// ################################# PUBLICATION DETAILS #################################
 	// #######################################################################################
+	
+	/**
+	 * Gettin publication details (publisher, publish place, publish date) as array.<br><br>Original VuFind:&nbsp;
+	 * {@inheritDoc}
+	 * @see \VuFind\RecordDriver\SolrDefault::getPublicationDetails()
+	 * @return array
+	 */
+	public function getPublicationDetails() {
+		$publicationDetails = [];
+		
+		$arrPublisherNames = $this->getPublisherNames();
+		$publisherNames = join(', ', $arrPublisherNames);
+		
+		$publicationPlace = $this->getPublicationPlace();
+		
+		$date = null;
+		$publishDate = $this->getPublishDate();
+		$dateFirstLastPublish = $this->getFirstLastDatePublished();
+		if (isset($publishDate) && !empty($publishDate)) {
+			$date = $publishDate;
+		} else {
+			$date = $dateFirstLastPublish;
+		}
+		
+		$publicationDetails['publisher'] = $publisherNames;
+		$publicationDetails['publishPlace'] = $publicationPlace;
+		$publicationDetails['publishDate'] = $date;
+		
+		return array_filter($publicationDetails);
+	}
+	
+	
 	/**
 	 * Get Solrfield publisher
 	 *
@@ -1078,7 +1151,7 @@ class SolrMab extends SolrDefault  {
 	 * @return string or null if empty
 	 */
 	public function getPublicationPlace() {
-		return isset($this->fields['publishPlace_str']) ? $this->fields['publishPlace_str'] : null;
+		return isset($this->fields['publishPlace_txt']) ? $this->fields['publishPlace_txt'] : null;
 	}
 	
 	/**

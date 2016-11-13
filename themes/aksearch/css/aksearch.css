@@ -166,6 +166,14 @@ a {
 	margin-top: 15px;
 }
 
+
+/* Result list */
+.result a.title {
+    font-weight: normal;
+    font-size: 16px;
+}
+
+
 /* Autocomplete results */
 /* crhallberg/autocomplete.js 0.14 */
 .autocomplete-results {
@@ -245,12 +253,28 @@ a {
 	color: #f4f4f2;
 }
 
-.akSubtitle {
+.akEllipsis {
 	text-overflow: ellipsis;
 	width: 100%;
 	white-space: nowrap;
 	overflow: hidden;
 }
+
+.akSubtitle {
+	font-weight: normal;
+	font-size: inherit;	
+}
+
+.akResultListSeparator {
+	margin-top: 10px;
+}
+
+.akResultListCaption {
+	font-weight: bold;
+	color: #444;
+}
+
+
 
 #searchForm_lookfor {
 	background-color: #fff !important;
