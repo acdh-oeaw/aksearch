@@ -96,12 +96,12 @@
 
 		$publicationDetails = $this->driver->getPublicationDetails();
 		$publisher = $publicationDetails['publisher'];
-		$place = $publicationDetails['publishPlace'];
-		$year = $publicationDetails['publishDate'];
+		$publicationPlace = $publicationDetails['publishPlace'];
+		$publicationYear = $publicationDetails['publishDate'];
 
-		if (isset($year)) {
+		if (isset($publicationYear)) {
 			echo '<div class="akEllipsis">';
-			echo '<span class="akResultListCaption">'.$this->transEsc('year').':</span> '.$year;
+			echo '<span class="akResultListCaption">'.$this->transEsc('year').':</span> '.$publicationYear;
 			echo '</div>';
 		}
 		
@@ -125,8 +125,8 @@
 		} else {
 			if (isset($publisher)) {
 				$publishString = $publisher;
-				if (isset($place)) {
-					$publishString .= ' ('.$place.')';
+				if (isset($publicationPlace)) {
+					$publishString .= ' ('.$publicationPlace.')';
 				}
 							
 				echo '<div class="akEllipsis">';

@@ -222,6 +222,26 @@ a {
 /* ##################################### AK BIBLIOTHEK WIEN - BEGIN ##################################### */
 /* ###################################################################################################### */
 
+.akH1 {
+	font-size: 20px;
+	font-weight: normal;
+	margin-top: 20px;
+	margin-bottom: 10px;
+	font-family: inherit;
+	line-height: 1.1;
+	color: inherit;
+}
+
+.akH2 {
+	font-size: 18px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-family: inherit;
+	font-weight: 500;
+	line-height: 1.1;
+	color: inherit;
+}
+
 .akSearchbox {
 	background: none repeat scroll 0 0 #be0021;
 }
