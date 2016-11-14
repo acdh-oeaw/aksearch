@@ -25,12 +25,42 @@
       <th><?=$this->transEsc('furtherTitles')?>: </th>
       <td>
         <? foreach ($furtherTitles as $furtherTitle): ?>
-          <?=$this->escapeHtml($furtherTitle)?><br/>
+          <?=$this->escapeHtml(str_replace(array('<', '>'), '', $furtherTitle))?><br/>
         <? endforeach; ?>
       </td>
     </tr>
   <? endif; ?>
   
+  <?php
+  
+  // Subseries
+  $subSeries = $this->driver->tryMethod('getSubseries');
+  if (isset($subSeries)) {
+  	echo '<tr>';
+  	echo '<th>'.$this->transEsc('subseries').': </th>';
+  	echo '<td>';
+  	foreach($subSeries as $subSer) {
+  		echo $this->escapeHtml(str_replace(array('<', '>'), '', $subSer)).'<br />';
+  	}
+  	echo '</td>';
+  	echo '</tr>';
+  }
+  
+  // Publication type and format
+  $publicationType = $this->driver->tryMethod('getPublicationTypeFromIndex');
+  $formats = $this->driver->getFormats();
+  echo '<tr>';
+  echo '<th>'.$this->transEsc('Publication Type').': </th>';
+  echo '<td>';
+  if ($publicationType != null && !empty($publicationType)) {
+  	echo $this->transEsc($publicationType);
+  	if (!empty($formats)) {
+  		echo ', '.$this->record($this->driver)->getFormatList();
+  	}
+  }
+  echo '</td>';
+  echo '</tr>';
+  ?>
 
   <? $notes = $this->driver->getGeneralNotes(); if (!empty($notes)): ?>
     <? $contentDisplayed = true; ?>
@@ -61,9 +91,7 @@
     <tr>
       <th><?=$this->transEsc('Publication Frequency')?>: </th>
       <td>
-        <? foreach ($freq as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
-        <? endforeach; ?>
+          <?=$this->escapeHtml($freq)?><br/>
       </td>
     </tr>
   <? endif; ?>

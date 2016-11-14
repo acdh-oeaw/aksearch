@@ -82,10 +82,10 @@
 	    if ($articleParentTitle != null) {
 	    	$articleParentTitle = str_replace(array("<", ">"), "", $articleParentTitle);
 	    	echo '<tr valign="top">';
-		    	echo'<th>'.$this->transEsc('Published in').'</th>';
+		    	echo'<th>'.$this->transEsc('Published in').':</th>';
 		 		echo '<td>';
 		 			if ($articleParentSYS != null) {
-		    			echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+		    			echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings#journalholding">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			} else {
 		 				echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			}
@@ -96,7 +96,7 @@
     } else if (isset($isChildVolume) && $isChildVolume == true) { // It's a "normal" child volume
 		if ($this->driver->tryMethod('getParentSYSs') != null) {
 			echo '<tr valign="top">';
-				echo '<th>'.$this->transEsc('parentRecord').'</th>';
+				echo '<th>'.$this->transEsc('parentRecord').':</th>';
 				echo '<td>';
 					$parentRecordSYSs = $this->driver->tryMethod('getParentSYSs');
 					$parentRecordTitles = $this->driver->tryMethod('getParentTitles');
@@ -168,7 +168,7 @@
 	  $publicationPlace = $publicationDetails['publishPlace'];
 	  $publicationYear = $publicationDetails['publishDate'];
 	  $publicationHistory = $this->driver->getPublicationHistory();
-	  $pubFrequency = $this->driver->getFrequencyOfPublication();
+
 	  
 	  // Publication date or history
 	  if (isset($publicationHistory) && !empty($publicationHistory)) {
@@ -183,13 +183,16 @@
 	  	echo '</tr>';
 	  }
 	  
-	  // Publication frequency
+	  /*
+	  // Publication frequency - Is in "Description" tab!
+	  $pubFrequency = $this->driver->getPublicationFrequency();
 	  if (isset($pubFrequency) && !empty($pubFrequency)) {
 	  	echo '<tr>';
 	  	echo '<th>'.$this->transEsc('frequencyOfPublication').': </th>';
 	  	echo '<td><span property="publicationFrequency">'.$this->escapeHtml($pubFrequency).'</span></td>';
 	  	echo '</tr>';
 	  }
+	  */
 	  
 	  // Publisher name and place
 	  if (isset($publisher)) {
@@ -214,7 +217,7 @@
           <th><?=$this->transEsc('Language')?>: </th>
           <td><? foreach ($langs as $lang): ?><?= $this->escapeHtml($this->transEsc($lang))?><br/><? endforeach; ?></td>
         </tr>
-      <? endif; ?>    
+      <? endif; ?>
 
       <? $journalTitle = $this->driver->getContainerTitle(); if (!empty($journalTitle)): ?>
       <tr>
@@ -275,7 +278,8 @@
       ?>
       
 	    <?php
-	    // Publication type and format
+	    /*
+	    // Publication type and format - Is in "Description" tab!
 	    $publicationType = $this->driver->tryMethod('getPublicationTypeFromIndex');
 	    $formats = $this->driver->getFormats();
 	    echo '<tr>';
@@ -289,10 +293,34 @@
 	    }
 	    echo '</td>';
 	    echo '</tr>';
+	    */
+	    
+	    // Other editions
+	    $otherEditions = $this->driver->tryMethod('getOtherEditions');
+	    if (isset($otherEditions) && !empty($otherEditions)) {
+
+	    	echo '<tr>';
+	    	echo '<th>'.$this->transEsc('otherEdition').': </th>';
+	    	echo '<td>';
+	    	foreach ($otherEditions as $otherEdition) {
+	    		$otherEditionTitle = $otherEdition['title'];
+	    		$otherEditionType = ($otherEdition['type'] != 'NoOtherEditionType') ? preg_replace('/\s*-+>/', '', $otherEdition['type']).': ' : null;
+	    		$otherEditionSys = ($otherEdition['solrId'] != 'NoOtherEditionSys') ? $otherEdition['solrId'] : null;
+	    		
+	    		if ($otherEditionSys != null) {
+	    			echo '<a href="'.$this->recordLink()->getUrl().$otherEditionSys.'">'.$otherEditionType.$this->escapeHtml($otherEditionTitle).'</a><br/>';
+	    		} else {
+	    			echo $otherEditionType.$this->escapeHtml($otherEditionTitle).'<br/>';
+	    		}
+	    	}
+	    	echo '</td>';
+	    	echo '</tr>';
+	    	
+	    }
 	    
 	    
 	    // Keyword chains
-	    $allKeywordChains = $this->driver->getAllKeywordChains();
+	    $allKeywordChains = $this->driver->tryMethod('getAllKeywordChains');
 	    if (!empty($allKeywordChains)) {
 	    	echo '<tr>';
 	    	echo '<td colspan="2">';

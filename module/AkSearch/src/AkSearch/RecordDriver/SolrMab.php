@@ -414,6 +414,56 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	
+	/**
+	 * Get Solrfield subSeriesTitle_txt_mv (title of a sub-series)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getSubseries() {
+		return isset($this->fields['subSeriesTitle_txt_mv']) ? $this->fields['subSeriesTitle_txt_mv'] : null;
+	}
+	
+	/**
+	 * Get Solrfield otherEditionDisplay_str_mv (title, type, comment, id original, id solr record for linking)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getOtherEditions() {
+		$otherEditions = null;
+		$otherEditionsRaw = isset($this->fields['otherEditionDisplay_str_mv']) ? $this->fields['otherEditionDisplay_str_mv'] : null;
+
+		if ($otherEditionsRaw != null && isset($otherEditionsRaw)) {
+			
+			$otherEditions = [];
+			$moduloCounter = 0;
+			$editionCounter = 0;
+			foreach ($otherEditionsRaw as $otherEditionEntry) {
+				
+			
+				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
+					$otherEditions[$editionCounter]['title'] = $otherEditionEntry;
+				}
+				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
+					$otherEditions[$editionCounter]['type'] = $otherEditionEntry;
+				}
+				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
+					$otherEditions[$editionCounter]['comment'] = $otherEditionEntry;
+				}
+				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
+					$otherEditions[$editionCounter]['originalId'] = $otherEditionEntry;
+				}
+				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
+					$otherEditions[$editionCounter]['solrId'] = $otherEditionEntry;
+					$editionCounter = $editionCounter + 1;
+				}
+				$moduloCounter = $moduloCounter + 1;
+			}
+		}
+		
+		return $otherEditions;
+	}
+	
+	
 	
 	// ######################################################################################
 	// ################################# MULTI VOLUME WORKS #################################
@@ -1132,7 +1182,7 @@ class SolrMab extends SolrDefault  {
 	 *
 	 * @return string or null if empty
 	 */
-	public function getFrequencyOfPublication() {
+	public function getPublicationFrequency() {
 		return isset($this->fields['pubFrequency_str']) ? $this->fields['pubFrequency_str'] : null;
 	}
 	
