@@ -464,6 +464,89 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	
+	/**
+	 * Get Solrfield attachmentDisplay_str_mv (title, type, comment, id original, id solr record for linking)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getAttachments() {
+		$attachments = null;
+		$attachmentsRaw = isset($this->fields['attachmentDisplay_str_mv']) ? $this->fields['attachmentDisplay_str_mv'] : null;
+	
+
+		if ($attachmentsRaw != null && isset($attachmentsRaw)) {
+				
+			$attachments = [];
+			$moduloCounter = 0;
+			$attachmentCounter = 0;
+			foreach ($attachmentsRaw as $attachmentEntry) {
+	
+					
+				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
+					$attachments[$attachmentCounter]['title'] = $attachmentEntry;
+				}
+				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
+					$attachments[$attachmentCounter]['type'] = $attachmentEntry;
+				}
+				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
+					$attachments[$attachmentCounter]['comment'] = $attachmentEntry;
+				}
+				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
+					$attachments[$attachmentCounter]['originalId'] = $attachmentEntry;
+				}
+				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
+					$attachments[$attachmentCounter]['solrId'] = $attachmentEntry;
+					$attachmentCounter = $attachmentCounter + 1;
+				}
+				$moduloCounter = $moduloCounter + 1;
+			}
+		}
+	
+		return $attachments;
+	}
+	
+	
+	/**
+	 * Get Solrfield attachmentToDisplay_str_mv (title, type, comment, id original, id solr record for linking)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getAttachmentsTo() {
+		$attachmentsTo = null;
+		$attachmentsToRaw = isset($this->fields['attachmentToDisplay_str_mv']) ? $this->fields['attachmentToDisplay_str_mv'] : null;
+	
+		if ($attachmentsToRaw != null && isset($attachmentsToRaw)) {
+	
+			$attachmentsTo = [];
+			$moduloCounter = 0;
+			$attachmentToCounter = 0;
+			foreach ($attachmentsToRaw as $attachmentToEntry) {
+	
+					
+				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
+					$attachmentsTo[$attachmentToCounter]['title'] = $attachmentToEntry;
+				}
+				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
+					$attachmentsTo[$attachmentToCounter]['type'] = $attachmentToEntry;
+				}
+				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
+					$attachmentsTo[$attachmentToCounter]['comment'] = $attachmentToEntry;
+				}
+				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
+					$attachmentsTo[$attachmentToCounter]['originalId'] = $attachmentToEntry;
+				}
+				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
+					$attachmentsTo[$attachmentToCounter]['solrId'] = $attachmentToEntry;
+					$attachmentToCounter = $attachmentToCounter + 1;
+				}
+				$moduloCounter = $moduloCounter + 1;
+			}
+		}
+	
+		return $attachmentsTo;
+	}
+	
+	
 	
 	// ######################################################################################
 	// ################################# MULTI VOLUME WORKS #################################

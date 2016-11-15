@@ -33,19 +33,6 @@
   
   <?php
   
-  // Subseries
-  $subSeries = $this->driver->tryMethod('getSubseries');
-  if (isset($subSeries)) {
-  	echo '<tr>';
-  	echo '<th>'.$this->transEsc('subseries').': </th>';
-  	echo '<td>';
-  	foreach($subSeries as $subSer) {
-  		echo $this->escapeHtml(str_replace(array('<', '>'), '', $subSer)).'<br />';
-  	}
-  	echo '</td>';
-  	echo '</tr>';
-  }
-  
   // Publication type and format
   $publicationType = $this->driver->tryMethod('getPublicationTypeFromIndex');
   $formats = $this->driver->getFormats();
@@ -60,6 +47,64 @@
   }
   echo '</td>';
   echo '</tr>';
+  
+  // Subseries
+  $subSeries = $this->driver->tryMethod('getSubseries');
+  if (isset($subSeries)) {
+  	echo '<tr>';
+  	echo '<th>'.$this->transEsc('subseries').': </th>';
+  	echo '<td>';
+  	foreach($subSeries as $subSer) {
+  		echo $this->escapeHtml(str_replace(array('<', '>'), '', $subSer)).'<br />';
+  	}
+  	echo '</td>';
+  	echo '</tr>';
+  }
+  
+  // Attachments
+  $attachments = $this->driver->tryMethod('getAttachments');
+  if (isset($attachments) && !empty($attachments)) {
+  
+  	echo '<tr>';
+  	echo '<th>'.$this->transEsc('attachment').': </th>';
+  	echo '<td>';
+  	foreach ($attachments as $attachment) {
+  		$attachmentTitle = $attachment['title'];
+  		$attachmentType = ($attachment['type'] != 'NoAttachmentType') ? preg_replace('/\s*-+>/', '', $attachment['type']).': ' : null;
+  		$attachmentSys = ($attachment['solrId'] != 'NoAttachmentSys') ? $attachment['solrId'] : null;
+  		 
+  		if ($attachmentSys != null) {
+  			echo '<a href="'.$this->recordLink()->getUrl().$attachmentSys.'">'.$attachmentType.$this->escapeHtml($attachmentTitle).'</a><br/>';
+  		} else {
+  			echo $attachmentType.$this->escapeHtml($attachmentTitle).'<br/>';
+  		}
+  	}
+  	echo '</td>';
+  	echo '</tr>';
+  }
+  
+  // Attachment to
+  $attachmentsTo = $this->driver->tryMethod('getAttachmentsTo');
+  if (isset($attachmentsTo) && !empty($attachmentsTo)) {
+  
+  	echo '<tr>';
+  	echo '<th>'.$this->transEsc('attachmentTo').': </th>';
+  	echo '<td>';
+  	foreach ($attachmentsTo as $attachmentTo) {
+  		$attachmentToTitle = $attachmentTo['title'];
+  		$attachmentToType = ($attachmentTo['type'] != 'NoAttachmentToType') ? preg_replace('/\s*-+>/', '', $attachmentTo['type']).': ' : null;
+  		$attachmentToSys = ($attachmentTo['solrId'] != 'NoAttachmentToSys') ? $attachmentTo['solrId'] : null;
+  			
+  		if ($attachmentSys != null) {
+  			echo '<a href="'.$this->recordLink()->getUrl().$attachmentToSys.'">'.$attachmentToType.$this->escapeHtml($attachmentToTitle).'</a><br/>';
+  		} else {
+  			echo $attachmentToType.$this->escapeHtml($attachmentToTitle).'<br/>';
+  		}
+  	}
+  	echo '</td>';
+  	echo '</tr>';
+  }
+  
   ?>
 
   <? $notes = $this->driver->getGeneralNotes(); if (!empty($notes)): ?>
