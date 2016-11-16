@@ -1536,6 +1536,19 @@ class SolrMab extends SolrDefault  {
 		return $keywordChain;
 	}
 	
+	/**
+	 * Get Dewey Decimal Classifications (DDCs)
+	 *
+	 * @return array		Array of all DDC values or null if none exists
+	 */
+	public function getDDCs() {
+		$ddcs = null;
+		if (isset($this->fields['dewey-full'])) {
+			$ddcs = $this->fields['dewey-full'];
+		}
+		return $ddcs;
+	}
+	
 	
 
 
