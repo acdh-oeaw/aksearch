@@ -94,7 +94,7 @@
 	    	echo '</tr>';
 	    }
     } else if (isset($isChildVolume) && $isChildVolume == true) { // It's a "normal" child volume
-		if ($this->driver->tryMethod('getParentSYSs') != null) {
+		if ($this->driver->tryMethod('getParentSYSs') != null) { // Show parent volume with direct link to record, or ...
 			echo '<tr valign="top">';
 				echo '<th>'.$this->transEsc('parentRecord').':</th>';
 				echo '<td>';
@@ -104,10 +104,34 @@
 						$parentRecordTitle = str_replace(array("<", ">"), "", $parentRecordTitles[$key]);
 						echo '<a href="'.$this->recordLink()->getUrl(null).$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
 						//echo '<a href="'.$this->recordLink()->getUrl($this->driver).$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
-						
 					}
 				echo '</td>';
 			echo '</tr>';
+		} else { // ... show Series with a search link.
+			$series = $this->driver->getSeries();
+			if (!empty($series)) {
+				echo '<tr valign="top">';
+				echo '<th>'.$this->transEsc('Series').':</th>';
+				foreach ($series as $field) {
+					/* Depending on the record driver, $field may either be an array with
+					 "name" and "number" keys or a flat string containing only the series
+					 name.  We should account for both cases to maximize compatibility. */
+					echo '<td>';
+					if (is_array($field)) {
+						if (!empty($field['name'])) {
+							echo '<a href="'.$this->record($this->driver)->getLink('series', $field['name']).'">'.$this->escapeHtml(str_replace(array("<", ">"), "", $field['name'])).'</a>';
+							if (!empty($field['number'])) {
+								echo ' '.$this->escapeHtml($field['number']);
+							}
+							echo '<br />';
+						}
+					} else {
+						echo '<a href="'.$this->record($this->driver)->getLink('series', $field).'">'.$this->escapeHtml(str_replace(array("<", ">"), "", $field)).'</a><br />';
+					}
+					echo '</td>';
+				}
+				echo '</tr>';
+			}
 		}
     }
     ?>
@@ -196,12 +220,19 @@
 	  
 	  // Publisher name and place
 	  if (isset($publisher)) {
+	  	echo '<tr>';
 	  	echo '<th>'.$this->transEsc('Publisher').': </th>';
 	  	$publishString = '<span property="name">'.$this->escapeHtml(str_replace(array("<", ">"), "", $publisher)).'</span>';
 	  	if (isset($publicationPlace)) {
 	  		$publishString .= ' (<span property="publicationPlace">'.$this->escapeHtml($publicationPlace).'</span>)';
 	  	}
 	  	echo '<td>'.$publishString.'</td>';
+	  	echo '</tr>';
+	  } else if (isset($publicationPlace)) {
+	  	echo '<tr>';
+	  	echo '<th>'.$this->transEsc('Publication_Place').': </th>';
+	  	echo '<td><span property="publicationPlace">'.$this->escapeHtml($publicationPlace).'</span></td>';
+	  	echo '</tr>';
 	  }
 	  ?>
 	  
@@ -273,9 +304,6 @@
       </tr>
       <? endif; ?>
       
-      <?php
-      
-      ?>
       
 	    <?php
 	    /*
@@ -296,13 +324,12 @@
 	    */
 	    
 	    // Other editions
-	    $attachments = $this->driver->tryMethod('getOtherEditions');
-	    if (isset($attachments) && !empty($attachments)) {
-
+	    $otherEditions = $this->driver->tryMethod('getOtherEditions');
+	    if (isset($otherEditions) && !empty($otherEditions)) {
 	    	echo '<tr>';
 	    	echo '<th>'.$this->transEsc('otherEdition').': </th>';
 	    	echo '<td>';
-	    	foreach ($attachments as $otherEdition) {
+	    	foreach ($otherEditions as $otherEdition) {
 	    		$otherEditionTitle = $otherEdition['title'];
 	    		$otherEditionType = ($otherEdition['type'] != 'NoOtherEditionType') ? preg_replace('/\s*-+>/', '', $otherEdition['type']).': ' : null;
 	    		$otherEditionSys = ($otherEdition['solrId'] != 'NoOtherEditionSys') ? $otherEdition['solrId'] : null;
@@ -318,6 +345,18 @@
 	    	
 	    }
 	    
+	    // Dewey Decimal Classifications (DDCs)
+	    $ddcs = $this->driver->tryMethod('getDDCs');
+	    if (isset($ddcs) && !empty($ddcs)) {
+	    	echo '<tr>';
+	    	echo '<th>'.$this->transEsc('classification').': </th>';
+	    	echo '<td>';
+	    	foreach ($ddcs as $ddc) {
+	    		echo $ddc.'<br/>';
+	    	}
+	    	echo '</td>';
+	    	echo '</tr>';
+	    }
 	    
 	    // Keyword chains
 	    $allKeywordChains = $this->driver->tryMethod('getAllKeywordChains');
@@ -341,6 +380,7 @@
 	    	}
 	    	echo '</td>';
 	    	echo '</tr>';
+
 	    }
 	    ?>
     
@@ -383,30 +423,7 @@
             
       
 
-      <?/* Display series section if at least one series exists. */?>
-      <? $series = $this->driver->getSeries(); if (!empty($series)): ?>
-      <tr>
-        <th><?=$this->transEsc('Series')?>: </th>
-        <td>
-          <? foreach ($series as $field): ?>
-            <?/* Depending on the record driver, $field may either be an array with
-               "name" and "number" keys or a flat string containing only the series
-               name.  We should account for both cases to maximize compatibility. */?>
-            <? if (is_array($field)): ?>
-              <? if (!empty($field['name'])): ?>
-                <a href="<?=$this->record($this->driver)->getLink('series', $field['name'])?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field['name']))?></a>
-                <? if (!empty($field['number'])): ?>
-                  <?=$this->escapeHtml($field['number'])?>
-                <? endif; ?>
-                <br/>
-              <? endif; ?>
-            <? else: ?>
-              <a href="<?=$this->record($this->driver)->getLink('series', $field)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field))?></a><br/>
-            <? endif; ?>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
+      
 
 <?php
 /*
