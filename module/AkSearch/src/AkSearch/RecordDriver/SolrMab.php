@@ -661,7 +661,14 @@ class SolrMab extends SolrDefault  {
 		
 		// Create array for sorting
 		foreach ($childRecords as $key => $rowToSort) {
-			$volumeNo[$key] = $rowToSort['volumeNo'];
+			$volumeNoSort = 0;
+			$volumeNoRaw = $rowToSort['volumeNo'];
+			$hasNumber = preg_match('/^\d+/', $volumeNoRaw, $result);
+			if ($hasNumber) {
+				$volumeNoSort = $result[0];
+			}
+			
+			$volumeNo[$key] = $volumeNoSort;
 			$publishDate[$key] = $rowToSort['volumePublishDate'];
 		}
 		
@@ -885,6 +892,7 @@ class SolrMab extends SolrDefault  {
 		}
 
 		array_multisort($volumeNo, SORT_DESC, $publishDate, SORT_DESC, $serialVolumes);
+		
 		return $serialVolumes;
 	}
 	
