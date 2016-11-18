@@ -55,6 +55,8 @@ function setupAutocomplete() {
 										for (var i=0;i<json.data.length;i++) {
 											searchString = json.data[i];
 											searchString = searchString.replace(/[<>]/g, ''); // This line actually removes the "<" and ">" characters
+											searchString = searchString.replace(/^"/g, '').replace(/"$/g, ''); // Remove quotation marks from the beginning and ending of the string
+											searchString = searchString.replace(/\?$/g, ''); // Remove question marks at the end of the strint - this could lead to wrong Solr queries
 											datums.push(searchString);
 										}
 										cb(datums);
