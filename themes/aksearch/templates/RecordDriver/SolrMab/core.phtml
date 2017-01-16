@@ -358,7 +358,9 @@
 	    	echo '<th>'.$this->transEsc('classification').': </th>';
 	    	echo '<td>';
 	    	foreach ($ddcs as $ddc) {
-	    		echo $ddc.'<br/>';
+	    		echo '<a title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->url('search-results').'?lookfor='.urlencode($ddc).'&type=classification&limit=20" rel="nofollow">';
+	    		echo $this->escapeHtml($ddc).'<br />';
+	    		echo '</a>';
 	    	}
 	    	echo '</td>';
 	    	echo '</tr>';
