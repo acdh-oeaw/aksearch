@@ -44,9 +44,15 @@
   <? endif; ?>
 
 	<?php
-	$mainTitle = $this->escapeHtml(str_replace(array("<", ">"), "", $this->driver->getShortTitle()));
-	$subTitle = $this->escapeHtml(str_replace(array("<", ">"), "", ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array("<", ">"), "", $this->driver->getTitleSection()));
-    echo '<h1 class="akH1">'.$mainTitle.'</h1>';
+	$mainTitle = $this->escapeHtml(str_replace(array('<', '>'), '', $this->driver->getShortTitle()));
+	$subseriesTitle = $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries'))));
+	$subTitle = $this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array('<', '>'), '', $this->driver->getTitleSection()));
+    echo '<h1 class="akH1">';
+    	echo $mainTitle;
+    	if (isset($subseriesTitle) && !empty($subseriesTitle)) {
+    		echo ': '.$subseriesTitle;
+    	}
+    echo '</h1>';
     echo '<h2 class="akH2">'.$subTitle.'</h2>';
     ?>
     
