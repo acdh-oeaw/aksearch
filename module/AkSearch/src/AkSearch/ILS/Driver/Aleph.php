@@ -656,8 +656,9 @@ class Aleph extends AlephDefault {
     	$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
     	
 		// Execute search:
-		$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP';
-		
+		//$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP';
+    	$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA';
+    	
 		$xFindParams = ['request' => $requestText, 'base' => 'AKW01'];
 		//$xFindParams = ['request' => 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP', 'base' => 'AKW01'];
 		$findResult = $this->doXRequest('find', $xFindParams, false);
