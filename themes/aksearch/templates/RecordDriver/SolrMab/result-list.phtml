@@ -19,20 +19,27 @@
 	    	
 	    	<div class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
 	    	
-				<!-- Title -->
+				<!-- Title + Subseries -->
 				<div>
-					<a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
-	          			<?php
-	          			$title = trim(str_replace(array('&lt;', '&gt;'), "", $this->record($this->driver)->getTitleHtml()));
-	          			echo $title;
+					<a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title"><?php
+	          			$title = trim(str_replace(array('&lt;', '&gt;'), '', $this->record($this->driver)->getTitleHtml()));
+	          			echo trim($title);
+	          			
+	          			// Subseries
+	          			$subSeries = $this->driver->tryMethod('getSubseries');
+	          			if (isset($subSeries)) {
+	          				$subSeriesCommaSeparated = implode(', ', $subSeries);
+	          				echo ': '.$this->escapeHtml(str_replace(array('<', '>'), '', $subSeriesCommaSeparated));
+	          			}
+	          			
 	          			?>
-	        		</a>
-				</div>
-				
+	          		</a>
+	        	</div>
+	          	
 				<!-- Subtitle -->
 				<div class="akEllipsis">
 				<?php
-				$subTitle = trim($this->escapeHtml(str_replace(array("<", ">"), "", ucfirst($this->driver->getSubtitle()))));
+				$subTitle = trim($this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle()))));
 				if (!empty($subTitle)) {
 					echo '<span title="'.$subTitle.'">'.$subTitle.'</span>';
 				}
