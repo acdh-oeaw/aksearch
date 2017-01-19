@@ -94,6 +94,59 @@ class Aleph extends AlephDefault {
 		}
 		return $result;
 	}
+	
+	
+	/**
+	 * Perform an HTTP request.
+	 *
+	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
+	 * Modified by AK Bibliothek Wien (Michael Birkner) (increased timeout)
+	 * 
+	 * @param string $url    URL of request
+	 * @param string $method HTTP method
+	 * @param string $body   HTTP body (null for none)
+	 *
+	 * @return SimpleXMLElement
+	 */
+	protected function doHTTPRequest($url, $method = 'GET', $body = null)
+	{
+		if ($this->debug_enabled) {
+			$this->debug("URL: '$url'");
+		}
+	
+		//echo "URL: '$url'<br>";
+		
+		$result = null;
+		try {
+			$client = $this->httpService->createClient($url);
+			$client->setOptions(array('timeout'=>30)); // Increase read timeout because requesting Aleph APIs could take quite a while
+			$client->setMethod($method);
+			if ($body != null) {
+				$client->setRawBody($body);
+			}
+			$result = $client->send();
+		} catch (\Exception $e) {
+			throw new ILSException($e->getMessage());
+		}
+		if (!$result->isSuccess()) {
+			throw new ILSException('HTTP error');
+		}
+		$answer = $result->getBody();
+		if ($this->debug_enabled) {
+			$this->debug("url: $url response: $answer");
+		}
+		$answer = str_replace('xmlns=', 'ns=', $answer);
+		$result = simplexml_load_string($answer);
+		if (!$result) {
+			if ($this->debug_enabled) {
+				$this->debug("XML is not valid, URL: $url");
+			}
+			throw new ILSException(
+					"XML is not valid, URL: $url method: $method answer: $answer."
+					);
+		}
+		return $result;
+	}
 
 	/**
 	 * Perform a RESTful DLF request.
@@ -629,6 +682,12 @@ class Aleph extends AlephDefault {
 	 */
 	public function getNewItems($page, $limit, $daysOld, $fundId = null)
 	{
+		
+		echo '$page: '.$page.'<br />';
+		echo '$limit: '.$limit.'<br />';
+		echo '$daysOld: '.$daysOld.'<br />';
+		echo '$fundId: '.$fundId.'<br />';
+		
 		// IMPORTANT: Only items that are already indexed in Solr-Index will can be shown in Frontend!
 		// Start request of new items from Aleph X-Services interface only if the user didn't request it with the same parameters in the same session:
 		if (!isset($_SESSION['aksNewItems']) || !isset($_SESSION['aksNewItemsDaysOld']) || $_SESSION['aksNewItemsDaysOld'] != $daysOld) {
@@ -652,6 +711,14 @@ class Aleph extends AlephDefault {
 	public function getNewItemsArray($page, $limit, $daysOld, $fundId = null) {
     	$newItems = null;
     	
+    	/*
+    	echo '$page: '.$page.'<br />';
+    	echo '$limit: '.$limit.'<br />';
+    	echo '$daysOld: '.$daysOld.'<br />';
+    	echo '$fundId: '.$fundId.'<br />';
+    	*/
+    	
+    	/*
     	$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
     	$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
     	
@@ -664,7 +731,7 @@ class Aleph extends AlephDefault {
 		$findResult = $this->doXRequest('find', $xFindParams, false);
 		$setNumber = $findResult->set_number;
 		$noEntries = (int)$findResult->no_entries;
-		
+				
 		if ($noEntries > 0) {
 			
 			// Set the "count" value for the return array
@@ -713,6 +780,14 @@ class Aleph extends AlephDefault {
 				}
 			}
 		}
+		*/
+		
+		/*
+		echo '<strong>Aleph -> getNewItemsArray()</strong><br />';
+		echo '<pre>';
+		print_r($newItems);
+		echo '</pre>';
+		*/
 		
 		return $newItems;
     }

@@ -1,0 +1,83 @@
+<?
+    // Set up page title:
+    $this->headTitle($this->translate('New Item Search'));
+
+    // Set up breadcrumbs:
+    $this->layout()->breadcrumbs = '<li class="active">' . $this->transEsc('New Items') . '</li>';
+?>
+<h2><?=$this->transEsc('Find New Items')?></h2>
+<form method="get" class="form-horizontal">
+  <div class="form-group">
+    <label class="col-sm-3 control-label"><?=$this->transEsc('Range')?>:</label>
+    <div class="col-sm-9">
+      <div class="btn-group" data-toggle="buttons">
+        <? foreach ($this->ranges as $key => $range): ?>
+          <label class="btn btn-primary<? if($key == 0): ?> active<? endif ?>">
+            <input type="radio" name="range" id="newitem_range_<?=$this->escapeHtmlAttr($key)?>" value="<?=$this->escapeHtmlAttr($range)?>"<?=($key == 0) ? ' checked="checked"' : ''?>/>
+            <?php
+            	$buttonText = null;
+				if ($range == 1) {
+					$buttonText = $this->transEsc('Yesterday');
+				} else if ($range == 7) {
+					$buttonText = $this->transEsc('lastWeek');
+				} else if ($range == 30 || $range == 31) {
+					$buttonText = $this->transEsc('lastMonth');
+				} else {
+					$buttonText = $this->transEsc('Past') . ' ' . $this->escapeHtml($range) . ' ' . $this->transEsc('Days');
+				}
+				echo $buttonText;
+            ?>
+            
+            <?/*=($range == 1) ? $this->transEsc('Yesterday') : $this->transEsc('Past') . ' ' . $this->escapeHtml($range) . ' ' . $this->transEsc('Days')*/?>
+          </label>
+        <? endforeach; ?>
+        
+        <?php
+        // Add From - To
+        
+        //echo '<label class="btn btn-primary '.(($key == 0) ? 'active' : '').'">';
+        echo '<label id="newitemDatepicker" class="btn btn-primary '.(($key == 0) ? 'active' : '').'">';
+        echo '<input id="newitemDatepickerRadio" type="radio" name="range" value="0" '.(($key == 0) ? ' checked="checked"' : '').'/>';
+        	echo '<span id="newitemDatepickerText">'.$this->transEsc('akSelect').'</span>';
+        	
+        echo '</label>';
+        echo '<input type="hidden" id="newitemDatepickerValue" value="0" />';
+        //echo '<input type="radio" id="newitemDatepicker" name="range" value="fromTo" '.(($key == 0) ? ' checked="checked"' : '').'/>';
+        
+        /*
+        // WORX
+        echo '<div id="newitemDatepickerDiv">';
+        //echo '<input type="text" id="newitemDatepicker" class="form-control"><span class="input-group-addon"><i class="fa fa-calendar" aria-hidden="true"></i></span>';
+        echo '<input type="radio" id="newitemDatepicker" name="range" value="fromTo" '.(($key == 0) ? ' checked="checked"' : '').'/>';
+        echo '</div>';
+        */
+        ?>
+        
+        <!-- bootstrap-datepicker -->
+        <!-- 
+		<div class="input-group date">
+			<input type="text" id="newitemDatepicker" class="form-control"><span class="input-group-addon"><i class="fa fa-calendar" aria-hidden="true"></i></span>
+		</div>
+		-->
+		
+      </div>
+    </div>
+  </div>
+  <? if (is_array($this->fundList) && !empty($this->fundList)): ?>
+    <div class="form-group">
+      <label class="col-sm-3 control-label" for="newitem_department"><?=$this->transEsc('Department')?>:</label>
+      <div class="col-sm-9">
+        <select id="newitem_department" name="department" size="10" class="form-control">
+        <? foreach ($this->fundList as $fundId => $fund): ?>
+          <option value="<?=$this->escapeHtmlAttr($fundId)?>"><?=$this->transEsc($fund)?></option>
+        <? endforeach; ?>
+        </select>
+      </div>
+    </div>
+  <? endif; ?>
+  <div class="form-group">
+    <div class="col-sm-9 col-sm-offset-3">
+      <input class="btn btn-primary" type="submit" name="submit" value="<?=$this->transEsc('Find')?>"/>
+    </div>
+  </div>
+</form>
