@@ -27,30 +27,16 @@
 				}
 				echo $buttonText;
             ?>
-            
-            <?/*=($range == 1) ? $this->transEsc('Yesterday') : $this->transEsc('Past') . ' ' . $this->escapeHtml($range) . ' ' . $this->transEsc('Days')*/?>
           </label>
         <? endforeach; ?>
         
         <?php
-        // Add From - To
-        
-        //echo '<label class="btn btn-primary '.(($key == 0) ? 'active' : '').'">';
+        // Add date picker (we use bootstrap-datepicker here: https://bootstrap-datepicker.readthedocs.io
         echo '<label id="newitemDatepicker" class="btn btn-primary '.(($key == 0) ? 'active' : '').'">';
         echo '<input id="newitemDatepickerRadio" type="radio" name="range" value="0" '.(($key == 0) ? ' checked="checked"' : '').'/>';
         	echo '<span id="newitemDatepickerText">'.$this->transEsc('akSelect').'</span>';
-        	
         echo '</label>';
-        echo '<input type="hidden" id="newitemDatepickerValue" value="0" />';
-        //echo '<input type="radio" id="newitemDatepicker" name="range" value="fromTo" '.(($key == 0) ? ' checked="checked"' : '').'/>';
-        
-        /*
-        // WORX
-        echo '<div id="newitemDatepickerDiv">';
-        //echo '<input type="text" id="newitemDatepicker" class="form-control"><span class="input-group-addon"><i class="fa fa-calendar" aria-hidden="true"></i></span>';
-        echo '<input type="radio" id="newitemDatepicker" name="range" value="fromTo" '.(($key == 0) ? ' checked="checked"' : '').'/>';
-        echo '</div>';
-        */
+
         ?>
         
         <!-- bootstrap-datepicker -->

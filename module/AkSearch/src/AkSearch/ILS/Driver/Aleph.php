@@ -683,11 +683,6 @@ class Aleph extends AlephDefault {
 	public function getNewItems($page, $limit, $daysOld, $fundId = null)
 	{
 		
-		echo '$page: '.$page.'<br />';
-		echo '$limit: '.$limit.'<br />';
-		echo '$daysOld: '.$daysOld.'<br />';
-		echo '$fundId: '.$fundId.'<br />';
-		
 		// IMPORTANT: Only items that are already indexed in Solr-Index will can be shown in Frontend!
 		// Start request of new items from Aleph X-Services interface only if the user didn't request it with the same parameters in the same session:
 		if (!isset($_SESSION['aksNewItems']) || !isset($_SESSION['aksNewItemsDaysOld']) || $_SESSION['aksNewItemsDaysOld'] != $daysOld) {
@@ -713,15 +708,35 @@ class Aleph extends AlephDefault {
     	
     	/*
     	echo '$page: '.$page.'<br />';
-    	echo '$limit: '.$limit.'<br />';
-    	echo '$daysOld: '.$daysOld.'<br />';
-    	echo '$fundId: '.$fundId.'<br />';
-    	*/
+		echo '$limit: '.$limit.'<br />';
+		echo '$daysOld: '.$daysOld.'<br />';
+		echo '$fundId: '.$fundId.'<br />';
+		*/
+    	
+		// Check if date picker was used
+		$isDatePicker = false;
+		if (substr($daysOld, 0, 11 ) === 'datePicker_') {
+			$datePickerFirstDate = substr($daysOld, 11);			
+			if ($datePickerFirstDate != null && strlen($datePickerFirstDate) === 8) {
+				$isDatePicker = true;
+				$dtFirstDate = DateTime::createFromFormat('Ymd', $datePickerFirstDate);//->format('Ymd');
+				$datePickerLastDate = $dtFirstDate->format('Ymt');
+			}
+		}
+		
+		if ($isDatePicker) {
+			$fromInventoryDate = $datePickerFirstDate;
+			$toInventoryDate = $datePickerLastDate;
+		} else {
+			$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
+			$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
+		}
     	
     	/*
     	$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
     	$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
-    	
+    	*/
+		
 		// Execute search:
 		//$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP';
     	$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA';
@@ -780,7 +795,7 @@ class Aleph extends AlephDefault {
 				}
 			}
 		}
-		*/
+		
 		
 		/*
 		echo '<strong>Aleph -> getNewItemsArray()</strong><br />';

@@ -309,13 +309,27 @@ $(document).ready(function() {
 	
 	
 	// bootstrap-datepicker for "new items" search (Neuerwerbungen):
+	// Code available at https://bootstrap-datepicker.readthedocs.io
 	$('#newitemDatepicker').datepicker({
-		//format: 'MM yyyy',
-		format: 'yyyymmdd',
+		format: {
+			toDisplay: function (date, format, language) {
+	            var firstDay = '01';
+				var firstRealMonth = (date.getMonth()+1);
+				var firstMonth = (firstRealMonth > 9) ? firstRealMonth : '0' + firstRealMonth;
+				var firstYear = date.getFullYear();
+				var firstDate = firstYear + '' + firstMonth + '' +  firstDay;
+				
+				// ALWAYS prefix the date from the datepicker with the string "datePicker_"!!!
+				// We make checks on that prefix in ILS Driver \AkSearch\ILS\Driver\Aleph.php
+	            return 'datePicker_' + firstDate;
+	        },
+	        toValue: function (date, format, language) {
+	            return new Date(date);
+	        }
+		},
 		startView: 1,
 		minViewMode: 1, // months
 		maxViewMode: 2, // years
-		//todayBtn: true,
 		clearBtn: true,
 		language: 'de',
 		autoclose: true
@@ -323,45 +337,17 @@ $(document).ready(function() {
 	
 	$('#newitemDatepicker').on('changeDate', function(e) {
 		var dateDisplay = e.format(0, 'MM yyyy');
-		
 		if (dateDisplay) {
 			$('#newitemDatepickerText').text(dateDisplay);
-			
-			// Calculate time for Aleph query
-			/*
-			var year = e.format(0, 'yyyy');
-			var month = (e.format(0, 'm')-1); // Months are 0-based: January = 0, February = 1, ...
-						
-			var first = new Date(year, month, 1);
-			var last = new Date(year, month + 1, 0);
-			
-			var firstDay = '01';
-			var firstRealMonth = (first.getMonth()+1);
-			var firstMonth = (firstRealMonth > 9) ? firstRealMonth : '0' + firstRealMonth;
-			var firstYear = first.getFullYear();
-			var firstDate = firstYear + '' + firstMonth + '' +  firstDay;
-			var lastDay = last.getDate();
-			var lastRealMonth = (last.getMonth()+1);
-			var lastMonth = (lastRealMonth > 9) ? lastRealMonth : '0' + lastRealMonth;
-			var lastYear = last.getFullYear();
-			var lastDate = lastYear + '' + lastMonth + '' +  lastDay;
-			
-			console.log(firstDate + '->' + lastDate);
-			$('#newitemDatepickerValue').val(firstDate + '->' + lastDate);
-			*/
 		} else {
 			$('#newitemDatepickerText').text('Auswählen');
 			$('#newitemDatepickerValue').val(0);
 		}
-		
-		
-		
-		
     });
 
-    
 
 });
+
 
 
 jQuery.fn.putCursorAtEnd = function() {
