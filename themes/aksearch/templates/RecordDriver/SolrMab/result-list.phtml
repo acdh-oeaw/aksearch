@@ -102,7 +102,7 @@
 		<?php
 
 		$publicationDetails = $this->driver->getPublicationDetails();
-		$publisher = $publicationDetails['publisher'];
+		$publisher = (isset($publicationDetails['publisher'])) ? $publicationDetails['publisher'] : null;
 		$publicationPlace = $publicationDetails['publishPlace'];
 		$publicationYear = $publicationDetails['publishDate'];
 

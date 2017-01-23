@@ -731,11 +731,7 @@ class Aleph extends AlephDefault {
 			$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
 			$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
 		}
-    	
-    	/*
-    	$fromInventoryDate = date('Ymd', strtotime('-'.$daysOld.' days')); // "Today" minus "$daysOld"
-    	$toInventoryDate = date('Ymd', strtotime('now')); // "Today"
-    	*/
+		
 		
 		// Execute search:
 		//$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP';
@@ -746,7 +742,7 @@ class Aleph extends AlephDefault {
 		$findResult = $this->doXRequest('find', $xFindParams, false);
 		$setNumber = $findResult->set_number;
 		$noEntries = (int)$findResult->no_entries;
-				
+		
 		if ($noEntries > 0) {
 			
 			// Set the "count" value for the return array

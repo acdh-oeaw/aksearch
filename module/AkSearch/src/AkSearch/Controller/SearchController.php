@@ -63,4 +63,123 @@ class SearchController extends \VuFind\Controller\SearchController
         return $facetList;
     }
     
+    
+    
+    /**
+     * New item search form
+     *
+     * @return mixed
+     */
+    public function newitemAction()
+    {    	
+    	// Search parameters set?  Process results.
+    	if ($this->params()->fromQuery('range') !== null) {
+    		return $this->forwardTo('Search', 'NewItemResults');
+    	}
+    
+    	/*
+    	echo '<pre>';
+    	//print_r($this->newItems()->getRanges());
+    	//print_r($this->newItems()->getNewItemsFilter());
+    	echo '</pre>';
+    	*/
+    	
+    	return $this->createViewModel(
+    			[
+    					'fundList' => $this->newItems()->getFundList(),
+    					'ranges' => $this->newItems()->getRanges(),
+    					'newItemFilters' => $this->newItems()->getNewItemsFilter()
+    			]
+    	);
+    }
+    
+    /**
+     * New item result list
+     *
+     * @return mixed
+     */
+    public function newitemresultsAction()
+    {
+    	// Retrieve new item list:
+    	$range = $this->params()->fromQuery('range');
+    	$dept = $this->params()->fromQuery('department');
+    	$newItemsFilter = $this->params()->fromQuery('newItemsFilter');
+    	
+    	// Get an array for new items filter
+    	if (is_array($newItemsFilter) && !empty($newItemsFilter)) {
+    		$newItemsFilterSolr = [];
+    		foreach ($newItemsFilter as $label => $values) {
+    			foreach ($values as $value) {
+    				$arrList = preg_split("/\s*(?<!\\\):\s*/", $value);
+    				if (count($arrList) == 2) {
+    					$solrfield = str_replace('\\:', ':', $arrList[0]);
+    					$filtervalue = str_replace('\\:', ':', $arrList[1]);
+    					if (strpos($filtervalue, ':') !== false || strpos($filtervalue, ' ') !== false) {
+    						$filtervalue = '"'.$filtervalue.'"'; // Phrase search for filtervalues containing colon or space.
+    					}
+    					$newItemsFilterSolr[] = $solrfield.':'.$filtervalue;
+    				}
+    			}
+    		}
+    		
+    		// Add filters to query:
+    		if (!empty($newItemsFilterSolr)) {
+    			$this->getRequest()->getQuery()->set('filter', $newItemsFilterSolr);
+    			//$this->getRequest()->getQuery()->set('hiddenFilters', $newItemsFilterSolr);
+    		}
+    	}
+    	
+
+    	// Validate the range parameter -- it should not exceed the greatest
+    	// configured value:
+    	$maxAge = $this->newItems()->getMaxAge();
+    	if ($maxAge > 0 && $range > $maxAge) {
+    		$range = $maxAge;
+    	}
+    
+    	// Are there "new item" filter queries specified in the config file?
+    	// If so, load them now; we may add more values. These will be applied
+    	// later after the whole list is collected.
+    	$hiddenFilters = $this->newItems()->getHiddenFilters();
+    
+    	// Depending on whether we're in ILS or Solr mode, we need to do some
+    	// different processing here to retrieve the correct items:
+    	if ($this->newItems()->getMethod() == 'ils') {
+    		// Use standard search action with override parameter to show results:
+    		$bibIDs = $this->newItems()->getBibIDsFromCatalog(
+    				$this->getILS(),
+    				$this->getResultsManager()->get('Solr')->getParams(),
+    				$range, $dept, $this->flashMessenger()
+    				);
+    		$this->getRequest()->getQuery()->set('overrideIds', $bibIDs);
+    	} else {
+    		// Use a Solr filter to show results:
+    		$hiddenFilters[] = $this->newItems()->getSolrFilter($range);
+    	}
+    
+    	// If we found hidden filters above, apply them now:
+    	if (!empty($hiddenFilters)) {
+    		$this->getRequest()->getQuery()->set('hiddenFilters', $hiddenFilters);
+    	}
+    
+    	// Don't save to history -- history page doesn't handle correctly:
+    	$this->saveToHistory = false;
+    
+    	// Call rather than forward, so we can use custom template
+    	$view = $this->resultsAction();
+    
+    	// Customize the URL helper to make sure it builds proper new item URLs
+    	// (check it's set first -- RSS feed will return a response model rather
+    	// than a view model):
+    	if (isset($view->results)) {
+    		$url = $view->results->getUrlQuery();
+    		$url->setDefaultParameter('range', $range);
+    		$url->setDefaultParameter('department', $dept);
+    		$url->setSuppressQuery(true);
+    	}
+    
+    	
+    	return $view;
+    }
+    
 }

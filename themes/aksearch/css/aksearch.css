@@ -440,6 +440,10 @@ a {
 	float: right;
 }
 
+#newItemsFilter {
+	width: 100%;
+}
+
 
 @media ( max-width : 767px) {
 	.btn {

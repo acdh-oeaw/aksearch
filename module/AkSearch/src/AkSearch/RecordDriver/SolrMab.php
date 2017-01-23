@@ -1166,8 +1166,11 @@ class SolrMab extends SolrDefault  {
 	public function getPublicationDetails() {
 		$publicationDetails = [];
 		
+		$publisherNames = null;
 		$arrPublisherNames = $this->getPublisherNames();
-		$publisherNames = join(', ', $arrPublisherNames);
+		if (!empty($arrPublisherNames)) {
+			$publisherNames = join(', ', $arrPublisherNames);
+		}
 		
 		$publicationPlace = $this->getPublicationPlace();
 		

@@ -8,43 +8,37 @@
 <h2><?=$this->transEsc('Find New Items')?></h2>
 <form method="get" class="form-horizontal">
   <div class="form-group">
-    <label class="col-sm-3 control-label"><?=$this->transEsc('Range')?>:</label>
+    <label class="col-sm-3 control-label"><?=$this->transEsc('akPeriod')?>:</label>
     <div class="col-sm-9">
       <div class="btn-group" data-toggle="buttons">
-        <? foreach ($this->ranges as $key => $range): ?>
-          <label class="btn btn-primary<? if($key == 0): ?> active<? endif ?>">
-            <input type="radio" name="range" id="newitem_range_<?=$this->escapeHtmlAttr($key)?>" value="<?=$this->escapeHtmlAttr($range)?>"<?=($key == 0) ? ' checked="checked"' : ''?>/>
             <?php
-            	$buttonText = null;
-				if ($range == 1) {
-					$buttonText = $this->transEsc('Yesterday');
-				} else if ($range == 7) {
-					$buttonText = $this->transEsc('lastWeek');
-				} else if ($range == 30 || $range == 31) {
-					$buttonText = $this->transEsc('lastMonth');
-				} else {
-					$buttonText = $this->transEsc('Past') . ' ' . $this->escapeHtml($range) . ' ' . $this->transEsc('Days');
-				}
-				echo $buttonText;
+            foreach ($this->ranges as $key => $range) {
+            	if ($range !== 'datepicker') {
+            		echo '<label class="btn btn-primary'.(($key == 0) ? ' active' : '').'">';
+            		echo '<input type="radio" name="range" id="newitem_range_'.$this->escapeHtmlAttr($key).'" value="'.$this->escapeHtmlAttr($range).'" '.(($key == 0) ? ' checked="checked"' : '').' />';
+            	
+            		$buttonText = null;
+            		if ($range == 1) {
+            			$buttonText = $this->transEsc('Yesterday');
+            		} else if ($range == 7) {
+            			$buttonText = $this->transEsc('lastWeek');
+            		} else if ($range == 30 || $range == 31) {
+            			$buttonText = $this->transEsc('lastMonth');
+            		} else {
+            			$buttonText = $this->transEsc('Past') . ' ' . $this->escapeHtml($range) . ' ' . $this->transEsc('Days');
+            		}
+            		echo $buttonText;
+            	
+            		echo '</label>';
+            	} else {
+            		// Add date picker (we use bootstrap-datepicker here: https://bootstrap-datepicker.readthedocs.io
+            		echo '<label id="newitemDatepicker" class="btn btn-primary '.(($key == 0) ? 'active' : '').'">';
+            			echo '<input id="newitemDatepickerRadio" type="radio" name="range" value="0" '.(($key == 0) ? ' checked="checked"' : '').'/>';
+            			echo '<span id="newitemDatepickerText">'.$this->transEsc('akSelect').'</span>';
+            		echo '</label>';
+            	}
+            }
             ?>
-          </label>
-        <? endforeach; ?>
-        
-        <?php
-        // Add date picker (we use bootstrap-datepicker here: https://bootstrap-datepicker.readthedocs.io
-        echo '<label id="newitemDatepicker" class="btn btn-primary '.(($key == 0) ? 'active' : '').'">';
-        echo '<input id="newitemDatepickerRadio" type="radio" name="range" value="0" '.(($key == 0) ? ' checked="checked"' : '').'/>';
-        	echo '<span id="newitemDatepickerText">'.$this->transEsc('akSelect').'</span>';
-        echo '</label>';
-
-        ?>
-        
-        <!-- bootstrap-datepicker -->
-        <!-- 
-		<div class="input-group date">
-			<input type="text" id="newitemDatepicker" class="form-control"><span class="input-group-addon"><i class="fa fa-calendar" aria-hidden="true"></i></span>
-		</div>
-		-->
 		
       </div>
     </div>
@@ -61,6 +55,29 @@
       </div>
     </div>
   <? endif; ?>
+  
+  <?php
+  $newItemFilters = $this->newItemFilters; // Comes from SearchController->newitemAction() (there see createViewModel)
+  if (is_array($newItemFilters) && !empty($newItemFilters)) {
+  	foreach ($newItemFilters as $label => $values) {
+  		$size = (count($values['values']) < 10) ? count($values['values']) : 10;
+  		
+  		echo '<div class="form-group">';
+  			echo '<label class="col-sm-3 control-label">'.$this->transEsc($label).':</label>';
+	  		echo '<div class="col-sm-9">';
+		  		echo '<select id="newItemsFilter" multiple name="newItemsFilter['.$label.'][]" size="'.$size.'">';
+		  		foreach ($values['values'] as $value) {
+		  			echo '<option value="'.$value['solrfield'].':'.str_replace(':', '\:', $value['filtervalue']).'">'.$value['filterlabel'].'</option>';
+		  		}
+		  		echo '</select>';
+	  		echo '</div>';
+  		echo '</div>';
+  	}
+  	
+  }
+  	
+  ?>
+  
   <div class="form-group">
     <div class="col-sm-9 col-sm-offset-3">
       <input class="btn btn-primary" type="submit" name="submit" value="<?=$this->transEsc('Find')?>"/>

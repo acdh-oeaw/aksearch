@@ -72,6 +72,8 @@
       }
     ?>
     <?php
+      $dsb = null;
+      $translations = null;
       $root = rtrim($this->url('home'), '/');
       $setupJS = <<<JS
 VuFind.path = '{$root}';
