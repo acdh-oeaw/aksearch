@@ -6,7 +6,7 @@ return array(
     	'aksearch.css',
         'vendor/font-awesome.min.css',
         'vendor/bootstrap-slider.css',
-    	'vendor/bootstrap-datepicker/css/bootstrap-datepicker3.min.css',
+    	'vendor/bootstrap-datepicker/bootstrap-datepicker3.min.css',
         'print.css:print',
     ),
     'js' => array(
