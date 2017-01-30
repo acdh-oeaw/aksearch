@@ -354,7 +354,15 @@ class SolrMab extends SolrDefault  {
 			} else if (in_array('file', $formats)) {
 				$format = 'file';
 			} else if (in_array('electronic', $formats)) {
-				$format = 'electronic';
+				if (isset($publicationTypeCode)) {
+					if ($publicationTypeCode == 'a') {
+						$format = 'earticle';
+					} else {
+						$format = 'electronic';
+					}
+				} else {
+					$format = 'electronic';
+				}
 			} else if (in_array('game', $formats)) {
 				$format = 'game';
 			} else if (in_array('map', $formats)) {
