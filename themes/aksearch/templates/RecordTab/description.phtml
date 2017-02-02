@@ -36,21 +36,26 @@
   // Publication type and format
   $publicationType = $this->driver->tryMethod('getPublicationTypeFromIndex');
   $formats = $this->driver->getFormats();
-  echo '<tr>';
-  echo '<th>'.$this->transEsc('Publication Type').': </th>';
-  echo '<td>';
-  if ($publicationType != null && !empty($publicationType)) {
-  	echo $this->transEsc($publicationType);
-  	if (!empty($formats)) {
-  		echo ', '.$this->record($this->driver)->getFormatList();
+  if ((isset($formats) && !empty($formats)) || (isset($publicationType) && !empty($publicationType))) {
+  	$contentDisplayed = true;
+  	echo '<tr>';
+  	echo '<th>'.$this->transEsc('Publication Type').': </th>';
+  	echo '<td>';
+  	if (isset($publicationType) && !empty($publicationType)) {
+  		echo $this->transEsc($publicationType);
+  		if (!empty($formats)) {
+  			echo ', '.$this->record($this->driver)->getFormatList();
+  		}
   	}
+  	echo '</td>';
+  	echo '</tr>';
   }
-  echo '</td>';
-  echo '</tr>';
+  
   
   
   $series = $this->driver->getSeries();
   if (isset($series) && !empty($series)) {
+  	$contentDisplayed = true;
   	echo '<tr>';
   	echo '<th>'.$this->transEsc('Series').':</th>';
   	foreach ($series as $field) {
@@ -76,7 +81,8 @@
   
   // Subseries
   $subSeries = $this->driver->tryMethod('getSubseries');
-  if (isset($subSeries)) {
+  if (isset($subSeries) && !empty($subSeries)) {
+  	$contentDisplayed = true;
   	echo '<tr>';
   	echo '<th>'.$this->transEsc('subseries').': </th>';
   	echo '<td>';
@@ -90,7 +96,7 @@
   // Attachments
   $otherEditions = $this->driver->tryMethod('getAttachments');
   if (isset($otherEditions) && !empty($otherEditions)) {
-  
+  	$contentDisplayed = true;
   	echo '<tr>';
   	echo '<th>'.$this->transEsc('attachment').': </th>';
   	echo '<td>';
@@ -113,7 +119,8 @@
   // Attachment to
   $attachmentsTo = $this->driver->tryMethod('getAttachmentsTo');
   if (isset($attachmentsTo) && !empty($attachmentsTo)) {
-  
+  	$contentDisplayed = true;
+  	
   	echo '<tr>';
   	echo '<th>'.$this->transEsc('attachmentTo').': </th>';
   	echo '<td>';
@@ -325,6 +332,6 @@
   <? endif; ?>
 
   <? if (!isset($contentDisplayed) || !$contentDisplayed): // Avoid errors if there were no rows above ?>
-    <tr><td><?=$this->transEsc('no_description')?></td></tr>
+    <tr><td colspan="2"><?=$this->transEsc('no_description')?></td></tr>
   <? endif; ?>
 </table>
