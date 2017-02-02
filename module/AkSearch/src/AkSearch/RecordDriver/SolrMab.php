@@ -721,12 +721,12 @@ class SolrMab extends SolrDefault  {
 	 */
 	public function isParentOfVolumes() {
 		
-		$isParentOfArticles = false;
+		$isParentOfVolumes = false;
 		$arrChildTypes = $this->getChildTypes();
 		if ($arrChildTypes != null) {
-			$isParentOfArticles = (in_array('article', $arrChildTypes)) ? false : true;
+			$isParentOfVolumes = (!in_array('article', $arrChildTypes)) ? true : false;
 		}
-		return $isParentOfArticles;
+		return $isParentOfVolumes;
 	}
 	
 	/**

@@ -54,7 +54,16 @@ class HoldingsILS extends AbstractBase {
     	// Set Tab active if currently loaded record is not a journal.
     	// If it is a journal, we enable "BindingUnits" Tab.
     	$isJournal = $this->getRecordDriver()->tryMethod('isJournal');
-    	$isActive = ($isJournal == true) ? false : true;
+    	
+    	// If it is a MBW, Series or contains articles, we enable "MultiVolumeWorks" Tab.
+    	$isParentOfVolumes = $this->getRecordDriver()->tryMethod('isParentOfVolumes');
+    	$isParentOfArticles = $this->getRecordDriver()->tryMethod('isParentOfArticles');
+    	
+    	if ($isJournal || $isParentOfVolumes || $isParentOfArticles) {
+    		$isActive = false;
+    	} else {
+    		$isActive = true;
+    	}
         return $isActive;
     }
 }
