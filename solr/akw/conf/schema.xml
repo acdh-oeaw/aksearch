@@ -3,8 +3,8 @@
   <types>
     <!-- Define fieldType long as it is needed by the _version_ field required by Solr 4.x -->
     <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
-    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
     
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
     
     <fieldType name="textFacet" class="solr.TextField" sortMissingLast="true" omitNorms="true">
       <analyzer>
@@ -45,7 +45,6 @@
       </analyzer>
     </fieldType>
     -->
- 
     <!-- Field type "text" added by AK Bibliothek Wien for german language (original: see above) -->
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -104,6 +103,9 @@
 			<filter class="solr.LowerCaseFilterFactory"/>
 		</analyzer>
 	</fieldType>
+	
+	    <!-- Field type "int_sort" added by AK Bibliothek Wien - Field type for numeric sorting (e. g. publish year) -->
+    <fieldType name="int_sort" class="solr.TrieIntField" precisionStep="0" sortMissingLast="true" omitNorms="true"/>
     
     <!-- Text Field without Stemming and Synonyms -->
     <fieldType name="textProper" class="solr.TextField" positionIncrementGap="100">
@@ -330,6 +332,7 @@
    <field name="title_wildcard" type="textWildcard" indexed="true" stored="true" />
    <!-- <field name="author_de" type="textDe" indexed="true" stored="true" /> -->
    <field name="author_wildcard" type="textWildcard" indexed="true" stored="true" />
+   <field name="datePublishSortStrict" type="int_sort" indexed="true" stored="true"/>
    <!-- ADDED BY AK BIBLIOTHEK WIEN - END -->
 
    <!-- Dynamic fields for customization without schema modification -->
