@@ -51,8 +51,8 @@ class JournalHolding extends AbstractBase {
 	 */
 	public function isActive() {
 		
-		// If is a "Fortlaufendes Werk" and has no volumes we have to check if there are holdings.		
-		if (! empty($this->getRecordDriver()->tryMethod('getFortlaufendeWerke')) && !$this->getRecordDriver()->tryMethod('isParentOfVolumes')) {
+		// If is a "Fortlaufendes Werk" we have to check if there are holdings.		
+		if (! empty($this->getRecordDriver()->tryMethod('getFortlaufendeWerke'))) {
 			$tabEnabled = true;
 		} else {
 			$tabEnabled = false;
