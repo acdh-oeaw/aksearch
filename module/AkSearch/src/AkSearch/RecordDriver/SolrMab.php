@@ -1050,7 +1050,7 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
-	 * Get Solrfield begrenzteWerke_str (value of MAB field 052)
+	 * Get Solrfield fortlaufendeWerke_str (value of MAB field 052)
 	 *
 	 * @return string or null if empty
 	 */
