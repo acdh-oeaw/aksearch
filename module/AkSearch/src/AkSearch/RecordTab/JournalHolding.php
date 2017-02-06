@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Tab for journal holding records from Aleph.
  *
@@ -26,37 +27,39 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://wien.arbeiterkammer.at/service/bibliothek/
  */
-
 namespace AkSearch\RecordTab;
+
 use VuFind\RecordTab\AbstractBase as AbstractBase;
 
-class JournalHolding extends AbstractBase
-{
+class JournalHolding extends AbstractBase {
 
-    /**
-     * Return value is title of the Tab.
-     * Is a method declared in interface TabInterface.php
-     *
-     * @return string
-     */
-    public function getDescription()
-    {
+	/**
+	 * Return value is title of the Tab.
+	 * Is a method declared in interface TabInterface.php
+	 *
+	 * @return string
+	 */
+	public function getDescription() {
 		return 'Bestand';
-    }
+	}
 
-    /**
-     * Return value declares if Tab is active.
-     * Is a method declared in interface TabInterface.php
-     * 
-     * @return bool
-     */
-    public function isActive() {
-		// Method "isJournal" in RecordDriver "SolrMab" checks if currently loaded record is a journal.
-    	$tabEnabled = $this->getRecordDriver()->tryMethod('isJournal');
+	/**
+	 * Return value declares if Tab is active.
+	 * Is a method declared in interface TabInterface.php
+	 *
+	 * @return bool
+	 */
+	public function isActive() {
+		
+		// If is a "Fortlaufendes Werk" and has no volumes we have to check if there are holdings.		
+		if (! empty($this->getRecordDriver()->tryMethod('getFortlaufendeWerke')) && !$this->getRecordDriver()->tryMethod('isParentOfVolumes')) {
+			$tabEnabled = true;
+		} else {
+			$tabEnabled = false;
+		}
 		
 		// Tab is only visible if this method returns true
-    	return $tabEnabled;
-    }
-
+		return $tabEnabled;
+	}
 }
 ?>
