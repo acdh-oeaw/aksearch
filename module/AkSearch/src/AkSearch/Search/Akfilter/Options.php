@@ -84,7 +84,8 @@ class Options extends \VuFind\Search\Solr\Options {
 	 */
 	public function getAdvancedSearchAction() {
 		//return 'akfilter-advanced';
-		return false;
+		//return false;
+		return 'search-advanced';
 	}	
 }
 ?>
