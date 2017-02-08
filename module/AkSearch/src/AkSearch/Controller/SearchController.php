@@ -79,8 +79,8 @@ class SearchController extends \VuFind\Controller\SearchController
     
     	/*
     	echo '<pre>';
-    	//print_r($this->newItems()->getRanges());
-    	//print_r($this->newItems()->getNewItemsFilter());
+    	print_r($this->newItems()->getRanges());
+    	print_r($this->newItems()->getNewItemsFilter());
     	echo '</pre>';
     	*/
     	
@@ -129,7 +129,18 @@ class SearchController extends \VuFind\Controller\SearchController
     		}
     	}
     	
-
+    	
+    	// Check if sorting of new items should be changed
+    	$this->akConfig = $this->getServiceLocator()->get('\VuFind\Config')->get('AKsearch'); // Get AKsearch.ini
+    	$akUseRelevance = $this->akConfig->NewItemsSort->relevance;
+    	$akDefaultSort = $this->akConfig->NewItemsSort->default;
+    	if (!$akUseRelevance) {
+    		$this->getRequest()->getQuery()->set('relevance', 'false');
+    		if (!isset($this->getRequest()->getQuery()->sort)) {
+    			$this->getRequest()->getQuery()->set('sort', $this->akConfig->NewItemsSort->default);
+    		}
+    	}
+    	    	
     	// Validate the range parameter -- it should not exceed the greatest
     	// configured value:
     	$maxAge = $this->newItems()->getMaxAge();
@@ -175,6 +186,7 @@ class SearchController extends \VuFind\Controller\SearchController
     		$url = $view->results->getUrlQuery();
     		$url->setDefaultParameter('range', $range);
     		$url->setDefaultParameter('department', $dept);
+    		$url->setDefaultParameter('relevance', $akUseRelevance);
     		$url->setSuppressQuery(true);
     	}
     
