@@ -1008,11 +1008,11 @@ class Aleph extends AlephDefault {
     
     
     /**
-     * Check if holding records exists for a certain record ID. This is a convenient method for enabling or disabling
-     * things like "Holding Tabs" without the need to process the holding data from the API.
+     * Check if ILS holding records (items) exists for a certain record ID. This is a convenient method for enabling or disabling
+     * things like the "Holding" tab without the need to process the holding data from the API.
      * 
      * @param string	$id
-     * @return boolean	True if at least one holding exists, false otherwise.
+     * @return boolean	true if at least one holding exists, false otherwise.
      */
     public function hasIlsHoldings($id) {
     	$hasIlsHoldings = false;
@@ -1024,6 +1024,25 @@ class Aleph extends AlephDefault {
     	}
     	return $hasIlsHoldings;
     }
+    
+    /**
+     * Check if journal holding records exists for a certain record ID. This is a convenient method for enabling or disabling
+     * things like the "JournalHolding" tab without the need to process the holding data from the API.
+     *
+     * @param string	$id
+     * @return boolean	true if at least one journal holding exists, false otherwise.
+     */
+    public function hasJournalHoldings($id) {
+    	$hasJournalHoldings = false;
+    	list ($bib, $sys_no) = $this->parseId($id);
+    	$resource = $bib . $sys_no;
+    	$xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), $params);
+    	if (count($xml->holdings->holding) > 0) {
+    		$hasJournalHoldings = true;
+    	}
+    	return $hasJournalHoldings;
+    }
+    
     
     
     

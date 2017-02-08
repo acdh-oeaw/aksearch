@@ -1888,5 +1888,11 @@ class SolrMab extends SolrDefault  {
     	return $this->ils->hasIlsHoldings($this->getSysNo());
     }
     
+    public function hasJournalHoldings() {
+    	return $this->ils->hasJournalHoldings($this->getSysNo());
+    }
+    
+    
+    
 }
 ?>

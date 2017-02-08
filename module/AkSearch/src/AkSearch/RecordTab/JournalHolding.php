@@ -51,11 +51,15 @@ class JournalHolding extends AbstractBase {
 	 */
 	public function isActive() {
 		
+		$tabEnabled = false;		
+		
 		// If is a "Fortlaufendes Werk" we have to check if there are holdings.		
 		if (! empty($this->getRecordDriver()->tryMethod('getFortlaufendeWerke'))) {
-			$tabEnabled = true;
-		} else {
-			$tabEnabled = false;
+			$hasJournalHoldings = $this->getRecordDriver()->tryMethod('hasJournalHoldings');
+			if ($hasJournalHoldings) {
+				$tabEnabled = true;
+			}
+			
 		}
 		
 		// Tab is only visible if this method returns true
