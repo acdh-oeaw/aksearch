@@ -1007,6 +1007,25 @@ class Aleph extends AlephDefault {
     }
     
     
+    /**
+     * Check if holding records exists for a certain record ID. This is a convenient method for enabling or disabling
+     * things like "Holding Tabs" without the need to process the holding data from the API.
+     * 
+     * @param string	$id
+     * @return boolean	True if at least one holding exists, false otherwise.
+     */
+    public function hasIlsHoldings($id) {
+    	$hasIlsHoldings = false;
+    	list ($bib, $sys_no) = $this->parseId($id);
+    	$resource = $bib . $sys_no;
+    	$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
+    	if (count($xml->items) > 0) {
+    		$hasIlsHoldings = true;
+    	}
+    	return $hasIlsHoldings;
+    }
+    
+    
     
 	/* ################################################################################################## */
 	/* ########################################## AkSearch End ########################################## */

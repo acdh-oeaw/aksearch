@@ -51,19 +51,30 @@ class HoldingsILS extends AbstractBase {
      * @return bool
      */
     public function isActive() {
-    	// Set Tab active if currently loaded record is not a journal.
-    	// If it is a journal, we enable "BindingUnits" Tab.
-    	$isJournal = $this->getRecordDriver()->tryMethod('isJournal');
     	
-    	// If it is a MBW, Series or contains articles, we enable "MultiVolumeWorks" Tab.
-    	$isParentOfVolumes = $this->getRecordDriver()->tryMethod('isParentOfVolumes');
-    	$isParentOfArticles = $this->getRecordDriver()->tryMethod('isParentOfArticles');
+    	$isActive = false;
     	
-    	if ($isJournal || $isParentOfVolumes || $isParentOfArticles) {
-    		$isActive = false;
+    	// If this is format is not electronic and publication form is not
+    	$formats = $this->getRecordDriver()->tryMethod('getFormats');
+    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;    	
+    	if ($format != 'electronic') {
+    		// If it is a journal or if the record has child records, we first test if there are ILS holdings before we show the tab
+    		$isJournal = $this->getRecordDriver()->tryMethod('isJournal');
+    		$isParentOfVolumes = $this->getRecordDriver()->tryMethod('isParentOfVolumes');
+    		$isParentOfArticles = $this->getRecordDriver()->tryMethod('isParentOfArticles');
+    		if ($isJournal || $isParentOfVolumes || $isParentOfArticles) {
+    			$hasIlsHoldings = $this->getRecordDriver()->tryMethod('hasIlsHoldings');
+    			if ($hasIlsHoldings) {
+    				$isActive = true;
+    			}
+    		} else {
+    			$isActive = true;
+    		}
     	} else {
+    		// Activate tab to show URLs
     		$isActive = true;
     	}
+
         return $isActive;
     }
 }

@@ -1607,6 +1607,17 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	
+	/**
+	 * Get Formats (electronic, printed, microform ...)
+	 *
+	 * @return array		Array of all formats or null if no format was found
+	 */
+	public function getFormats() {
+		return isset($this->fields['format']) ? $this->fields['format'] : null;
+	}
+	
+	
+	
 
 
 	// #######################################################################################
@@ -1870,6 +1881,11 @@ class SolrMab extends SolrDefault  {
     	}
     	
    		return $retVal;
+    }
+    
+    
+    public function hasIlsHoldings() {
+    	return $this->ils->hasIlsHoldings($this->getSysNo());
     }
     
 }
