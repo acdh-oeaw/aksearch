@@ -32,7 +32,9 @@ use VuFind\RecordTab\AbstractBase as AbstractBase;
 
 
 class HoldingsILS extends AbstractBase {
-    
+
+
+	
     /**
      * Return value is title of the Tab.
      * Is a method declared in interface TabInterface.php
@@ -40,7 +42,18 @@ class HoldingsILS extends AbstractBase {
      * @return string
      */
     public function getDescription() {
-        return 'Holdings';
+    	return 'Holdings';
+    	
+    	// Return "Online" if it's an electronic record. But this would be redundant.
+    	/*
+    	$formats = $this->getRecordDriver()->tryMethod('getFormats');
+    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
+    	if ($format != 'electronic') {
+        	return 'Holdings';
+    	} else {
+    		return 'Online';
+    	}
+    	*/
     }
 
 
@@ -53,10 +66,8 @@ class HoldingsILS extends AbstractBase {
     public function isActive() {
     	
     	$isActive = false;
-    	
-    	// If this is format is not electronic and publication form is not
     	$formats = $this->getRecordDriver()->tryMethod('getFormats');
-    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;    	
+    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
     	if ($format != 'electronic') {
     		// If it is a journal or if the record has child records, we first test if there are ILS holdings before we show the tab
     		$isJournal = $this->getRecordDriver()->tryMethod('isJournal');
