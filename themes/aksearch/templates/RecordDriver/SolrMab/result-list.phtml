@@ -46,6 +46,41 @@
 				?>
 				</div>
 				
+				<!-- Volume No and parent title -->
+				<div class="akEllipsis">
+				<?php
+				$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
+				$parentTitles = $this->driver->getParentTitles();
+				$parentSYSs =  $this->driver->getParentSYSs();
+				if (!empty($volumeNo)) {
+					// Show volume no.
+					echo '<span title="'.$this->transEsc('volume').' &quot;'.$volumeNo.'&quot;">';
+						echo '<span>'.$this->transEsc('volume').' </span> ';
+						echo '<span><i>'.$volumeNo.'</i></span>';
+					echo '</span>';
+
+					// Show parent titles and link them if possible 
+					if ($parentTitles != null && $parentSYSs != null && count($parentTitles) == count($parentSYSs)) {
+						// Get all parent titles and Sys-Nos. as links and put them into an array.
+						$parents = [];
+						foreach($parentTitles as $key => $value) {
+							$parents[] = '<a href="'.$this->recordLink()->getUrl(null).$parentSYSs[$key].'" title="'.trim($this->escapeHtml($parentTitles[$key])).'">'.trim($this->escapeHtml($parentTitles[$key])).'</a>';
+						}
+						
+						// Glue parent titles togehter as string
+						if (!empty($parents)) {
+							$parentsString = implode('; ', $parents);
+						}
+						
+						// Show linked parent titles:
+						echo ' <span> '.$this->transEsc('akFrom').' ';
+							echo $parentsString;
+						echo '</span>';
+					}
+				}
+				?>
+				</div>
+				
 				<div class="akResultListSeparator"></div>
 
 		<div>        
@@ -105,12 +140,22 @@
 		$publisher = (isset($publicationDetails['publisher'])) ? $publicationDetails['publisher'] : null;
 		$publicationPlace = $publicationDetails['publishPlace'];
 		$publicationYear = $publicationDetails['publishDate'];
-
+		//$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
+		
 		if (isset($publicationYear)) {
 			echo '<div class="akEllipsis">';
 			echo '<span class="akResultListCaption">'.$this->transEsc('year').':</span> '.$publicationYear;
 			echo '</div>';
 		}
+		
+		/*
+		echo '<div class="akEllipsis">';
+		if (!empty($volumeNo)) {
+			echo '<span class="akResultListCaption">'.$this->transEsc('volume').':</span> ';
+			echo '<span title="'.$volumeNo.'">'.$volumeNo.'</span>';
+		}
+		echo '</div>';
+		*/
 		
 		if ($this->driver->isArticle()) {
 			$articleParentTitle = $this->driver->tryMethod('getArticleParentTitle');

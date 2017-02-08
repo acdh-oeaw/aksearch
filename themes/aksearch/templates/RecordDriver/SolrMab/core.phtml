@@ -47,6 +47,7 @@
 	$mainTitle = $this->escapeHtml(str_replace(array('<', '>'), '', $this->driver->getShortTitle()));
 	$subseriesTitle = $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries'))));
 	$subTitle = $this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array('<', '>'), '', $this->driver->getTitleSection()));
+	$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
     echo '<h1 class="akH1">';
     	echo $mainTitle;
     	if (isset($subseriesTitle) && !empty($subseriesTitle)) {
@@ -54,6 +55,9 @@
     	}
     echo '</h1>';
     echo '<h2 class="akH2">'.$subTitle.'</h2>';
+    if ($volumeNo != null) {
+    	echo '<h2 class="akH2">'.$this->transEsc('volume').': '.$volumeNo.'</h2>';
+    }
     ?>
     
     <? $summary = $this->driver->getSummary(); $summary = isset($summary[0]) ? $this->escapeHtml($summary[0]) : false; ?>

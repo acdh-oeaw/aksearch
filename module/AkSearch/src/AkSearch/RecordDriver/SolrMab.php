@@ -710,6 +710,33 @@ class SolrMab extends SolrDefault  {
 		return $isMultiVolumeWork;
 	}
 	
+	public function getVolumeNo() {
+		
+		// Get volume display no
+		$multivolumeworkVolumeNo = isset($this->fields['multiVolumeNo_str']) ? $this->fields['multiVolumeNo_str'] : null;
+		// If display no is empty, get sort no instead
+		if ($multivolumeworkVolumeNo == null) {
+			$multivolumeworkVolumeNo = isset($this->fields['multiVolumeNoSort_str']) ? $this->fields['multiVolumeNoSort_str'] : null;
+		}
+		
+		// Get serial display no
+		$seriesVolumeNo = isset($this->fields['serialVolumeNo_str']) ? $this->fields['serialVolumeNo_str'] : null;
+		// If display no is empty, get sort no instead
+		if ($seriesVolumeNo == null) {
+			$seriesVolumeNo = isset($this->fields['serialVolumeNoSort_str']) ? $this->fields['serialVolumeNoSort_str'] : null;
+		}
+		
+		if ($multivolumeworkVolumeNo != null) {
+			return $multivolumeworkVolumeNo;
+		} else if ($seriesVolumeNo != null) {
+			return $seriesVolumeNo;
+		} else {
+			return null;
+		}		
+	}
+	
+	
+	
 	
 	
 	// #######################################################################################
