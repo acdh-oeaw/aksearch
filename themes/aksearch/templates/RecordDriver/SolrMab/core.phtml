@@ -48,12 +48,16 @@
 	$subseriesTitle = $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries'))));
 	$subTitle = $this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array('<', '>'), '', $this->driver->getTitleSection()));
 	$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
-    echo '<h1 class="akH1">';
+    
+	// Title
+	echo '<h1 class="akH1">';
     	echo $mainTitle;
     	if (isset($subseriesTitle) && !empty($subseriesTitle)) {
     		echo ': '.$subseriesTitle;
     	}
     echo '</h1>';
+    
+    // Subtitle
     echo '<h2 class="akH2">'.$subTitle.'</h2>';
     if ($volumeNo != null) {
     	echo '<h2 class="akH2">'.$this->transEsc('volume').': '.$volumeNo.'</h2>';
@@ -85,6 +89,7 @@
     $isChildVolume = $this->driver->tryMethod('isChildVolume');
     
     if (isset($isArticle) && $isArticle == true) { // It's an article (Unselbstständig)
+    	 
     	$arrArticleParentSYSs = $this->driver->tryMethod('getParentSYSs');
     	$articleParentSYS = (isset($arrArticleParentSYSs)) ? $arrArticleParentSYSs[0] : null; // There should only be 1 parentSYS for an article
 	    $articleParentTitle = $this->driver->tryMethod('getArticleParentTitle');
@@ -95,7 +100,8 @@
 		    	echo'<th>'.$this->transEsc('Published in').':</th>';
 		 		echo '<td>';
 		 			if ($articleParentSYS != null) {
-		    			echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings#journalholding">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+		    			//echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings#journalholding">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+		 				echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			} else {
 		 				echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			}

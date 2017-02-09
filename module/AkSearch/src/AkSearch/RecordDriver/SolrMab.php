@@ -1000,8 +1000,17 @@ class SolrMab extends SolrDefault  {
 	 *
 	 * @return string or null if empty
 	 */
-	public function getArticleParentTitle() {		
-		return isset($this->fields['articleParentTitle_txt']) ? $this->fields['articleParentTitle_txt'] : null;
+	public function getArticleParentTitle() {
+		$articleParentTitle = isset($this->fields['articleParentTitle_txt']) ? $this->fields['articleParentTitle_txt'] : null;
+		
+		// Try to get parentTitle_str_mv if articleParentTitle_txt is empty
+		if (!isset($articleParentTitle) || empty($articleParentTitle)) {
+			$articleParentTitleArr = isset($this->fields['parentTitle_str_mv']) ? $this->fields['parentTitle_str_mv'] : null;
+			if (isset($articleParentTitleArr) && !empty($articleParentTitleArr)) {
+				$articleParentTitle = $articleParentTitleArr[0];
+			}
+		}
+		return $articleParentTitle;
 	}
 	
 	/**
