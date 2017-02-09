@@ -215,8 +215,6 @@ function setupAutocomplete() {
  * Handle arrow keys to jump to next record
  * @returns {undefined}
  */
-/*
-// Causes problems with down- and up-arrow for autocomplete.js
 function keyboardShortcuts() {
 	console.log('keyboardShortcuts from commons.js')
   var $searchform = $('.searchForm_lookfor');
@@ -255,7 +253,6 @@ function keyboardShortcuts() {
     });
   }
 }
-*/
 
 //Lightbox
 /*

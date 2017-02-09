@@ -56,7 +56,7 @@ function setupAutocomplete() {
 											searchString = json.data[i];
 											searchString = searchString.replace(/[<>]/g, ''); // This line actually removes the "<" and ">" characters
 											searchString = searchString.replace(/^"/g, '').replace(/"$/g, ''); // Remove quotation marks from the beginning and ending of the string
-											searchString = searchString.replace(/\?$/g, ''); // Remove question marks at the end of the strint - this could lead to wrong Solr queries
+											searchString = searchString.replace(/\?$/g, ''); // Remove question marks at the end of the string as this could lead to wrong Solr queries
 											datums.push(searchString);
 										}
 										cb(datums);
@@ -79,12 +79,13 @@ function setupAutocomplete() {
 	
 }
 
+// Setup autocomplete
+// Info: do not put this in $(document).ready, otherwise the keydown event fires twice which will mess up the navigation
+// with the arrow keys in the autocomplete drop-down.
+setupAutocomplete();
 
 $(document).ready(function() {
 
-	// Setup autocomplete
-	setupAutocomplete();
-	
 	// Set focus to search field and re-add it's value (for putting cursor to the end of the text)
 	var tempSearchValue = $('#searchForm_lookfor[name]').focus().val();
 	$('#searchForm_lookfor[name]').val('').val(tempSearchValue);
