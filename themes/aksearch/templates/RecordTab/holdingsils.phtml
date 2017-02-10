@@ -51,12 +51,15 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 
 foreach ($holdings as $location => $holdingsOfLocation) {
 	
-	// Check for second call number (for label in table heading)
+	// Check for second call number (for label in table heading) and some other values
 	$hasSecondCallNo = false;
+	$hasDescription = false;
 	foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
-
 		if (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) {
 			$hasSecondCallNo = true;
+		}
+		if (isset($holdingOfLocation['description']) && !empty(trim($holdingOfLocation['description']))) {
+			$hasDescription = true;
 		}
 	}
 	
@@ -65,10 +68,9 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 		
 		echo '<tr>';
 			echo '<th>'.$this->transEsc('Call Number').'</th>';
-			if ($hasSecondCallNo) { // There is a second call no, so show an additional table column
-				echo '<th>'.$this->transEsc('Call Number 2').'</th>';
-			}
+			echo ($hasSecondCallNo) ? '<th>'.$this->transEsc('Call Number 2').'</th>' : ''; // If there is a second call no, show an additional table column
 			echo '<th>'.$this->transEsc('Location').'</th>';
+			echo ($hasDescription) ? '<th>'.$this->transEsc('Description').'</th>' : ''; // If there is a description, show an additional table column
 			echo '<th>'.$this->transEsc('Status').'</th>';
 			echo '<th>'.$this->transEsc('availability').'</th>';
 		echo'</tr>';
@@ -84,10 +86,9 @@ foreach ($holdings as $location => $holdingsOfLocation) {
 			if (isset($holdingOfLocation['barcode']) && !empty(trim($holdingOfLocation['barcode']))) {
 				echo '<tr>';
 					echo '<td>' . $callNoFirst . '</td>';
-					if ($hasSecondCallNo) { // There is a second call no, so show an additional table column
-						echo '<td>' . $callNoSecond . '</td>';
-					}
+					echo ($hasSecondCallNo) ? '<td>' . $callNoSecond . '</td>' : ''; // If there is a second call no, show an additional table column
 					echo '<td>' . ((isset($holdingOfLocation['collection'])) ? $holdingOfLocation['collection'] : $this->transEsc('n. A.')) . '</td>';
+					echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
 					echo '<td>' . ((isset($holdingOfLocation['status'])) ? $holdingOfLocation['status'] : $this->transEsc('n. A.')) . '</td>';
 						
 					// Show status of item
