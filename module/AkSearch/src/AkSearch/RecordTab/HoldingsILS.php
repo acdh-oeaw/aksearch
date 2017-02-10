@@ -34,6 +34,7 @@ use VuFind\RecordTab\AbstractBase as AbstractBase;
 class HoldingsILS extends AbstractBase {
 
 
+	private $description = 'Holdings';
 	
     /**
      * Return value is title of the Tab.
@@ -42,6 +43,7 @@ class HoldingsILS extends AbstractBase {
      * @return string
      */
     public function getDescription() {
+    	//return $this->description;
     	return 'Holdings';
     	
     	// Return "Online" if it's an electronic record. But this would be redundant.
@@ -76,6 +78,9 @@ class HoldingsILS extends AbstractBase {
     		if ($isJournal || $isParentOfVolumes || $isParentOfArticles) {
     			$hasIlsHoldings = $this->getRecordDriver()->tryMethod('hasIlsHoldings');
     			if ($hasIlsHoldings) {
+    				if ($isJournal) {
+    					$this->setDescription('Bindeeinheiten');
+    				}
     				$isActive = true;
     			}
     		} else {
@@ -87,6 +92,10 @@ class HoldingsILS extends AbstractBase {
     	}
 
         return $isActive;
+    }
+    
+    private function setDescription($description) {
+    	$this->description = $description;
     }
 }
 ?>

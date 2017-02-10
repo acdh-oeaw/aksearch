@@ -53,11 +53,15 @@ class BindingUnits extends AbstractBase {
      * @return bool
      */
     public function isActive() {
+    	
+    	return false; // We use HoldingsILS tab now for all!
+    	/*
 		// Method "isJournal" in RecordDriver "SolrMab" checks if currently loaded record is a journal.
 		$tabEnabled = $this->getRecordDriver()->tryMethod('isJournal');
 		
 		// Tab is only visible if this method returns true
 		return $tabEnabled;
+		*/
     }
 
 }
