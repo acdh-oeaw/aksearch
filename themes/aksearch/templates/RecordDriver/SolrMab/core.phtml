@@ -361,6 +361,19 @@
 	    	
 	    }
 	    
+	    /*
+	    // ZSL (Zeitschriften-Ablage-Nr.)
+	    $zsl = $this->driver->tryMethod('getZsl');
+	    if (isset($zsl) && !empty($zsl)) {
+	    	echo '<tr>';
+	    	echo '<th>'.$this->transEsc('zsl').': </th>';
+	    	echo '<td>';
+	    	echo implode(', ', $zsl);
+	    	echo '</td>';
+	    	echo '</tr>';
+	    }
+	    */
+	    
 	    // Dewey Decimal Classifications (DDCs)
 	    $ddcs = $this->driver->tryMethod('getDDCs');
 	    if (isset($ddcs) && !empty($ddcs)) {

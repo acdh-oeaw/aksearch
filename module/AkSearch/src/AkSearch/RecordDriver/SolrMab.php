@@ -972,6 +972,14 @@ class SolrMab extends SolrDefault  {
 		return $boolIsJournal;
 	}
 	
+	/**
+	 * Get ZSL Nos. (Zeitschriften-Ablage-Nr.)
+	 * 
+	 * @return array or null
+	 */
+	public function getZsl() {
+		return isset($this->fields['zslNo_txt_mv']) ? $this->fields['zslNo_txt_mv'] : null;
+	}
 	
 	// ######################################################################################
 	// ###################################### ARTICLES ######################################
