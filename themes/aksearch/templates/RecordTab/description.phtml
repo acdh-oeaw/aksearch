@@ -1,337 +1,346 @@
 <?
-    // Set page title.
-    $this->headTitle($this->translate('Description') . ': ' . $this->driver->getBreadcrumb());
+// Set page title.
+$this->headTitle($this->translate('Description') . ': ' . $this->driver->getBreadcrumb());
 
-    // Grab clean ISBN for convenience:
-    $isbn = $this->driver->getCleanISBN();
+// Grab clean ISBN for convenience:
+$isbn = $this->driver->getCleanISBN();
 ?>
 <table class="table table-striped" summary="<?=$this->transEsc('Description')?>">
+
   <? $summ = $this->driver->getSummary(); if (!empty($summ)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Summary')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Summary')?>: </th>
+		<td>
         <? foreach ($summ as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
 
 <? $furtherTitles = $this->driver->getFurtherTitles(); if (!empty($furtherTitles)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('furtherTitles')?>: </th>
-      <td>
+		<th><?=$this->transEsc('furtherTitles')?>: </th>
+		<td>
         <? foreach ($furtherTitles as $furtherTitle): ?>
-          <?=$this->escapeHtml(str_replace(array('<', '>'), '', $furtherTitle))?><br/>
+          <?=$this->escapeHtml(str_replace(array('<', '>'), '', $furtherTitle))?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
   
   <?php
-  
-  // Publication type and format
-  $publicationType = $this->driver->tryMethod('getPublicationTypeFromIndex');
-  $formats = $this->driver->getFormats();
-  if ((isset($formats) && !empty($formats)) || (isset($publicationType) && !empty($publicationType))) {
-  	$contentDisplayed = true;
-  	echo '<tr>';
-  	echo '<th>'.$this->transEsc('Publication Type').': </th>';
-  	echo '<td>';
-  	if (isset($publicationType) && !empty($publicationType)) {
-  		echo $this->transEsc($publicationType);
-  		if (!empty($formats)) {
-  			echo ', '.$this->record($this->driver)->getFormatList();
-  		}
-  	}
-  	echo '</td>';
-  	echo '</tr>';
-  }
-  
-  
-  
-  $series = $this->driver->getSeries();
-  if (isset($series) && !empty($series)) {
-  	$contentDisplayed = true;
-  	echo '<tr>';
-  	echo '<th>'.$this->transEsc('Series').':</th>';
-  	echo '<td>';
-  	foreach ($series as $field) {
-  		/* Depending on the record driver, $field may either be an array with
-  		 "name" and "number" keys or a flat string containing only the series
-  		 name.  We should account for both cases to maximize compatibility. */
-  		if (is_array($field)) {
-  			if (!empty($field['name'])) {
-  				echo '<a href="'.$this->record($this->driver)->getLink('series', $field['name']).'">'.$this->escapeHtml(str_replace(array("<", ">"), "", $field['name'])).'</a>';
-  				if (!empty($field['number'])) {
-  					echo ' '.$this->escapeHtml($field['number']);
-  				}
-  				echo '<br />';
-  			}
-  		} else {
-  			echo '<a href="'.$this->record($this->driver)->getLink('series', $field).'">'.$this->escapeHtml(str_replace(array("<", ">"), "", $field)).'</a><br />';
-  		}
-  	}
-  	echo '</td>';
-  	echo '</tr>';
-  }
-  
-  // Subseries
-  $subSeries = $this->driver->tryMethod('getSubseries');
-  if (isset($subSeries) && !empty($subSeries)) {
-  	$contentDisplayed = true;
-  	echo '<tr>';
-  	echo '<th>'.$this->transEsc('subseries').': </th>';
-  	echo '<td>';
-  	foreach($subSeries as $subSer) {
-  		echo $this->escapeHtml(str_replace(array('<', '>'), '', $subSer)).'<br />';
-  	}
-  	echo '</td>';
-  	echo '</tr>';
-  }
-  
-  // Attachments
-  $otherEditions = $this->driver->tryMethod('getAttachments');
-  if (isset($otherEditions) && !empty($otherEditions)) {
-  	$contentDisplayed = true;
-  	echo '<tr>';
-  	echo '<th>'.$this->transEsc('attachment').': </th>';
-  	echo '<td>';
-  	foreach ($otherEditions as $attachment) {
-  		$attachmentTitle = $attachment['title'];
-  		$attachmentType = '';
-  		//$attachmentType = ($attachment['type'] != 'NoAttachmentType') ? preg_replace('/\s*-+>/', '', $attachment['type']).': ' : null;
-  		$attachmentSys = ($attachment['solrId'] != 'NoAttachmentSys') ? $attachment['solrId'] : null;
-  		 
-  		if ($attachmentSys != null) {
-  			echo '<a href="'.$this->recordLink()->getUrl().$attachmentSys.'">'.$attachmentType.$this->escapeHtml($attachmentTitle).'</a><br/>';
-  		} else {
-  			echo $attachmentType.$this->escapeHtml($attachmentTitle).'<br/>';
-  		}
-  	}
-  	echo '</td>';
-  	echo '</tr>';
-  }
-  
-  // Attachment to
-  $attachmentsTo = $this->driver->tryMethod('getAttachmentsTo');
-  if (isset($attachmentsTo) && !empty($attachmentsTo)) {
-  	$contentDisplayed = true;
-  	
-  	echo '<tr>';
-  	echo '<th>'.$this->transEsc('attachmentTo').': </th>';
-  	echo '<td>';
-  	foreach ($attachmentsTo as $attachmentTo) {
-  		
-  		$attachmentToTitle = $attachmentTo['title'];
-  		$attachmentToType = ($attachmentTo['type'] != 'NoAttachmentToType' && preg_match('/^Beil. zu\s*$/', $attachmentTo['type']) != 1) ? preg_replace('/\s*-+>/', '', trim($attachmentTo['type'])).': ' : null;
-  		$attachmentToSys = ($attachmentTo['solrId'] != 'NoAttachmentToSys') ? $attachmentTo['solrId'] : null;
-  			
-  		if ($attachmentToSys != null) {
-  			echo '<a href="'.$this->recordLink()->getUrl().$attachmentToSys.'">'.$attachmentToType.$this->escapeHtml($attachmentToTitle).'</a><br/>';
-  		} else {
-  			echo $attachmentToType.$this->escapeHtml($attachmentToTitle).'<br/>';
-  		}
-  	}
-  	echo '</td>';
-  	echo '</tr>';
-  }
-  
-  ?>
+		// Publication type and format
+		$publicationType = $this->driver->tryMethod('getPublicationTypeFromIndex');
+		$formats = $this->driver->getFormats();
+		if ((isset($formats) && ! empty($formats)) || (isset($publicationType) && ! empty($publicationType))) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Publication Type') . ': </th>';
+			echo '<td>';
+			if (isset($publicationType) && ! empty($publicationType)) {
+				echo $this->transEsc($publicationType);
+				if (! empty($formats)) {
+					echo ', ' . $this->record($this->driver)->getFormatList();
+				}
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		$series = $this->driver->getSeries();
+		if (isset($series) && ! empty($series)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Series') . ':</th>';
+			echo '<td>';
+			foreach ($series as $field) {
+				/*
+				 * Depending on the record driver, $field may either be an array with
+				 * "name" and "number" keys or a flat string containing only the series
+				 * name. We should account for both cases to maximize compatibility.
+				 */
+				if (is_array($field)) {
+					if (! empty($field['name'])) {
+						echo '<a href="' . $this->record($this->driver)->getLink('series', $field['name']) . '">' . $this->escapeHtml(str_replace(array("<", ">"), "", $field['name'])) . '</a>';
+						if (! empty($field['number'])) {
+							echo ' ' . $this->escapeHtml($field['number']);
+						}
+						echo '<br />';
+					}
+				} else {
+					echo '<a href="' . $this->record($this->driver)->getLink('series', $field) . '">' . $this->escapeHtml(str_replace(array("<", ">"), "", $field)) . '</a><br />';
+				}
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Subseries
+		$subSeries = $this->driver->tryMethod('getSubseries');
+		if (isset($subSeries) && ! empty($subSeries)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('subseries') . ': </th>';
+			echo '<td>';
+			foreach ($subSeries as $subSer) {
+				echo $this->escapeHtml(str_replace(array('<', '>'), '', $subSer)) . '<br />';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Attachments
+		$otherEditions = $this->driver->tryMethod('getAttachments');
+		if (isset($otherEditions) && ! empty($otherEditions)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('attachment') . ': </th>';
+			echo '<td>';
+			foreach ($otherEditions as $attachment) {
+				$attachmentTitle = $attachment['title'];
+				$attachmentType = '';
+				// $attachmentType = ($attachment['type'] != 'NoAttachmentType') ? preg_replace('/\s*-+>/', '', $attachment['type']).': ' : null;
+				$attachmentSys = ($attachment['solrId'] != 'NoAttachmentSys') ? $attachment['solrId'] : null;
+				
+				if ($attachmentSys != null) {
+					echo '<a href="' . $this->recordLink()->getUrl() . $attachmentSys . '">' . $attachmentType . $this->escapeHtml($attachmentTitle) . '</a><br/>';
+				} else {
+					echo $attachmentType . $this->escapeHtml($attachmentTitle) . '<br/>';
+				}
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Attachment to
+		$attachmentsTo = $this->driver->tryMethod('getAttachmentsTo');
+		if (isset($attachmentsTo) && ! empty($attachmentsTo)) {
+			$contentDisplayed = true;
+			
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('attachmentTo') . ': </th>';
+			echo '<td>';
+			foreach ($attachmentsTo as $attachmentTo) {
+				
+				$attachmentToTitle = $attachmentTo['title'];
+				$attachmentToType = ($attachmentTo['type'] != 'NoAttachmentToType' && preg_match('/^Beil. zu\s*$/', $attachmentTo['type']) != 1) ? preg_replace('/\s*-+>/', '', trim($attachmentTo['type'])) . ': ' : null;
+				$attachmentToSys = ($attachmentTo['solrId'] != 'NoAttachmentToSys') ? $attachmentTo['solrId'] : null;
+				
+				if ($attachmentToSys != null) {
+					echo '<a href="' . $this->recordLink()->getUrl() . $attachmentToSys . '">' . $attachmentToType . $this->escapeHtml($attachmentToTitle) . '</a><br/>';
+				} else {
+					echo $attachmentToType . $this->escapeHtml($attachmentToTitle) . '<br/>';
+				}
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Physical description
+		$physical = $this->driver->getPhysicalDescriptions();
+		if (! empty($physical)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Physical Description') . ': </th>';
+			echo '<td>';
+			foreach ($physical as $field) {
+				echo $this->escapeHtml($field) . '<br/>';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Publication frequency
+		$freq = $this->driver->getPublicationFrequency();
+		if (! empty($freq)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Publication Frequency') . ': </th>';
+			echo '<td>';
+			echo $this->escapeHtml($freq);
+			echo '</td>';
+			echo '</tr>';
+		}
+			
+		// Notes
+		$notes = $this->driver->tryMethod('getNotes');
+		if (isset($notes) && ! empty($notes)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Notes') . ':</th>';
+			echo '<td>';
+			foreach ($notes as $note) {
+				echo $this->escapeHtml($note) . '<br />';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		?>
 
-  <? $notes = $this->driver->getGeneralNotes(); if (!empty($notes)): ?>
-    <? $contentDisplayed = true; ?>
-    <tr>
-      <th><?=$this->transEsc('Item Description')?>: </th>
-      <td>
-        <? foreach ($notes as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
-        <? endforeach; ?>
-      </td>
-    </tr>
-  <? endif; ?>
-
-  <? $physical = $this->driver->getPhysicalDescriptions(); if (!empty($physical)): ?>
-    <? $contentDisplayed = true; ?>
-    <tr>
-      <th><?=$this->transEsc('Physical Description')?>: </th>
-      <td>
-        <? foreach ($physical as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
-        <? endforeach; ?>
-      </td>
-    </tr>
-  <? endif; ?>
-
-  <? $freq = $this->driver->getPublicationFrequency(); if (!empty($freq)): ?>
-    <? $contentDisplayed = true; ?>
-    <tr>
-      <th><?=$this->transEsc('Publication Frequency')?>: </th>
-      <td>
-          <?=$this->escapeHtml($freq)?><br/>
-      </td>
-    </tr>
-  <? endif; ?>
+  
 
   <? $playTime = $this->driver->getPlayingTimes(); if (!empty($playTime)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Playing Time')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Playing Time')?>: </th>
+		<td>
         <? foreach ($playTime as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $system = $this->driver->getSystemDetails(); if (!empty($system)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Format')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Format')?>: </th>
+		<td>
         <? foreach ($system as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $audience = $this->driver->getTargetAudienceNotes(); if (!empty($audience)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Audience')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Audience')?>: </th>
+		<td>
         <? foreach ($audience as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $awards = $this->driver->getAwards(); if (!empty($awards)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Awards')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Awards')?>: </th>
+		<td>
         <? foreach ($awards as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $credits = $this->driver->getProductionCredits(); if (!empty($credits)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Production Credits')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Production Credits')?>: </th>
+		<td>
         <? foreach ($credits as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $bib = $this->driver->getBibliographyNotes(); if (!empty($bib)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Bibliography')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Bibliography')?>: </th>
+		<td>
         <? foreach ($bib as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $isbns = $this->driver->getISBNs(); if (!empty($isbns)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('ISBN')?>: </th>
-      <td>
+		<th><?=$this->transEsc('ISBN')?>: </th>
+		<td>
         <? foreach ($isbns as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
 
   <? $doi = $this->driver->tryMethod('getCleanDOI'); if (!empty($doi)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('DOI')?>: </th>
-      <td><?=$this->escapeHtml($doi)?></td>
-    </tr>
+		<th><?=$this->transEsc('DOI')?>: </th>
+		<td><?=$this->escapeHtml($doi)?></td>
+	</tr>
   <? endif; ?>
 
   <? $related = $this->driver->getRelationshipNotes(); if (!empty($related)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Related Items')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Related Items')?>: </th>
+		<td>
         <? foreach ($related as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $access = $this->driver->getAccessRestrictions(); if (!empty($access)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Access')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Access')?>: </th>
+		<td>
         <? foreach ($access as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $findingAids = $this->driver->getFindingAids(); if (!empty($findingAids)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Finding Aid')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Finding Aid')?>: </th>
+		<td>
         <? foreach ($findingAids as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $publicationPlaces = $this->driver->getHierarchicalPlaceNames(); if (!empty($publicationPlaces)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Publication_Place')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Publication_Place')?>: </th>
+		<td>
         <? foreach ($publicationPlaces as $field): ?>
-          <?=$this->escapeHtml($field)?><br/>
+          <?=$this->escapeHtml($field)?><br />
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? $authorNotes = empty($isbn) ? array() : $this->authorNotes($isbn); if (!empty($authorNotes)): ?>
     <? $contentDisplayed = true; ?>
     <tr>
-      <th><?=$this->transEsc('Author Notes')?>: </th>
-      <td>
+		<th><?=$this->transEsc('Author Notes')?>: </th>
+		<td>
         <? foreach ($authorNotes as $provider => $list): ?>
           <? foreach ($list as $field): ?>
-            <?=$field['Content']?><br/>
+            <?=$field['Content']?><br />
           <? endforeach; ?>
         <? endforeach; ?>
       </td>
-    </tr>
+	</tr>
   <? endif; ?>
 
   <? if (!isset($contentDisplayed) || !$contentDisplayed): // Avoid errors if there were no rows above ?>
-    <tr><td colspan="2"><?=$this->transEsc('no_description')?></td></tr>
+    <tr>
+		<td colspan="2"><?=$this->transEsc('no_description')?></td>
+	</tr>
   <? endif; ?>
 </table>

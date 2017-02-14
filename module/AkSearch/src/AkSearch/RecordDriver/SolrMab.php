@@ -1633,6 +1633,16 @@ class SolrMab extends SolrDefault  {
 		return isset($this->fields['format']) ? $this->fields['format'] : null;
 	}
 	
+
+	/**
+	 * Get contens from notes field.
+	 * 
+	 * @return array or null
+	 */
+	public function getNotes() {
+		return (isset($this->fields['notes_txt_mv'])) ? $this->fields['notes_txt_mv'] : null;
+		
+	}
 	
 	
 
