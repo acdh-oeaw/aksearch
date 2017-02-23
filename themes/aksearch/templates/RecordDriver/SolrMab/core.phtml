@@ -95,7 +95,7 @@
 	    $articleParentTitle = $this->driver->tryMethod('getArticleParentTitle');
 	    
 	    if ($articleParentTitle != null) {
-	    	$articleParentTitle = str_replace(array("<", ">"), "", $articleParentTitle);
+	    	$articleParentTitle = str_replace(array('<', '>'), '', $articleParentTitle);
 	    	echo '<tr valign="top">';
 		    	echo'<th>'.$this->transEsc('Published in').':</th>';
 		 		echo '<td>';
@@ -117,7 +117,7 @@
 					$parentRecordSYSs = $this->driver->tryMethod('getParentSYSs');
 					$parentRecordTitles = $this->driver->tryMethod('getParentTitles');
 					foreach ($parentRecordSYSs as $key => $value) {
-						$parentRecordTitle = str_replace(array("<", ">"), "", $parentRecordTitles[$key]);
+						$parentRecordTitle = str_replace(array('<', '>'), '', $parentRecordTitles[$key]);
 						echo '<a href="'.$this->recordLink()->getUrl(null).$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
 						//echo '<a href="'.$this->recordLink()->getUrl($this->driver).$value.'/MultiVolumeWorks">'.$this->escapeHtml($parentRecordTitle).'</a><br/>';
 					}
@@ -135,14 +135,14 @@
 					echo '<td>';
 					if (is_array($field)) {
 						if (!empty($field['name'])) {
-							echo '<a href="'.$this->record($this->driver)->getLink('series', $field['name']).'">'.$this->escapeHtml(str_replace(array("<", ">"), "", $field['name'])).'</a>';
+							echo '<a href="'.$this->record($this->driver)->getLink('series', $field['name']).'">'.$this->escapeHtml(str_replace(array('<', '>'), '', $field['name'])).'</a>';
 							if (!empty($field['number'])) {
 								echo ' '.$this->escapeHtml($field['number']);
 							}
 							echo '<br />';
 						}
 					} else {
-						echo '<a href="'.$this->record($this->driver)->getLink('series', $field).'">'.$this->escapeHtml(str_replace(array("<", ">"), "", $field)).'</a><br />';
+						echo '<a href="'.$this->record($this->driver)->getLink('series', $field).'">'.$this->escapeHtml(str_replace(array('<', '>'), '', $field)).'</a><br />';
 					}
 					echo '</td>';
 				}
@@ -161,7 +161,7 @@
       	<th><?=$this->transEsc('Authors')?>: </th>
       	<td>
       	 <? foreach($authors as $author): ?>
-            <a property="author" href="<?=$this->record($this->driver)->getLink('author', $author)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $author))?></a><br/>
+            <a property="author" href="<?=$this->record($this->driver)->getLink('author', $author)?>"><?=$this->escapeHtml(str_replace(array('<', '>'), '', $author))?></a><br/>
          <? endforeach; ?>
         </td>
       </tr>
@@ -178,7 +178,7 @@
 							$gnd = key($gndName);
 							$name = $gndName[key($gndName)];
 							echo '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'">';
-								echo $this->escapeHtml(str_replace(array("<", ">"), "", $name));
+								echo $this->escapeHtml(str_replace(array('<', '>'), '', $name));
 							echo '</a>';
 
 							// Entity Facts via PHP curl (Zend Http Object)
@@ -238,7 +238,7 @@
 	  if (isset($publisher)) {
 	  	echo '<tr>';
 	  	echo '<th>'.$this->transEsc('Publisher').': </th>';
-	  	$publishString = '<span property="name">'.$this->escapeHtml(str_replace(array("<", ">"), "", $publisher)).'</span>';
+	  	$publishString = '<span property="name">'.$this->escapeHtml(str_replace(array('<', '>'), '', $publisher)).'</span>';
 	  	if (isset($publicationPlace)) {
 	  		$publishString .= ' (<span property="publicationPlace">'.$this->escapeHtml($publicationPlace).'</span>)';
 	  	}
@@ -255,7 +255,7 @@
 	  <? $edition = $this->driver->getEdition(); if (!empty($edition)): ?>
       <tr>
         <th><?=$this->transEsc('Edition')?>: </th>
-        <td property="bookEdition"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $edition))?></td>
+        <td property="bookEdition"><?=$this->escapeHtml(str_replace(array('<', '>'), '', $edition))?></td>
       </tr>
       <? endif; ?>
       
@@ -283,7 +283,7 @@
         <th><?=$this->transEsc('New Title')?>: </th>
         <td>
           <? foreach($nextTitles as $field): ?>
-            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field))?></a><br/>
+            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml(str_replace(array('<', '>'), '', $field))?></a><br/>
           <? endforeach; ?>
         </td>
       </tr>
@@ -294,7 +294,7 @@
         <th><?=$this->transEsc('Previous Title')?>: </th>
         <td>
           <? foreach($prevTitles as $field): ?>
-            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $field))?></a><br/>
+            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml(str_replace(array('<', '>'), '', $field))?></a><br/>
           <? endforeach; ?>
         </td>
       </tr>
@@ -403,7 +403,7 @@
 	    		echo '<hr class="akKeywordChainsSeparator" />';
 	    		foreach ($keywordChain as $key => $keyword) {
 	    			$keyword = trim($keyword);
-	    			echo '<a class="akKeywordChainLink" title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->record($this->driver)->getLink('subject', $keyword).'" rel="nofollow">'.trim($this->escapeHtml(str_replace(array("<", ">"), "", $keyword))).'</a>';
+	    			echo '<a class="akKeywordChainLink" title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->record($this->driver)->getLink('subject', $keyword).'" rel="nofollow">'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $keyword))).'</a>';
 	    			if ($key != $lastElement) {
 	    				echo ' <i class="fa fa-arrow-left akKeywordChainArrow" aria-hidden="true"></i> ';
 	    			}
@@ -441,7 +441,7 @@
       	<th><?=$this->transEsc('Corporate Author')?>: </th>
       	<td>
       	 <? foreach($corporateAuthors as $corporateAuthor): ?>
-         	<a property="creator" href="<?=$this->url('search-results')?>?lookfor=%22<?=urlencode($corporateAuthor)?>&type=AllFields&limit=20"><?=$this->escapeHtml(str_replace(array("<", ">"), "", $corporateAuthor))?></a><br />
+         	<a property="creator" href="<?=$this->url('search-results')?>?lookfor=%22<?=urlencode($corporateAuthor)?>&type=AllFields&limit=20"><?=$this->escapeHtml(str_replace(array('<', '>'), '', $corporateAuthor))?></a><br />
          <? endforeach; ?>
         </td>
       </tr>
@@ -469,7 +469,7 @@
             <? $i = 0; foreach ($field as $subfield): ?>
               <?=($i++ == 0) ? '' : ' &gt; '?>
               <? $subject = trim($subject . ' ' . $subfield); ?>
-              <a class="backlink" title="<?=$this->escapeHtmlAttr($subject)?>" href="<?=$this->record($this->driver)->getLink('subject', $subject)?>" rel="nofollow"><?=trim($this->escapeHtml(str_replace(array("<", ">"), "", $subfield)))?></a>
+              <a class="backlink" title="<?=$this->escapeHtmlAttr($subject)?>" href="<?=$this->record($this->driver)->getLink('subject', $subject)?>" rel="nofollow"><?=trim($this->escapeHtml(str_replace(array('<', '>'), '', $subfield)))?></a>
             <? endforeach; ?>
           </div>
           <? endforeach; ?>

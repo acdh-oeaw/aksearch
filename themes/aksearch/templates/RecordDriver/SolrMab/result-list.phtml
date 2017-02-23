@@ -98,7 +98,7 @@
 	          	foreach ($participants as $role => $participant) {
 	          		foreach ($participant as $key => $gndName) {
 	          			$name = $gndName[key($gndName)];
-	          			$participantLinks[] = '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'" title="'.$name.'">' . trim($this->escapeHtml(str_replace(array("<", ">"), "", $name))) . '</a>'; 
+	          			$participantLinks[] = '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'" title="'.$name.'">' . trim($this->escapeHtml(str_replace(array('<', '>'), '', $name))) . '</a>';
 	          		}
 	          	}
 	          	echo '<span class="akResultListCaption">'.$this->transEsc('Beteiligte').':</span> '.join('; ', $participantLinks);
@@ -163,7 +163,7 @@
 			$articleParentSYS = (isset($arrArticleParentSYSs)) ? $arrArticleParentSYSs[0] : null; // There should only be 1 parentSYS for an article
 				
 			if (isset($articleParentTitle) && !empty($articleParentTitle)) {
-				$articleParentTitle = str_replace(array("<", ">"), "", $articleParentTitle);
+				$articleParentTitle = str_replace(array('<', '>'), '', $articleParentTitle);
 				echo '<div class="akEllipsis">';
 				echo '<span class="akResultListCaption">'.$this->transEsc('Published in').':</span> ';
 				//echo '<span title="'.$articleParentTitle.'">'.$articleParentTitle.'</span>';
