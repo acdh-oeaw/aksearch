@@ -197,6 +197,21 @@ a {
     font-size: 16px;
 }
 
+.result .left img {
+	max-width: 90%;
+}
+
+
+/* Record view */
+.recordTabs, #record {
+	margin-top: 15px;
+}
+
+#record .recordcover {
+	max-width: 90%;
+}
+
+
 
 /* Autocomplete results */
 /* crhallberg/autocomplete.js 0.14 */
@@ -445,17 +460,154 @@ a {
 }
 
 
+
+
 @media ( max-width : 767px) {
+	
+	body {
+		font-size: 14px;
+	}
+	
+	header {
+		margin-bottom: 5px;
+	}
+	
+	h4 {
+		font-size: 14px;
+	}
+	
+	.container {
+		width: 95%;
+	}
+	
+	.form-control {
+		font-size: 14px;	
+	}
+
 	.btn {
 		margin-top: 5px;
+		font-size: 16px;
+		height: 35px;
+		padding: 5px;
 	}
+	
+	.navbar-header .fa-bars {
+		font-size: 25px;
+	}
+	
+	.breadcrumb {
+		margin-top: 15px;
+	}
+	
+	.sidebar {
+		border-top: 1px solid #ddd;
+		padding-top: 15px;
+		margin-top: 45px;
+	}
+	
+	.sidegroup {
+		margin-top: 45px;
+	}
+	
 	.akEntityFactsTooltip {
 		width: 250px;
 		margin-left: -25px;
 	}
-	h4{
-		font-size: 14px;
+
+	.akSearchbox input[type="text"], .akSearchbox #searchForm_type {
+		height: 34px;
+		line_height: 35px;
+		font-size: 1.3em;
+		margin-top: 5px;
 	}
+	
+	.recordTabs li #usercomments {
+		display: none;
+	}
+	
+	#searchForm_lookfor {
+		width: 100%;
+	}
+	
+	#searchForm .btn-primary {
+		width: 100%;
+	}
+	
+	#searchForm .btn-link {
+		margin-top: 10px;
+		font-weight: bold;
+	}
+	
+	
+	#advSearchForm .col-sm-9 {
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+	
+	#advSearchForm .row {
+		margin-left: 0px;
+		margin-right: 0px;
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+	
+	#advSearchForm .group {
+		padding: 0;
+	}
+	
+	#advSearchForm .col-sm-1.close {
+		display: none;
+	}
+	
+	#advSearchForm .group .search .middle {
+		width: 100%;
+	}
+	
+	#advSearchForm .col-sm-3.match {
+		margin-bottom: 15px;
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+	
+	#advSearchForm .search_place_holder {
+		margin-top: 25px;
+		margin-bottom: 25px;
+		margin-left: 15px;
+	}
+	
+	#advSearchForm .col-sm-3, #advSearchForm .col-sm-6 {
+		margin-top: 18px;
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+	
+	#advSearchForm .col-sm-3 .help-block {
+		padding-left: 15px;
+	}
+	
+	#advSearchForm .col-sm-12, #advSearchForm .col-sm-4 {
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+	
+	#advSearchForm .col-sm-4.middle {
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+	
+	#advSearchForm legend {
+		margin-bottom: 0px;
+	}
+	
+	#advSearchForm .slider.slider-horizontal {
+		margin-left: 0px;
+	}
+	
+	#record .recordcover {
+		max-width: 50%;
+	}
+	
+	
 }
 
 
