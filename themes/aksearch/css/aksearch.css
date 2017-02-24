@@ -472,6 +472,10 @@ a {
 		margin-bottom: 5px;
 	}
 	
+	header .container.navbar {
+		margin-bottom: 15px;
+	}
+	
 	h4 {
 		font-size: 14px;
 	}
@@ -493,10 +497,6 @@ a {
 	
 	.navbar-header .fa-bars {
 		font-size: 25px;
-	}
-	
-	.breadcrumb {
-		margin-top: 15px;
 	}
 	
 	.sidebar {
