@@ -1091,6 +1091,67 @@ class SolrMab extends SolrDefault  {
 	*/
 	
 	
+	/**
+	 * Get all relevant information about articles
+	 *
+	 * @return array
+	 */
+	public function getArticleDetails() {
+		$articleDetails = null;
+		
+		$articleSYSs = isset($this->fields['childSYS_str_mv']) ? $this->fields['childSYS_str_mv'] : null;
+		$articleTitles = $this->getChildRecordTitle();
+		$articlePublishDates = isset($this->fields['childPublishDate_str_mv']) ? $this->fields['childPublishDate_str_mv'] : null;
+		$articleVolumes = isset($this->fields['childVolumeNo_str_mv']) ? $this->fields['childVolumeNo_str_mv'] : null;
+		$articleIssues = isset($this->fields['childIssueNo_str_mv']) ? $this->fields['childIssueNo_str_mv'] : null;
+		$articlePagesFrom = isset($this->fields['childPageFrom_str_mv']) ? $this->fields['childPageFrom_str_mv'] : null;
+		$articlePagesTo = isset($this->fields['childPageTo_str_mv']) ? $this->fields['childPageTo_str_mv'] : null;
+		$articleUrls = isset($this->fields['childUrl_str_mv']) ? $this->fields['childUrl_str_mv'] : null;
+	
+		foreach($articleSYSs as $key => $articleSYS) {
+			$articleTitle = $articleTitles[$key];
+			$articlePublishDate = $articlePublishDates[$key];
+			$articleVolume = $articleVolumes[$key];
+			$articleIssue = $articleIssues[$key];
+			$articlePageFrom = $articlePagesFrom[$key];
+			$articlePageTo = $articlePagesTo[$key];
+			$articlePageFromTo = null;
+			if ($articlePageFrom == $articlePageTo) {
+				$articlePageFromTo = $articlePageFrom;
+			} else {
+				$articlePageFromTo = $articlePageFrom;
+				if ($articlePageTo != null && ! empty($articlePageTo)) {
+					$articlePageFromTo .= ' - ' . $articlePageTo;
+				}
+			}
+			$articleUrl = ($articleUrls[$key] == null) ? null : $articleUrls[$key];
+
+			$articleDetails[$articleSYS] = array(
+					'articleTitle' => $articleTitle,
+					'articlePublishDate' => $articlePublishDate,
+					'articleVolume' => $articleVolume,
+					'articleIssue' => $articleIssue,
+					'articlePageFrom' => $articlePageFrom,
+					'articlePageTo' => $articlePageTo,
+					'articlePageFromTo' => $articlePageFromTo,
+					'articleUrl' => $articleUrl
+			);
+		}
+	
+		// Create array for sorting
+		foreach ($articleDetails as $key => $rowToSort) {
+			$vol[$key] = $rowToSort['articleVolume'];
+			$iss[$key] = $rowToSort['articleIssue'];
+			$pFrom[$key] = str_replace('[', '', $rowToSort['articlePageFrom']);
+			$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
+		}
+	
+		array_multisort($vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
+	
+		return $articleDetails;
+	}
+	
+	
 	// #####################################################################################
 	// ################################# PUBLICATION TYPES #################################
 	// #####################################################################################
