@@ -101,7 +101,7 @@ $isbn = $this->driver->getCleanISBN();
 			echo '<th>' . $this->transEsc('attachment') . ': </th>';
 			echo '<td>';
 			foreach ($otherEditions as $attachment) {
-				$attachmentTitle = $attachment['title'];
+				$attachmentTitle = str_replace(array('<', '>'), '', $attachment['title']);
 				$attachmentType = '';
 				// $attachmentType = ($attachment['type'] != 'NoAttachmentType') ? preg_replace('/\s*-+>/', '', $attachment['type']).': ' : null;
 				$attachmentSys = ($attachment['solrId'] != 'NoAttachmentSys') ? $attachment['solrId'] : null;
@@ -126,7 +126,7 @@ $isbn = $this->driver->getCleanISBN();
 			echo '<td>';
 			foreach ($attachmentsTo as $attachmentTo) {
 				
-				$attachmentToTitle = $attachmentTo['title'];
+				$attachmentToTitle = str_replace(array('<', '>'), '', $attachmentTo['title']);
 				$attachmentToType = ($attachmentTo['type'] != 'NoAttachmentToType' && preg_match('/^Beil. zu\s*$/', $attachmentTo['type']) != 1) ? preg_replace('/\s*-+>/', '', trim($attachmentTo['type'])) . ': ' : null;
 				$attachmentToSys = ($attachmentTo['solrId'] != 'NoAttachmentToSys') ? $attachmentTo['solrId'] : null;
 				

@@ -64,7 +64,7 @@
 						// Get all parent titles and Sys-Nos. as links and put them into an array.
 						$parents = [];
 						foreach($parentTitles as $key => $value) {
-							$parents[] = '<a href="'.$this->recordLink()->getUrl(null).$parentSYSs[$key].'" title="'.trim($this->escapeHtml($parentTitles[$key])).'">'.trim($this->escapeHtml($parentTitles[$key])).'</a>';
+							$parents[] = '<a href="'.$this->recordLink()->getUrl(null).$parentSYSs[$key].'" title="'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $parentTitles[$key]))).'">'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $parentTitles[$key]))).'</a>';
 						}
 						
 						// Glue parent titles togehter as string
