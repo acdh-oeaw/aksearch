@@ -86,6 +86,16 @@ setupAutocomplete();
 
 $(document).ready(function() {
 
+	
+	$('.akFacetsInfo').click(function(e) {
+		// Stop default action (toggling of facet group)
+		e.preventDefault();
+		e.stopPropagation();
+		
+		// Show info tooltip
+		console.log('Click facets info');
+	});
+	
 	// Set focus to search field and re-add it's value (for putting cursor to the end of the text)
 	var tempSearchValue = $('#searchForm_lookfor[name]').focus().val();
 	$('#searchForm_lookfor[name]').val('').val(tempSearchValue);

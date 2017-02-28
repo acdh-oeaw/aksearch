@@ -467,6 +467,13 @@ a {
 }
 
 
+.akFacetsInfo {
+	/*margin-left: 10px;*/
+	position: absolute;
+	right: 40px;
+	top: 14px;
+}
+
 
 @media ( max-width : 767px) {
 	

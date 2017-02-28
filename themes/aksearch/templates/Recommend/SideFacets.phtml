@@ -57,6 +57,16 @@
     <ul class="list-group" id="side-panel-<?=$this->escapeHtmlAttr($title) ?>">
       <li class="list-group-item title<? if(in_array($title, $collapsedFacets)): ?> collapsed<? endif ?>" data-toggle="collapse" href="#side-collapse-<?=$this->escapeHtmlAttr($title) ?>">
         <?=$this->transEsc($cluster['label'])?>
+        
+        <?php        
+        if (key_exists('akFacetInfoTooltipHeading', $cluster) && key_exists('akFacetInfoTooltipText', $cluster)) {
+        	$tooltipHeading = ($cluster['akFacetInfoTooltipHeading'] != null && !empty($cluster['akFacetInfoTooltipHeading'])) ? $cluster['akFacetInfoTooltipHeading'] : '';
+        	$tooltipText = ($cluster['akFacetInfoTooltipText'] != null && !empty($cluster['akFacetInfoTooltipText'])) ? $cluster['akFacetInfoTooltipText'] : '';
+        	echo '<i class="fa fa-info-circle akFacetsInfo akInfoTooltipOpener" data-aktooltiptitle="'.$this->escapeHtml($this->transEsc($tooltipHeading)).'" data-aktooltiptext="'.$this->transEsc($tooltipText).'" aria-hidden="true"></i>';
+        }
+        
+        ?>
+        
       </li>
       <div id="side-collapse-<?=$this->escapeHtmlAttr($title) ?>" class="collapse<? if(!in_array($title, $collapsedFacets)): ?> in<? endif ?>">
         <? if (isset($rangeFacets[$title])): ?>
