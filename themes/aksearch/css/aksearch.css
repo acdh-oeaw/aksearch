@@ -152,7 +152,6 @@ a {
 	max-width: none !important;
 }
 
-
 .modal-backdrop {
 	position: fixed;
 	top: 0;
@@ -254,6 +253,11 @@ a {
 /* Tables */
 .table {
     table-layout: auto; /* Save space by keeping left column left-aligned */
+}
+
+/* Browse cataloge */
+a.list-group-item:hover, a.list-group-item:focus {
+	background-color: #ececec; /* Better visibility of hover colour */
 }
 
 /* ################################################################################################################################## */
