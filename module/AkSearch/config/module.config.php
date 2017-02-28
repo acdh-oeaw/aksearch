@@ -525,7 +525,8 @@ $config = [
                     'usercomments' => 'VuFind\RecordTab\Factory::getUserComments',
                 ],
                 'invokables' => [
-                    'description' => 'VuFind\RecordTab\Description',
+                    //'description' => 'VuFind\RecordTab\Description',
+                	'description' => 'AkSearch\RecordTab\Description',
                     'staffviewarray' => 'VuFind\RecordTab\StaffViewArray',
                     'staffviewmarc' => 'VuFind\RecordTab\StaffViewMARC',
                     'toc' => 'VuFind\RecordTab\TOC',

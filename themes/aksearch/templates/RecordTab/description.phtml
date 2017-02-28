@@ -1,11 +1,11 @@
 <?
 // Set page title.
-$this->headTitle($this->translate('Description') . ': ' . $this->driver->getBreadcrumb());
+$this->headTitle($this->translate('Details') . ': ' . $this->driver->getBreadcrumb());
 
 // Grab clean ISBN for convenience:
 $isbn = $this->driver->getCleanISBN();
 ?>
-<table class="table table-striped" summary="<?=$this->transEsc('Description')?>">
+<table class="table table-striped" summary="<?=$this->transEsc('Details')?>">
 
   <? $summ = $this->driver->getSummary(); if (!empty($summ)): ?>
     <? $contentDisplayed = true; ?>
