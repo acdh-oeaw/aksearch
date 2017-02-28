@@ -96,7 +96,8 @@ $config = [
     ],
     'controllers' => [
         'factories' => [
-            'browse' => 'VuFind\Controller\Factory::getBrowseController',
+            //'browse' => 'VuFind\Controller\Factory::getBrowseController',
+        	'browse' => 'AkSearch\Controller\Factory::getBrowseController',
             'collection' => 'VuFind\Controller\Factory::getCollectionController',
             'collections' => 'VuFind\Controller\Factory::getCollectionsController',
             'record' => 'VuFind\Controller\Factory::getRecordController',
