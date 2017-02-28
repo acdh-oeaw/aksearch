@@ -30,8 +30,9 @@
     <div class="browse list-group col-sm-3<? if (!empty($this->secondaryList) || !empty($this->resultList)): ?> hidden-xs<? endif ?>" id="list2">
 	
 	<?php
+	$col2Text = $this->escapeHtml($this->transEsc($this->currentAction).$this->transEsc('browseby'));
 	echo '<div class="akBrowseColHeading akEllipsis">';
-	echo '<span title="'.$this->transEsc($this->currentAction).$this->transEsc('browseby').'">'.$this->transEsc($this->currentAction).$this->transEsc('browseby').' ...</span>';
+	echo '<span title="'.$col2Text.'">'.$col2Text.' ...</span>';
 	echo '</div>';
 	?>
 	
@@ -53,8 +54,9 @@
     <div class="browse list-group col-sm-3<? if (!empty($this->resultList)): ?> hidden-xs<? endif ?>" id="list3">
     
     <?php
+    $col3Text = $this->escapeHtml($this->transEsc($this->findby).$this->transEsc('choose'));
     echo '<div class="akBrowseColHeading akEllipsis">';
-    echo '<span title="'.$this->transEsc($this->findby).$this->transEsc('choose').'">'.$this->transEsc($this->findby).$this->transEsc('choose').' ...</span>';
+    echo '<span title="'.$col3Text.'">'.$col3Text.' ...</span>';
     echo '</div>';
     ?>
     
@@ -91,8 +93,9 @@
     <div class="browse list-group col-sm-3" id="list4">
     
     <?php
+    $col4Text = $this->escapeHtml($this->transEsc($this->currentAction).$this->transEsc('choose'));
     echo '<div class="akBrowseColHeading akEllipsis">';
-    echo '<span title="'.$this->transEsc($this->currentAction).$this->transEsc('choose').'">'.$this->transEsc($this->currentAction).$this->transEsc('choose').' ...</span>';
+    echo '<span title="'.$col4Text.'">'.$col4Text.' ...</span>';
     echo '</div>';
     ?>
     
