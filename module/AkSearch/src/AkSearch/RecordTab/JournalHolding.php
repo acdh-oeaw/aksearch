@@ -51,6 +51,8 @@ class JournalHolding extends AbstractBase {
 	 */
 	public function isActive() {
 		
+		return false; // We use HoldingsILS tab now for all!
+		/*
 		$tabEnabled = false;		
 		
 		// If is a "Fortlaufendes Werk" we have to check if there are holdings.		
@@ -59,11 +61,11 @@ class JournalHolding extends AbstractBase {
 			if ($hasJournalHoldings) {
 				$tabEnabled = true;
 			}
-			
 		}
 		
 		// Tab is only visible if this method returns true
 		return $tabEnabled;
+		*/
 	}
 }
 ?>

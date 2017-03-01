@@ -64,6 +64,13 @@
 			}
 		}
 		
+		$tabDescription = $this->tab->getDescription();
+		if ($tabDescription == 'contains') {
+			echo '<h3>'.$this->transEsc('contiansTabHeading').'</h3>';
+		} else if ($tabDescription == 'volumes') {
+			echo '<h3>'.$this->transEsc('volumesTabHeading').'</h3>';
+		}
+		
 		echo "<table class = 'table' cellpadding='2' cellspacing='0' border='0'>";
 			echo "<thead>";
 				echo "<th width='100%'>".$tableHeadingCol1."</th>";

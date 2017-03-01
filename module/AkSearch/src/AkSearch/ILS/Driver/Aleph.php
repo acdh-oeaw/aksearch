@@ -1022,14 +1022,6 @@ class Aleph extends AlephDefault {
     	if (count($xml->items) > 0) {
     		$hasIlsHoldings = true;
     	}
-    	
-    	/*
-    	if ($hasIlsHoldings) {
-    		echo 'Has journal holdings<br />';
-    	} else {
-    		echo 'Has NO journal holdings<br />';
-    	}
-    	*/
     	return $hasIlsHoldings;
     }
     
@@ -1048,13 +1040,6 @@ class Aleph extends AlephDefault {
     	if (count($xml->holdings->holding) > 0) {
     		$hasJournalHoldings = true;
     	}
-    	/*
-    	if ($hasJournalHoldings) {
-    		echo 'Has journal holdings<br />';
-    	} else {
-    		echo 'Has NO journal holdings<br />';
-    	}
-    	*/
     	return $hasJournalHoldings;
     }
     

@@ -34,6 +34,8 @@ use VuFind\RecordTab\AbstractBase as AbstractBase;
 class HoldingsILS extends AbstractBase {
 
 
+	private $hasItemHoldings = false;
+	private $hasJournalHoldings = false;
 	private $description = 'Holdings';
 	
     /**
@@ -44,7 +46,8 @@ class HoldingsILS extends AbstractBase {
      */
     public function getDescription() {
     	//return $this->description;
-    	return 'Holdings';
+    	//return 'Holdings';
+    	return 'Bestand';
     	
     	// Return "Online" if it's an electronic record. But this would be redundant.
     	/*
@@ -66,8 +69,26 @@ class HoldingsILS extends AbstractBase {
      * @return bool
      */
     public function isActive() {
-    	
     	$isActive = false;
+    	
+    	// If there are any journal holdings or item holdings, and the record is not electronic, show the tab
+    	$formats = $this->getRecordDriver()->tryMethod('getFormats');
+    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
+    	if ($format != 'electronic') {
+    		//$hasIlsHoldings = $this->getRecordDriver()->tryMethod('hasIlsHoldings');
+    		//$hasJournalHoldings = $this->getRecordDriver()->tryMethod('hasJournalHoldings');
+    		$this->setHasItemHoldings($this->getRecordDriver()->tryMethod('hasIlsHoldings'));
+    		$this->setHasJournalHoldings($this->getRecordDriver()->tryMethod('hasJournalHoldings'));
+    		if ($this->hasItemHoldings() || $this->hasJournalHoldings()) {
+    			$isActive = true;
+    		}
+    	} else {
+    		// Activate tab to show URLs to online sources
+    		$isActive = true;
+    	}
+    	
+    	
+    	/*
     	$formats = $this->getRecordDriver()->tryMethod('getFormats');
     	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
     	if ($format != 'electronic') {
@@ -87,11 +108,40 @@ class HoldingsILS extends AbstractBase {
     			$isActive = true;
     		}
     	} else {
-    		// Activate tab to show URLs
+    		// Activate tab to show URLs to online sources
     		$isActive = true;
     	}
-
+    	*/
+    	
+    	
+    	/*
+    	// If is a "Fortlaufendes Werk" we have to check if there are holdings.
+    	if (! empty($this->getRecordDriver()->tryMethod('getFortlaufendeWerke'))) {
+    		$hasJournalHoldings = $this->getRecordDriver()->tryMethod('hasJournalHoldings');
+    		if ($hasJournalHoldings) {
+    			$tabEnabled = true;
+    		}
+    	}
+		*/
+    	
         return $isActive;
+    }
+    
+
+    public function hasItemHoldings() {
+    	return $this->hasItemHoldings;
+    }
+    
+    public function setHasItemHoldings($hasItemHoldings = false) {
+    	$this->hasItemHoldings = $hasItemHoldings;
+    }
+    
+    public function hasJournalHoldings() {
+    	return $this->hasJournalHoldings;
+    }
+    
+    public function setHasJournalHoldings($hasJournalHoldings = false) {
+    	$this->hasJournalHoldings = $hasJournalHoldings;
     }
     
     private function setDescription($description) {

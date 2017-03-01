@@ -255,6 +255,10 @@ a {
     table-layout: auto; /* Save space by keeping left column left-aligned */
 }
 
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+	border-bottom: 1px solid #ddd; /* Adding bottom border to better terminate a certain block */
+}
+
 /* Browse cataloge */
 a.list-group-item:hover, a.list-group-item:focus {
 	background-color: #ececec; /* Better visibility of hover colour */
@@ -470,12 +474,15 @@ a.list-group-item:hover, a.list-group-item:focus {
 	color: #555;
 }
 
-
 .akFacetsInfo {
 	/*margin-left: 10px;*/
 	position: absolute;
 	right: 40px;
 	top: 14px;
+}
+
+.akInfoHoldings {
+	margin-top: 10px;
 }
 
 
