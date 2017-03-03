@@ -357,6 +357,16 @@ $(document).ready(function() {
     });
 
 
+	
+	$('.akLoadMore').on('click', '#akLoadMoreItems', function() {
+		if ($('#akLoadMoreItems > i').hasClass('fa-spinner')) {
+			// Do not add loading spinner as it is already there
+		} else {
+			// Add loading spinner
+			$('#akLoadMoreItems').prepend('<i class="fa fa-spinner fa-spin"></i>&nbsp;');
+		}
+	});	
+	
 });
 
 

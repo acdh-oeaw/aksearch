@@ -485,6 +485,15 @@ a.list-group-item:hover, a.list-group-item:focus {
 	margin-top: 10px;
 }
 
+.akLoadMore {
+	margin-top: -10px;
+	text-align: right;
+}
+
+#akLoadMoreItemsSpinner {
+	display: none;
+}
+
 
 @media ( max-width : 767px) {
 	

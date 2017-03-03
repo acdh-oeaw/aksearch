@@ -36,6 +36,7 @@ class HoldingsILS extends AbstractBase {
 
 	private $hasItemHoldings = false;
 	private $hasJournalHoldings = false;
+	private $hasIlsOrJournalHoldings = false;
 	private $description = 'Holdings';
 	
     /**
@@ -45,20 +46,7 @@ class HoldingsILS extends AbstractBase {
      * @return string
      */
     public function getDescription() {
-    	//return $this->description;
-    	//return 'Holdings';
     	return 'Bestand';
-    	
-    	// Return "Online" if it's an electronic record. But this would be redundant.
-    	/*
-    	$formats = $this->getRecordDriver()->tryMethod('getFormats');
-    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
-    	if ($format != 'electronic') {
-        	return 'Holdings';
-    	} else {
-    		return 'Online';
-    	}
-    	*/
     }
 
 
@@ -75,54 +63,22 @@ class HoldingsILS extends AbstractBase {
     	$formats = $this->getRecordDriver()->tryMethod('getFormats');
     	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
     	if ($format != 'electronic') {
-    		//$hasIlsHoldings = $this->getRecordDriver()->tryMethod('hasIlsHoldings');
-    		//$hasJournalHoldings = $this->getRecordDriver()->tryMethod('hasJournalHoldings');
+    		/*
     		$this->setHasItemHoldings($this->getRecordDriver()->tryMethod('hasIlsHoldings'));
     		$this->setHasJournalHoldings($this->getRecordDriver()->tryMethod('hasJournalHoldings'));
     		if ($this->hasItemHoldings() || $this->hasJournalHoldings()) {
     			$isActive = true;
     		}
-    	} else {
-    		// Activate tab to show URLs to online sources
-    		$isActive = true;
-    	}
-    	
-    	
-    	/*
-    	$formats = $this->getRecordDriver()->tryMethod('getFormats');
-    	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
-    	if ($format != 'electronic') {
-    		// If it is a journal or if the record has child records, we first test if there are ILS holdings before we show the tab
-    		$isJournal = $this->getRecordDriver()->tryMethod('isJournal');
-    		$isParentOfVolumes = $this->getRecordDriver()->tryMethod('isParentOfVolumes');
-    		$isParentOfArticles = $this->getRecordDriver()->tryMethod('isParentOfArticles');
-    		if ($isJournal || $isParentOfVolumes || $isParentOfArticles) {
-    			$hasIlsHoldings = $this->getRecordDriver()->tryMethod('hasIlsHoldings');
-    			if ($hasIlsHoldings) {
-    				if ($isJournal) {
-    					$this->setDescription('Bindeeinheiten');
-    				}
-    				$isActive = true;
-    			}
-    		} else {
+    		*/
+    		
+    		$this->setHasIlsOrJournalHoldings($this->getRecordDriver()->tryMethod('hasIlsOrJournalHoldings'));
+    		if ($this->hasIlsOrJournalHoldings()) {
     			$isActive = true;
     		}
     	} else {
     		// Activate tab to show URLs to online sources
     		$isActive = true;
     	}
-    	*/
-    	
-    	
-    	/*
-    	// If is a "Fortlaufendes Werk" we have to check if there are holdings.
-    	if (! empty($this->getRecordDriver()->tryMethod('getFortlaufendeWerke'))) {
-    		$hasJournalHoldings = $this->getRecordDriver()->tryMethod('hasJournalHoldings');
-    		if ($hasJournalHoldings) {
-    			$tabEnabled = true;
-    		}
-    	}
-		*/
     	
         return $isActive;
     }
@@ -143,6 +99,16 @@ class HoldingsILS extends AbstractBase {
     public function setHasJournalHoldings($hasJournalHoldings = false) {
     	$this->hasJournalHoldings = $hasJournalHoldings;
     }
+    
+    public function hasIlsOrJournalHoldings() {
+    	return $this->hasIlsOrJournalHoldings;
+    }
+    
+    public function setHasIlsOrJournalHoldings($hasIlsOrJournalHoldings = false) {
+    	$this->hasIlsOrJournalHoldings = $hasIlsOrJournalHoldings;
+    }
+    
+    
     
     private function setDescription($description) {
     	$this->description = $description;

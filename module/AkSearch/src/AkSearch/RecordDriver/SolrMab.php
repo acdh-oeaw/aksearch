@@ -1711,6 +1711,7 @@ class SolrMab extends SolrDefault  {
 	// #######################################################################################
 	// ################################## ILS COMMUNICATION ##################################
 	// #######################################################################################
+	
 	/**
      * Attach an ILS connection and related logic to the driver
      * 
@@ -1771,8 +1772,6 @@ class SolrMab extends SolrDefault  {
     }
     
     
-
-    
     /**
      * Get an array of information about record holdings, obtained in real-time from the ILS.
      * Mask call nos and collections if value set in AKsearch.ini
@@ -1819,6 +1818,14 @@ class SolrMab extends SolrDefault  {
     	}
     }
 
+    
+    /**
+     * Masking values according to AKsearch.ini
+     * 
+     * @param unknown $stringToMask
+     * @param string $mode
+     * @return unknown|string|mixed
+     */
     private function getMaskedValue($stringToMask, $mode = 'begins') {
     	
     	if ($mode == 'begins') {
@@ -1851,10 +1858,10 @@ class SolrMab extends SolrDefault  {
     		return preg_replace("/./", '*', substr($stringToMask, 0, strlen($stringToMask)));
     	}
     	
-    	
     	return $stringToMask;
     }
 
+    
     /**
      * Get an array of information about record history, obtained in real-time from the ILS.
      * 
@@ -1862,8 +1869,7 @@ class SolrMab extends SolrDefault  {
      * 
      * @return array
      */
-    public function getRealTimeHistory()
-    {
+    public function getRealTimeHistory() {
         // Get Acquisitions Data
         if (!$this->hasILS()) {
             return array();
@@ -1875,6 +1881,7 @@ class SolrMab extends SolrDefault  {
         }
     }
 
+    
     /**
      * Get a link for placing a title level hold.
      * 
@@ -1894,6 +1901,17 @@ class SolrMab extends SolrDefault  {
         return false;
     }
 	
+    
+    /**
+     * Check if we have to show a "load more" link/button for items list in the holdings tab.
+     * 
+     * @return boolean		true if the link/button should be displayed, false otherwise
+     */
+    public function showLoadMore() {
+    	return $this->ils->showLoadMore($this->getSysNo());
+    }
+    
+    
     /**
      * Gets the status of the record (available or unavailable) from the ILS driver.
      * See also getStatus() function in \VuFind\ILS\Driver\Aleph
@@ -1909,6 +1927,7 @@ class SolrMab extends SolrDefault  {
     		return $this->ils->getStatus($this->getSysNo());
     	}
     }
+    
     
     /**
      * Gets the Aleph journal holdings
@@ -1926,6 +1945,7 @@ class SolrMab extends SolrDefault  {
     	}
     }
     
+    
     /**
      * Gets the sublibrary name by sublibrary code
      * 
@@ -1935,6 +1955,7 @@ class SolrMab extends SolrDefault  {
     	return $this->ils->getSubLibName($subLibCode);
     }
 
+    
     /**
      * Gets the URLs available for the record (e. g. to table of contents, etc.)
      *
@@ -1967,17 +1988,37 @@ class SolrMab extends SolrDefault  {
     			}
     		}
     	}
-    	
    		return $retVal;
     }
     
     
+    /**
+     * Check if the BIB record has holdings (= items).
+     * 
+     * @return boolean	true if at least one holding (item) exists, false otherwise.
+     */
     public function hasIlsHoldings() {
     	return $this->ils->hasIlsHoldings($this->getSysNo());
     }
     
+    
+    /**
+     * Check if the BIB record has journal holdings (= real holding).
+     * 
+     * @return boolean	true if at least one journal holding exists, false otherwise.
+     */
     public function hasJournalHoldings() {
     	return $this->ils->hasJournalHoldings($this->getSysNo());
+    }
+    
+    
+    /**
+     * Check if the BIB record has journal holdings (= real holding).
+     *
+     * @return boolean	true if at least one journal holding exists, false otherwise.
+     */
+    public function hasIlsOrJournalHoldings() {
+    	return $this->ils->hasIlsOrJournalHoldings($this->getSysNo());
     }
     
     

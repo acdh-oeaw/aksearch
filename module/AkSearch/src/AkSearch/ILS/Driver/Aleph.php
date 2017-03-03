@@ -108,8 +108,10 @@ class Aleph extends AlephDefault {
 	 *
 	 * @return SimpleXMLElement
 	 */
-	protected function doHTTPRequest($url, $method = 'GET', $body = null)
-	{
+	protected function doHTTPRequest($url, $method = 'GET', $body = null) {
+		//echo 'Send HTTP request ' . date('h:i:s') . '<br>';
+		usleep(200000); // Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time
+		
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
 		}
@@ -137,10 +139,23 @@ class Aleph extends AlephDefault {
 		}
 		$answer = str_replace('xmlns=', 'ns=', $answer);
 		$result = simplexml_load_string($answer);
+		
 		if (!$result) {
 			if ($this->debug_enabled) {
 				$this->debug("XML is not valid, URL: $url");
 			}
+			
+			/*
+			echo '<strong>Aleph -> doHTTPRequest() -> $answer</strong><br />';
+			echo '<pre>';
+			print_r($answer);
+			echo '</pre>';
+			
+			echo '<strong>Aleph -> doHTTPRequest() -> $result</strong><br />';
+			echo '<pre>';
+			print_r($result);
+			echo '</pre>';
+			*/	
 			throw new ILSException(
 					"XML is not valid, URL: $url method: $method answer: $answer."
 					);
@@ -212,12 +227,26 @@ class Aleph extends AlephDefault {
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;
-		$params = array('view' => 'full');
+		
+		// Check if the 'loadAll' GET variable exists. If not, load only the number of items specified by the user.
+		$noOfItemsToLoad = ''; // Inital value of $noOfItemsToLoad
+		if (!key_exists('loadAll', $_GET)) {
+			// Get the number of items that should be loaded initially. This is for load performance if a record has a lot of items.
+			$noOfItemsToLoad = ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
+			if ($noOfItemsToLoad != null && !empty($noOfItemsToLoad)) {
+				if (strcasecmp($noOfItemsToLoad, 'all') == 0) {
+					$noOfItemsToLoad = ''; // Set no value. This shows all items.
+				}
+			}
+		}
+		
+		$params = array('view' => 'full', 'noItems' => $noOfItemsToLoad);
 		if (! empty($patron['id'])) {
 			$params['patron'] = $patron['id'];
 		} else if (isset($this->defaultPatronId)) {
 			$params['patron'] = $this->defaultPatronId;
 		}
+		
 		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
 		foreach ($xml->{'items'}->{'item'} as $item) {
 			$item_status = (string) $item->{'z30-item-status-code'}; // $isc
@@ -299,9 +328,51 @@ class Aleph extends AlephDefault {
                 /* below are optional attributes*/
                 'collection' => (string) $collection, 'collection_desc' => (string) $collection_desc['desc'], 'callnumber_second' => (string) $z30->{'z30-call-no-2'}, 'sub_lib_desc' => (string) $item_status['sub_lib_desc'], 'no_of_loans' => (string) $z30->{'$no_of_loans'}, 'requested' => (string) $requested);
 		}
+		
 		return $holding;
 	}
+	
+	
+	/**
+	 * Check if the "show more items" link/button should be displayed or not.
+	 * 
+	 * @param unknown $id	ID of a BIB record
+	 * @return boolean		true if the link/button should be displayed, false otherwise
+	 */
+	public function showLoadMore($id) {
+		$showLoadMore = false;
+		
+		if (!key_exists('loadAll', $_GET)) {
+			$noOfItemsToLoad = ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
+			if (strcasecmp($noOfItemsToLoad, 'all') != 0) { // If $noOfItemsToLoad is NOT 'all'
+				$noOfTotalItems = $this->countItems($id); // Get the total number of items for this record
+				if ($noOfTotalItems > $noOfItemsToLoad) { // If the record has more records than there are displayed, show the "load more" link/button.
+					$showLoadMore = true;
+				}
+			}
+		}
+		return $showLoadMore;
+	}
+	
+	
+	/**
+	 * Count the items of a BIB record.
+	 * 
+	 * @param unknown $id	ID of a BIB record 
+	 * @return number		The total number of items for the given BIB record
+	 */
+	public function countItems($id) {
+		$holding = array();
+		list ($bib, $sys_no) = $this->parseId($id);
+		$resource = $bib . $sys_no;
+	
+		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'));
+		$noOfTotalItems = count($xml->{'items'}->{'item'});
+		
+		return $noOfTotalItems;
+	}
 
+	
 	/**
 	 * Parse a date.
 	 *
@@ -1012,7 +1083,7 @@ class Aleph extends AlephDefault {
      * things like the "Holding" tab without the need to process the holding data from the API.
      * 
      * @param string	$id
-     * @return boolean	true if at least one holding exists, false otherwise.
+     * @return boolean	true if at least one holding (item) exists, false otherwise.
      */
     public function hasIlsHoldings($id) {
     	$hasIlsHoldings = false;
@@ -1034,13 +1105,28 @@ class Aleph extends AlephDefault {
      */
     public function hasJournalHoldings($id) {
     	$hasJournalHoldings = false;
-    	list ($bib, $sys_no) = $this->parseId($id);
-    	$resource = $bib . $sys_no;
-    	$xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), $params);
+    	//list ($bib, $sys_no) = $this->parseId($id);
+    	//$resource = $bib . $sys_no;
+    	//$xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), $params);
+    	$bibId = $this->bib[0] . $id;
+    	$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'));
     	if (count($xml->holdings->holding) > 0) {
     		$hasJournalHoldings = true;
     	}
     	return $hasJournalHoldings;
+    }
+    
+    
+    public function hasIlsOrJournalHoldings($id) {
+    	$hasIlsOrJournalHoldings = false;
+    	if ($this->hasIlsHoldings($id)) {
+    		$hasIlsOrJournalHoldings = true;
+    	} else {	
+    		if ($this->hasJournalHoldings($id)) {
+    			$hasIlsOrJournalHoldings = true;
+    		}
+    	}
+    	return $hasIlsOrJournalHoldings;
     }
     
     

@@ -7,8 +7,9 @@ $openUrl = $this->openUrl($this->driver, 'holdings');
 $openUrlActive = $openUrl->isActive();
 $urls = $this->record($this->driver)->getLinkDetails($openUrlActive);
 $offlineMode = $this->ils()->getOfflineMode();
-$hasItemHoldings = $this->tab->hasItemHoldings();
-$hasJournalHoldings = $this->tab->hasJournalHoldings();
+//$hasItemHoldings = $this->tab->hasItemHoldings();
+//$hasJournalHoldings = $this->tab->hasJournalHoldings();
+$hasIlsOrJournalHoldings = $this->tab->hasIlsOrJournalHoldings();
 
 
 // Set page title.
@@ -57,7 +58,10 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 <?php
 
 /*########################### ITEM HOLDINGS ###########################*/
-if ($hasItemHoldings) {
+if ($hasIlsOrJournalHoldings) {
+	
+	$showLoadMore = $this->driver->showLoadMore();
+	
 	foreach ($holdings as $location => $holdingsOfLocation) {
 	
 		echo '<br /><h3>'.$this->transEsc('itemHoldingsText').': '.$this->transEsc($location).'</h3><br />';
@@ -73,13 +77,6 @@ if ($hasItemHoldings) {
 				$hasDescription = true;
 			}
 		}
-		
-		/*
-		$subLibName = $this->driver->getSubLibraryName($location);		
-		if ($subLibName != null && !empty($subLibName)) {
-			echo '<p>' . $subLibName . '</p><br />';
-		}
-		*/
 		
 		echo '<table class="table" summary="'.$this->transEsc('Holdings details from').' '.$this->transEsc($location).'">';
 	
@@ -162,65 +159,72 @@ if ($hasItemHoldings) {
 		}
 	
 		echo '</table>';
+		
+		if ($showLoadMore) {
+			//echo '<div class="akLoadMore" id="akLoadMoreItems"><i class="fa fa-spinner fa-spin" id="akLoadMoreItemsSpinner"></i>&nbsp;<a href="">'.$this->transEsc('loadMore').'</a></div>';
+			echo '<div class="akLoadMore"><a href="'.$this->recordLink()->getUrl($this->driver).'/Holdings?loadAll" id="akLoadMoreItems">'.$this->transEsc('loadMore').'&nbsp;<i class="fa fa-chevron-down" aria-hidden="true"></i></a></div>';
+			//echo '<div class="akLoadMore"><a href="#" id="akLoadMoreItems">'.$this->transEsc('loadMore').'</a></div>';
+		}
 	}
-}
+
 
 
 /*########################### JOURNAL HOLDINGS ###########################*/
-
-if ($hasJournalHoldings) {
-	
+	usleep(200000);
 	$journalHoldingsArrays = $this->driver->getJournalHoldings();
 	$noOfHolingSublibs = count($journalHoldingsArrays);
 	
-	echo '<br /><h3>'.$this->transEsc('journalHoldingsText').'</h3><br />';
-	foreach ($journalHoldingsArrays as $journalHoldingsArray) {
-		echo '<table class="table" style="width: auto;">';
-		if ($noOfHolingSublibs > 1) {
-			if (isset($journalHoldingsArray['sublib'])) {
+	if (!empty($journalHoldingsArrays)) {
+		echo '<br /><h3>'.$this->transEsc('journalHoldingsText').'</h3><br />';
+		foreach ($journalHoldingsArrays as $journalHoldingsArray) {
+			echo '<table class="table" style="width: auto;">';
+			if ($noOfHolingSublibs > 1) {
+				if (isset($journalHoldingsArray['sublib'])) {
+					echo '<tr>';
+					echo '<th colspan="2" style="text-align: center;">'.$journalHoldingsArray['sublib'].'</th>';
+					echo '</tr>';
+				}
+			}
+			if (isset($journalHoldingsArray['holding'])) {
 				echo '<tr>';
-				echo '<th colspan="2" style="text-align: center;">'.$journalHoldingsArray['sublib'].'</th>';
+				echo '<th style="white-space: nowrap;">'.$this->transEsc('journalHoldings').'</th>';
+				echo '<td width="99%">'.$journalHoldingsArray['holding'].'</td>';
 				echo '</tr>';
 			}
-		}
-		if (isset($journalHoldingsArray['holding'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">'.$this->transEsc('journalHoldings').'</th>';
-			echo '<td width="99%">'.$journalHoldingsArray['holding'].'</td>';
-			echo '</tr>';
-		}
-		if (isset($journalHoldingsArray['gaps'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">'.$this->transEsc('gaps').'</th>';
-			echo '<td width="99%">'.$journalHoldingsArray['gaps'].'</td>';
-			echo '</tr>';
-		}
-		if (isset($journalHoldingsArray['location'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">'.$this->transEsc('Location').'</th>';
-			echo '<td width="99%">'.$journalHoldingsArray['location'].'</td>';
-			echo '</tr>';
-		}
-		if (isset($journalHoldingsArray['shelfmark'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">'.$this->transEsc('Call Number').'</th>';
-			echo '<td width="99%">'.$journalHoldingsArray['shelfmark'].'</td>';
-			echo '</tr>';
-		}
-		if (isset($journalHoldingsArray['comment'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">'.$this->transEsc('comment').'</th>';
-			echo '<td width="99%">'.$journalHoldingsArray['comment'].'</td>';
-			echo '</tr>';
-		}
-		echo '</table>';
-	
-		if ($noOfHolingSublibs > 1) {
-			echo '<hr />';
+			if (isset($journalHoldingsArray['gaps'])) {
+				echo '<tr>';
+				echo '<th style="white-space: nowrap;">'.$this->transEsc('gaps').'</th>';
+				echo '<td width="99%">'.$journalHoldingsArray['gaps'].'</td>';
+				echo '</tr>';
+			}
+			if (isset($journalHoldingsArray['location'])) {
+				echo '<tr>';
+				echo '<th style="white-space: nowrap;">'.$this->transEsc('Location').'</th>';
+				echo '<td width="99%">'.$journalHoldingsArray['location'].'</td>';
+				echo '</tr>';
+			}
+			if (isset($journalHoldingsArray['shelfmark'])) {
+				echo '<tr>';
+				echo '<th style="white-space: nowrap;">'.$this->transEsc('Call Number').'</th>';
+				echo '<td width="99%">'.$journalHoldingsArray['shelfmark'].'</td>';
+				echo '</tr>';
+			}
+			if (isset($journalHoldingsArray['comment'])) {
+				echo '<tr>';
+				echo '<th style="white-space: nowrap;">'.$this->transEsc('comment').'</th>';
+				echo '<td width="99%">'.$journalHoldingsArray['comment'].'</td>';
+				echo '</tr>';
+			}
+			echo '</table>';
+		
+			if ($noOfHolingSublibs > 1) {
+				echo '<hr />';
+			}
 		}
 	}
+	
+	
 }
-
 ?>
 
 
