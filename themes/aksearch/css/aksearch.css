@@ -489,7 +489,11 @@ a.list-group-item:hover, a.list-group-item:focus {
 .akLoadMore {
 	margin-top: -10px;
 	text-align: right;
+	background-color: #f9f9f9;
+	padding: 3px;
+	border-radius: 5px;
 }
+
 
 #akLoadMoreItemsSpinner {
 	display: none;
