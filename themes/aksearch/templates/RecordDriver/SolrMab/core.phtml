@@ -12,8 +12,9 @@
   //$this->driver->getEntityFact('118540238');
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
-  <? $QRCode = $this->record($this->driver)->getQRCode("core"); 
-     $cover = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large'));
+  <? $QRCode = $this->record($this->driver)->getQRCode("core");
+     //$cover = $this->record($this->driver)->getCover('core', 'medium', $this->record($this->driver)->getThumbnail('large')); // Cover with link
+     $cover = $this->record($this->driver)->getCover('core', 'medium', false); // Cover without link
      $preview = $this->record($this->driver)->getPreviews(); ?>
   <? if ($QRCode || $cover || $preview): ?>
   <div class="col-sm-3">
