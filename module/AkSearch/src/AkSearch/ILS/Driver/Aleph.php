@@ -45,6 +45,10 @@ class Aleph extends AlephDefault {
 
 	protected $akConfig = null;
 	
+	protected $akHttpRequestRetries = 0;
+	
+	protected $akHttpRequestMaxRetries = 3;
+	
 	/**
 	 * Constructor
 	 *
@@ -57,6 +61,68 @@ class Aleph extends AlephDefault {
 				$this->cacheManager = $cacheManager;
 				$this->akConfig = $akConfig;
 	}
+	
+	
+	/**
+	 * Perform an HTTP request.
+	 *
+	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
+	 * Modified by AK Bibliothek Wien (Michael Birkner) (increased timeout)
+	 *
+	 * @param string $url    URL of request
+	 * @param string $method HTTP method
+	 * @param string $body   HTTP body (null for none)
+	 *
+	 * @return SimpleXMLElement
+	 */
+	protected function doHTTPRequest($url, $method = 'GET', $body = null) {
+		//echo 'Send HTTP request ' . date('h:i:s') . '<br>';
+		//usleep(200000); // Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time
+		$this->akHttpRequestRetries++;
+	
+		if ($this->debug_enabled) {
+			$this->debug("URL: '$url'");
+		}
+	
+		$result = null;
+		try {
+			$client = $this->httpService->createClient($url);
+			$client->setOptions(array('timeout'=>30)); // Increase read timeout because requesting Aleph APIs could take quite a while
+			$client->setMethod($method);
+			if ($body != null) {
+				$client->setRawBody($body);
+			}
+			$result = $client->send();
+		} catch (\Exception $e) {
+			throw new ILSException($e->getMessage());
+		}
+		if (!$result->isSuccess()) {
+			throw new ILSException('HTTP error');
+		}
+		$answer = $result->getBody();
+		if ($this->debug_enabled) {
+			$this->debug("url: $url response: $answer");
+		}
+		$answer = str_replace('xmlns=', 'ns=', $answer);
+		$result = simplexml_load_string($answer);		
+		
+		if ($result === null || empty($result)) {
+			// Retry max 3 times to get a result
+			if ($this->akHttpRequestRetries <= $this->akHttpRequestMaxRetries) {
+				$result = $this->doHTTPRequest($url, $method, $body);
+			} else {
+				if ($this->debug_enabled) {
+					$this->debug("XML is not valid, URL: $url");
+				}
+				throw new ILSException("XML is not valid, URL: $url, method: $method, answer: $answer.");
+			}		
+		} else {
+			$this->akHttpRequestRetries = 0;
+			return $result;
+		}
+		return $result;
+	}
+	
 	
 	/**
 	 * Perform an XServer request.
@@ -95,73 +161,6 @@ class Aleph extends AlephDefault {
 		return $result;
 	}
 	
-	
-	/**
-	 * Perform an HTTP request.
-	 *
-	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
-	 * Modified by AK Bibliothek Wien (Michael Birkner) (increased timeout)
-	 * 
-	 * @param string $url    URL of request
-	 * @param string $method HTTP method
-	 * @param string $body   HTTP body (null for none)
-	 *
-	 * @return SimpleXMLElement
-	 */
-	protected function doHTTPRequest($url, $method = 'GET', $body = null) {
-		//echo 'Send HTTP request ' . date('h:i:s') . '<br>';
-		usleep(200000); // Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time
-		
-		if ($this->debug_enabled) {
-			$this->debug("URL: '$url'");
-		}
-	
-		//echo "URL: '$url'<br>";
-		
-		$result = null;
-		try {
-			$client = $this->httpService->createClient($url);
-			$client->setOptions(array('timeout'=>30)); // Increase read timeout because requesting Aleph APIs could take quite a while
-			$client->setMethod($method);
-			if ($body != null) {
-				$client->setRawBody($body);
-			}
-			$result = $client->send();
-		} catch (\Exception $e) {
-			throw new ILSException($e->getMessage());
-		}
-		if (!$result->isSuccess()) {
-			throw new ILSException('HTTP error');
-		}
-		$answer = $result->getBody();
-		if ($this->debug_enabled) {
-			$this->debug("url: $url response: $answer");
-		}
-		$answer = str_replace('xmlns=', 'ns=', $answer);
-		$result = simplexml_load_string($answer);
-		
-		if (!$result) {
-			if ($this->debug_enabled) {
-				$this->debug("XML is not valid, URL: $url");
-			}
-			
-			/*
-			echo '<strong>Aleph -> doHTTPRequest() -> $answer</strong><br />';
-			echo '<pre>';
-			print_r($answer);
-			echo '</pre>';
-			
-			echo '<strong>Aleph -> doHTTPRequest() -> $result</strong><br />';
-			echo '<pre>';
-			print_r($result);
-			echo '</pre>';
-			*/	
-			throw new ILSException(
-					"XML is not valid, URL: $url method: $method answer: $answer."
-					);
-		}
-		return $result;
-	}
 
 	/**
 	 * Perform a RESTful DLF request.
@@ -180,11 +179,12 @@ class Aleph extends AlephDefault {
 	 *        	
 	 * @return SimpleXMLElement
 	 */
-	protected function doRestDLFRequest($path_elements, $params = null, $method = 'GET', $body = null) {
+	protected function doRestDLFRequest($path_elements, $params = null, $method = 'GET', $body = null) {		
 		$path = '';
 		foreach ($path_elements as $path_element) {
 			$path .= $path_element . "/";
 		}
+		
 		// Changed to https (original is with http) and removed port (not used at AK Bibliothek Wien)
 		$url = "https://$this->host/rest-dlf/" . $path;
 		$url = $this->appendQueryString($url, $params);
@@ -192,6 +192,7 @@ class Aleph extends AlephDefault {
 		$result = $this->doHTTPRequest($url, $method, $body);
 		$replyCode = (string) $result->{'reply-code'};
 		if ($replyCode != "0000") {
+			$replyCode = (!$replyCode) ? '0' : $replyCode;
 			$replyText = (string) $result->{'reply-text'};
 			$this->logger->err("DLF request failed", array('url' => $url, 'reply-code' => $replyCode, 'reply-message' => $replyText));
 			$ex = new AlephRestfulExceptionDefault($replyText, $replyCode);
@@ -362,6 +363,7 @@ class Aleph extends AlephDefault {
 	 * @return number		The total number of items for the given BIB record
 	 */
 	public function countItems($id) {
+		usleep(200000); // Sleep some microseconds to avoid too many API-calls at the same time.
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;
@@ -628,6 +630,12 @@ class Aleph extends AlephDefault {
 		foreach ($xmlGetHolListHrefs as $xmlGetHolListHref) {
 			$arrHolListHrefs[] = $xmlGetHolListHref['href'];
 		}
+		
+		/*
+		echo '<pre>';
+		print_r($arrHolListHrefs);
+		echo '</pre>';
+		*/
 		
 		foreach ($arrHolListHrefs as $holdingHref) {
 
@@ -1089,7 +1097,7 @@ class Aleph extends AlephDefault {
     	$hasIlsHoldings = false;
     	list ($bib, $sys_no) = $this->parseId($id);
     	$resource = $bib . $sys_no;
-    	$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
+    	$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), null);
     	if (count($xml->items) > 0) {
     		$hasIlsHoldings = true;
     	}
@@ -1105,19 +1113,23 @@ class Aleph extends AlephDefault {
      */
     public function hasJournalHoldings($id) {
     	$hasJournalHoldings = false;
-    	//list ($bib, $sys_no) = $this->parseId($id);
-    	//$resource = $bib . $sys_no;
-    	//$xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), $params);
-    	$bibId = $this->bib[0] . $id;
-    	$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'));
+    	
+    	//$bibId = $this->bib[0] . $id;
+    	//$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'));
+    	
+    	list ($bib, $sys_no) = $this->parseId($id);
+    	$resource = $bib . $sys_no;
+    	$xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), null);
+    	
     	if (count($xml->holdings->holding) > 0) {
     		$hasJournalHoldings = true;
     	}
+    	
     	return $hasJournalHoldings;
     }
     
     
-    public function hasIlsOrJournalHoldings($id) {
+    public function hasIlsOrJournalHoldings($id) {    	
     	$hasIlsOrJournalHoldings = false;
     	if ($this->hasIlsHoldings($id)) {
     		$hasIlsOrJournalHoldings = true;

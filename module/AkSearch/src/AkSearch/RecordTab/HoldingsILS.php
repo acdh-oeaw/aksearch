@@ -57,22 +57,20 @@ class HoldingsILS extends AbstractBase {
      * @return bool
      */
     public function isActive() {
+    	
+    	// Always show holdings tab. We display a message for the user in case there are no holdings at all.
+    	return true;
+    	
+    	/*
     	$isActive = false;
     	
     	// If there are any journal holdings or item holdings, and the record is not electronic, show the tab
     	$formats = $this->getRecordDriver()->tryMethod('getFormats');
     	$format = ($formats != null && count($formats) == 1) ? $formats[0] : null;
     	if ($format != 'electronic') {
-    		/*
-    		$this->setHasItemHoldings($this->getRecordDriver()->tryMethod('hasIlsHoldings'));
-    		$this->setHasJournalHoldings($this->getRecordDriver()->tryMethod('hasJournalHoldings'));
-    		if ($this->hasItemHoldings() || $this->hasJournalHoldings()) {
-    			$isActive = true;
-    		}
-    		*/
-    		
-    		$this->setHasIlsOrJournalHoldings($this->getRecordDriver()->tryMethod('hasIlsOrJournalHoldings'));
-    		if ($this->hasIlsOrJournalHoldings()) {
+    		$hasIlsOrJournalHoldings = $this->getRecordDriver()->tryMethod('hasIlsOrJournalHoldings');
+    		$this->setHasIlsOrJournalHoldings($hasIlsOrJournalHoldings);
+    		if ($hasIlsOrJournalHoldings) {
     			$isActive = true;
     		}
     	} else {
@@ -81,6 +79,7 @@ class HoldingsILS extends AbstractBase {
     	}
     	
         return $isActive;
+        */
     }
     
 

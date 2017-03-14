@@ -100,6 +100,17 @@ class SolrMab extends SolrDefault  {
     ];
     
     
+
+	/**
+	 * Get the config values from AKsearch.ini
+	 * 
+	 * @return NULL|string
+	 */
+    public function getAkConfig() {
+    	$akConfig = ($this->akConfig) ? $this->akConfig : null;
+    	return $akConfig;
+    }
+    
     
     /**
      * Pick one line from the highlighted text (if any) to use as a snippet.
@@ -1998,7 +2009,18 @@ class SolrMab extends SolrDefault  {
      * @return boolean	true if at least one holding (item) exists, false otherwise.
      */
     public function hasIlsHoldings() {
-    	return $this->ils->hasIlsHoldings($this->getSysNo());
+    	
+    	// Check if ILS is active
+    	if (!$this->hasILS()) {
+    		return false;
+    	}
+    	
+    	try {
+    		return $this->ils->hasIlsHoldings($this->getSysNo());
+    	} catch (ILSException $e) {
+    		return false;
+    	}
+    	
     }
     
     
@@ -2008,17 +2030,36 @@ class SolrMab extends SolrDefault  {
      * @return boolean	true if at least one journal holding exists, false otherwise.
      */
     public function hasJournalHoldings() {
-    	return $this->ils->hasJournalHoldings($this->getSysNo());
+    	// Check if ILS is active
+    	if (!$this->hasILS()) {
+    		return false;
+    	}
+    	
+    	try {
+    		return $this->ils->hasJournalHoldings($this->getSysNo());
+    	} catch (ILSException $e) {
+    		return false;
+    	}
+
     }
     
     
     /**
-     * Check if the BIB record has journal holdings (= real holding).
+     * Check if the BIB record has journal holdings (= real holding) or ILS holdings (= items).
      *
      * @return boolean	true if at least one journal holding exists, false otherwise.
      */
     public function hasIlsOrJournalHoldings() {
-    	return $this->ils->hasIlsOrJournalHoldings($this->getSysNo());
+    	// Check if ILS is active
+    	if (!$this->hasILS()) {
+    		return false;
+    	}
+    	
+    	try {
+    		return $this->ils->hasIlsOrJournalHoldings($this->getSysNo());
+    	} catch (ILSException $e) {
+    		return false;
+    	}
     }
     
     
