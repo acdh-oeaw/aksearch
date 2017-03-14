@@ -182,59 +182,58 @@ if (! empty($holdings)) {
 usleep(500000);
 
 // Getting journal holdings from API
-$journalHoldingsArrays = $this->driver->getJournalHoldings();
-$noOfHolingSublibs = count($journalHoldingsArrays);
+$journalHoldings = $this->driver->getJournalHoldings();
 
-if (! empty($journalHoldingsArrays)) {
+// Get no of holdings
+$noOfHolings = count($journalHoldings);
+
+if (! empty($journalHoldings)) {
+	
 	echo '<br /><h3>' . $this->transEsc('journalHoldingsText') . '</h3><br />';
-	foreach ($journalHoldingsArrays as $journalHoldingsArray) {
+	
+	foreach ($journalHoldings as $key => $journalHolding) {
+
 		echo '<table class="table" style="width: auto;">';
-		if ($noOfHolingSublibs > 1) {
-			if (isset($journalHoldingsArray['sublib'])) {
-				echo '<tr>';
-				echo '<th colspan="2" style="text-align: center;">' . $journalHoldingsArray['sublib'] . '</th>';
-				echo '</tr>';
-			}
+		if ($noOfHolings > 1) {
+			echo '<tr>';
+			echo '<th colspan="2" style="text-align: center; border-top: 0px; margin-top: 5px;">' . $this->translate('Bestand') . ' ' .$key . '</th>';
+			echo '</tr>';
 		}
-		if (isset($journalHoldingsArray['holding'])) {
+		if (!empty($journalHolding['holding'])) {
 			echo '<tr>';
 			echo '<th style="white-space: nowrap;">' . $this->transEsc('journalHoldings') . '</th>';
-			echo '<td width="99%">' . $journalHoldingsArray['holding'] . '</td>';
+			echo '<td width="99%">' . $journalHolding['holding'] . '</td>';
 			echo '</tr>';
 		}
-		if (isset($journalHoldingsArray['gaps'])) {
+		if (!empty($journalHolding['gaps'])) {
 			echo '<tr>';
 			echo '<th style="white-space: nowrap;">' . $this->transEsc('gaps') . '</th>';
-			echo '<td width="99%">' . $journalHoldingsArray['gaps'] . '</td>';
+			echo '<td width="99%">' . $journalHolding['gaps'] . '</td>';
 			echo '</tr>';
 		}
-		if (isset($journalHoldingsArray['location'])) {
+		if (!empty($journalHolding['location'])) {
 			echo '<tr>';
 			echo '<th style="white-space: nowrap;">' . $this->transEsc('Location') . '</th>';
-			echo '<td width="99%">' . $journalHoldingsArray['location'] . '</td>';
+			echo '<td width="99%">' . $journalHolding['location'] . '</td>';
 			echo '</tr>';
 		}
-		if (isset($journalHoldingsArray['shelfmark'])) {
+		if (!empty($journalHolding['shelfmark'])) {
 			echo '<tr>';
 			echo '<th style="white-space: nowrap;">' . $this->transEsc('Call Number') . '</th>';
-			echo '<td width="99%">' . $journalHoldingsArray['shelfmark'] . '</td>';
+			echo '<td width="99%">' . $journalHolding['shelfmark'] . '</td>';
 			echo '</tr>';
 		}
-		if (isset($journalHoldingsArray['comment'])) {
+		if (!empty($journalHolding['comment'])) {
 			echo '<tr>';
 			echo '<th style="white-space: nowrap;">' . $this->transEsc('comment') . '</th>';
-			echo '<td width="99%">' . $journalHoldingsArray['comment'] . '</td>';
+			echo '<td width="99%">' . $journalHolding['comment'] . '</td>';
 			echo '</tr>';
 		}
 		echo '</table>';
-		
-		if ($noOfHolingSublibs > 1) {
-			echo '<hr />';
-		}
 	}
 }
 
-if (empty($holdings) && empty($journalHoldingsArrays)) {
+if (empty($holdings) && empty($journalHoldings)) {
 	echo '<br /><h3>' . $this->transEsc('akNoHoldings') . '</h3><br />';
 }
 

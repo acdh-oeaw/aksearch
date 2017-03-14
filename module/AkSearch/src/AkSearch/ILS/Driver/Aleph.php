@@ -605,9 +605,12 @@ class Aleph extends AlephDefault {
 		return $recordList;
 	}
 	
+	
+	
 	/* ################################################################################################## */
 	/* ######################################### AkSearch Begin ######################################### */
 	/* ################################################################################################## */
+	
 	
 	/**
 	 * Get Aleph journal holding record
@@ -618,107 +621,52 @@ class Aleph extends AlephDefault {
 	 * @return array
 	 */
 	public function getJournalHoldings($id) {
+		$arrReturnValue = null;
 		
-		$xmlGetHol = null;
+		// Get XML from API
 		$bibId = $this->bib[0] . $id;
-		$xmlGetHolList = $this->doRestDLFRequest(array('record', $bibId, 'holdings'));
-		                                                                               
-		// Get links to all holding-records:
-		$xmlGetHolListHrefs = $xmlGetHolList->xpath('//holding[@href]');
-
-		// Add links to holding-records to an array:
-		foreach ($xmlGetHolListHrefs as $xmlGetHolListHref) {
-			$arrHolListHrefs[] = $xmlGetHolListHref['href'];
-		}
+		$params = array('view' => 'full');
+		$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'), $params);
 		
-		/*
-		echo '<pre>';
-		print_r($arrHolListHrefs);
-		echo '</pre>';
-		*/
-		
-		foreach ($arrHolListHrefs as $holdingHref) {
-
-			$xmlGetHol = simplexml_load_file($holdingHref);
-			$xml200Fields = $xmlGetHol->xpath('//datafield[@tag="200"]');
+		// Iterate over holding entries
+		$counter = 0;
+		foreach ($xml->{'holdings'}->{'holding'} as $holding) {
 			
-			if (! empty($xml200Fields)) { // If at least one 200-field exists, go on and get the appropriate values
+			// Get 200 fields of holding
+			$xml200Fields = $holding->xpath('datafield[@tag="200"]');
+			
+			// If at least one 200-field exists, go on and get the appropriate values.
+			// Info: A correct holding only contains one 200 field!
+			if (! empty($xml200Fields)) {
 				
 				foreach ($xml200Fields as $key200Field => $xml200Field) {
+					$counter++;
 					
-					$xmlHolingsTest = $xml200Field->xpath('//subfield[@code="b"]/text()');
-					$arrHoldingsTest = $this->getXmlFieldContent($xmlHolingsTest);
+					// Get values from XML as arrays and glue together the array items to a string (separated by comma)
+					$sublibrary = implode(', ', $xml200Field->xpath('subfield[@code="2"]/text()'));
+					$holdingSummary = implode(', ', $xml200Field->xpath('subfield[@code="b"]/text()'));
+					$gaps = implode(', ', $xml200Field->xpath('subfield[@code="c"]/text()'));
+					$shelfMark = implode(', ', $xml200Field->xpath('subfield[@code="f"]/text()'));
+					$location = implode(', ', $xml200Field->xpath('subfield[@code="g"]/text()'));
+					$locationShelfMark = implode(', ', $xml200Field->xpath('subfield[@code="h"]/text()'));
+					$comment = implode(', ', $xml200Field->xpath('subfield[@code="e"]/text()'));
 					
-					if (! empty($arrHoldingsTest)) {
-						foreach ($arrHoldingsTest as $key => $string) {
-							$arrReturnValueTest[$key200Field][$key]['holding'] = $string;
-						}
-					}
-				}
-				
-				// Get values from XML (returns an array with "SimpleXMLElement Object")
-				$xmlSublibrary = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="2"]/text()');
-				$xmlHolings = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="b"]/text()');
-				$xmlGaps = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="c"]/text()');
-				$xmlShelfMark = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="f"]/text()');
-				$xmlLocation = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="g"]/text()');
-				$xmlLocationShelfMark = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="h"]/text()');
-				$xmlComment = $xmlGetHol->xpath('//datafield[@tag="200"]/subfield[@code="e"]/text()');
-				
-				$arrSublibrary = $this->getXmlFieldContent($xmlSublibrary);
-				$arrHoldings = $this->getXmlFieldContent($xmlHolings);
-				$arrGaps = $this->getXmlFieldContent($xmlGaps);
-				$arrShelfMark = $this->getXmlFieldContent($xmlShelfMark);
-				$arrLocation = $this->getXmlFieldContent($xmlLocation);
-				$arrLocationShelfMark = $this->getXmlFieldContent($xmlLocationShelfMark);
-				$arrComment = $this->getXmlFieldContent($xmlComment);
-				
-				if (! empty($arrSublibrary)) {
-					foreach ($arrSublibrary as $key => $string) {
-						$arrReturnValue[$key]['sublib'] = $string;
-					}
-				}
-				
-				if (! empty($arrHoldings)) {
-					foreach ($arrHoldings as $key => $string) {
-						$arrReturnValue[$key]['holding'] = $string;
-					}
-				}
-				
-				if (! empty($arrGaps)) {
-					foreach ($arrGaps as $key => $string) {
-						$arrReturnValue[$key]['gaps'] = $string;
-					}
-				}
-				
-				if (! empty($arrShelfMark)) {
-					foreach ($arrShelfMark as $key => $string) {
-						$arrReturnValue[$key]['shelfmark'] = $string;
-					}
-				}
-				
-				if (! empty($arrLocation)) {
-					foreach ($arrLocation as $key => $string) {
-						$arrReturnValue[$key]['location'] = $string;
-					}
-				}
-				
-				if (! empty($arrLocationShelfMark)) {
-					foreach ($arrLocationShelfMark as $key => $string) {
-						$arrReturnValue[$key]['locationshelfmark'] = $string;
-					}
-				}
-				
-				if (! empty($arrComment)) {
-					foreach ($arrComment as $key => $string) {
-						$arrReturnValue[$key]['comment'] = $string;
-					}
+					// Add values to array
+					$arrReturnValue[$counter]['sublib'] = $sublibrary;
+					$arrReturnValue[$counter]['holding'] = $holdingSummary;
+					$arrReturnValue[$counter]['gaps'] = $gaps;
+					$arrReturnValue[$counter]['shelfmark'] = $shelfMark;
+					$arrReturnValue[$counter]['location'] = $location;
+					$arrReturnValue[$counter]['locationshelfmark'] = $locationShelfMark;
+					$arrReturnValue[$counter]['comment'] = $comment;
+
 				}
 			}
 		}
 		
 		return $arrReturnValue;
 	}
+	
 	
 	/**
 	 * Get the contents of an XML element
@@ -754,6 +702,7 @@ class Aleph extends AlephDefault {
 		return $subLibName;
 	}
 	
+	
 	/**
 	 * {@inheritDoc}
 	 * 
@@ -785,13 +734,6 @@ class Aleph extends AlephDefault {
 	public function getNewItemsArray($page, $limit, $daysOld, $fundId = null) {
     	$newItems = null;
     	
-    	/*
-    	echo '$page: '.$page.'<br />';
-		echo '$limit: '.$limit.'<br />';
-		echo '$daysOld: '.$daysOld.'<br />';
-		echo '$fundId: '.$fundId.'<br />';
-		*/
-    	
 		// Check if date picker was used
 		$isDatePicker = false;
 		if (substr($daysOld, 0, 11 ) === 'datePicker_') {
@@ -813,11 +755,9 @@ class Aleph extends AlephDefault {
 		
 		
 		// Execute search:
-		//$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP';
     	$requestText = 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA';
     	
 		$xFindParams = ['request' => $requestText, 'base' => 'AKW01'];
-		//$xFindParams = ['request' => 'WND='.$fromInventoryDate.'->'.$toInventoryDate.' NOT WEF=(j OR p OR z) NOT WNN=?RA NOT WNN=?SP', 'base' => 'AKW01'];
 		$findResult = $this->doXRequest('find', $xFindParams, false);
 		$setNumber = $findResult->set_number;
 		$noEntries = (int)$findResult->no_entries;
@@ -870,14 +810,6 @@ class Aleph extends AlephDefault {
 				}
 			}
 		}
-		
-		
-		/*
-		echo '<strong>Aleph -> getNewItemsArray()</strong><br />';
-		echo '<pre>';
-		print_r($newItems);
-		echo '</pre>';
-		*/
 		
 		return $newItems;
     }
@@ -1104,6 +1036,7 @@ class Aleph extends AlephDefault {
     	return $hasIlsHoldings;
     }
     
+    
     /**
      * Check if journal holding records exists for a certain record ID. This is a convenient method for enabling or disabling
      * things like the "JournalHolding" tab without the need to process the holding data from the API.
@@ -1116,7 +1049,6 @@ class Aleph extends AlephDefault {
     	
     	//$bibId = $this->bib[0] . $id;
     	//$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'));
-    	
     	list ($bib, $sys_no) = $this->parseId($id);
     	$resource = $bib . $sys_no;
     	$xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), null);
@@ -1129,6 +1061,12 @@ class Aleph extends AlephDefault {
     }
     
     
+    /**
+     * Check if journal holding OR item holding exists
+     * 
+     * @param string $id
+     * @return boolean
+     */
     public function hasIlsOrJournalHoldings($id) {    	
     	$hasIlsOrJournalHoldings = false;
     	if ($this->hasIlsHoldings($id)) {
@@ -1140,7 +1078,6 @@ class Aleph extends AlephDefault {
     	}
     	return $hasIlsOrJournalHoldings;
     }
-    
     
     
     
