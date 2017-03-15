@@ -37,7 +37,9 @@
  * "arbeiterkammer.at" for chunks[0] and "aksearch" for chunks[1]. But we need to have
  * "Record" and "000097874" to be able to build the right URL to the Ajax-Tab
  * which would http://aksearch.arbeiterkammer.at/aksearch/Record/000097874/AjaxTab
- * That's why in our case we need to use chunks[2] and chunks[3] in this case.
+ * That's why in case that we use the "aksearch" subfolder in the url, we need to use
+ * other chunks (probably chunks[2] and chunks[3]).
+ * The goal is to build a varialbe named 'urlroot' in this format '/Record/recordId'
  */
 function ajaxLoadTab(tabid) {
 
@@ -50,17 +52,13 @@ function ajaxLoadTab(tabid) {
 	// Parse out the base URL for the current record:
 	var urlParts = document.URL.split('#');
 	var urlWithoutFragment = urlParts[0];
-	var pathInUrl = urlWithoutFragment.indexOf(path);
-	var chunks = urlWithoutFragment.substring(pathInUrl + path.length + 1).split('/');
-	
-	
-	// If chunks 2 or 3 are undefined, use chunks 0 and 1 (same as in original code)
-	var urlroot = null;
-	if (chunks[2] == undefined || chunks[3] == undefined) {
-		urlroot = '/' + chunks[0] + '/' + chunks[1];
-	} else {
-		urlroot = '/' + chunks[2] + '/' + chunks[3];
-	}
+	var urlWithoutHttp = urlWithoutFragment.replace(/^https?\:\/\//i, "");
+	var chunks = urlWithoutHttp.split('/');
+	var indexOfRecord = chunks.indexOf('Record'); // Get the index of the word 'Record'
+
+	// Get the chunk with 'Record' (see indexOfRecord above) and the next one (which should be the chunk with the record id)
+	// 'urlroot' must be in this format: '/Record/recordId'
+	var urlroot = '/' + chunks[indexOfRecord] + '/' + chunks[indexOfRecord+1];
 
 	// Request the tab via AJAX:
 	$.ajax({
