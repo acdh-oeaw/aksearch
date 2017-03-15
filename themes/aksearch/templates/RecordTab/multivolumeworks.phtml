@@ -111,7 +111,12 @@
 						if ($col3 == 'n. A.') {
 							echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$this->transEsc($col3)."</a></td>";
 						} else {
-							echo "<td style='white-space:nowrap;'><a href='".$col3."' target='_blank'><i class='fa fa-external-link'></i> ".$this->transEsc('external_link')."</a></td>";
+							if (strpos($col3, 'emedien.arbeiterkammer.at') !== false) {
+								$urlText = $this->transEsc('go_to_fulltext');
+							} else {
+								$urlText = $this->transEsc('external_link');
+							}
+							echo "<td style='white-space:nowrap;'><a href='".$col3."' target='_blank'><i class='fa fa-external-link'></i> ".$urlText."</a></td>";
 						}
 					} else {
 						if ($col3 == 'n. A.') {
