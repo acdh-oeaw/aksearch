@@ -7,6 +7,7 @@ return array(
         'vendor/font-awesome.min.css',
         'vendor/bootstrap-slider.css',
     	'vendor/bootstrap-datepicker/bootstrap-datepicker3.min.css',
+    	'//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css',
         'print.css:print',
     ),
     'js' => array(
@@ -21,6 +22,8 @@ return array(
         'common.js',
     	'aksearch.js',
         'lightbox.js',
+    	'//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js',
+    	'cookieconsent.js'
     ),
     'less' => array(
         'active' => false,
