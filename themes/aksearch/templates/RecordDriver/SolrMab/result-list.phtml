@@ -138,8 +138,8 @@
 
 		$publicationDetails = $this->driver->getPublicationDetails();
 		$publisher = (isset($publicationDetails['publisher'])) ? $publicationDetails['publisher'] : null;
-		$publicationPlace = $publicationDetails['publishPlace'];
-		$publicationYear = $publicationDetails['publishDate'];
+		$publicationPlace = (isset($publicationDetails['publishPlace'])) ? $publicationDetails['publishPlace'] : null; //$publicationDetails['publishPlace'];
+		$publicationYear = (isset($publicationDetails['publishDate'])) ? $publicationDetails['publishDate'] : null; //$publicationDetails['publishDate'];
 		//$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
 		
 		if (isset($publicationYear)) {
