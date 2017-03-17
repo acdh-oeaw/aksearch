@@ -1,5 +1,5 @@
 /*
- * MIT License
+ * MIT License for cookieconsent code
  * 
  * Copyright (c) 2015 Silktide Ltd
  * 
@@ -15,7 +15,6 @@
  * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
  * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 window.addEventListener("load", function() {
 	window.cookieconsent.initialise({
 		"palette": {
@@ -32,7 +31,7 @@ window.addEventListener("load", function() {
 			"message": "Um Ihnen den bestmöglichen Service zu bieten, speichert diese Website Informationen über Ihren Besuch in sogenannten Cookies. Durch die Nutzung dieser Webseite erklären Sie sich mit der Verwendung von Cookies einverstanden. Weitere Informationen finden Sie in der ",
 			"dismiss": "OK",
 			"link": "Datenschutzerklärung.",
-			"href": "/AkSites/DataPrivacyStatement",
+			"href": "AkSites/DataPrivacyStatement",
 		}
 	})
 });
