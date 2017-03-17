@@ -32,7 +32,7 @@ window.addEventListener("load", function() {
 			"message": "Um Ihnen den bestmöglichen Service zu bieten, speichert diese Website Informationen über Ihren Besuch in sogenannten Cookies. Durch die Nutzung dieser Webseite erklären Sie sich mit der Verwendung von Cookies einverstanden. Weitere Informationen finden Sie in der ",
 			"dismiss": "OK",
 			"link": "Datenschutzerklärung.",
-			"href": "https://aksearch.arbeiterkammer.at/AkSites/DataPrivacyStatement"
+			"href": "/AkSites/DataPrivacyStatement",
 		}
 	})
 });
