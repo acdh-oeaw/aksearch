@@ -84,9 +84,9 @@ function setupAutocomplete() {
 // with the arrow keys in the autocomplete drop-down.
 setupAutocomplete();
 
-$(document).ready(function() {
 
-	
+$(document).ready(function() {
+		
 	$('.akFacetsInfo').click(function(e) {
 		// Stop default action (toggling of facet group)
 		e.preventDefault();

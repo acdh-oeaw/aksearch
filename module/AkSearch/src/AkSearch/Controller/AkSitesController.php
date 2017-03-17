@@ -48,7 +48,19 @@ class AkSitesController extends AbstractBase {
 	 * @return \Zend\View\Model\ViewModel
 	 */
 	public function dataPrivacyStatementAction() {
-		return $this->createViewModel();
+		$view = $this->createViewModel();
+		
+		// Get AKsearch.ini 
+		$akConfig = $this->getServiceLocator()->get('VuFind\Config')->get('AKsearch');
+		
+		// Check in AKsearch.ini if the Piwik paragraph should be displayed on the data privacy statement site.
+		$showPiwikParagraph = $akConfig->DataPrivacyStatement->showPiwikParagraph;
+		
+		// Set a variable that we can use in the template file (dataprivacystatement.phtml)
+		$view->showPiwikParagraph = ($showPiwikParagraph != null && isset($showPiwikParagraph)) ? $showPiwikParagraph : false;
+		
+		// Return the view to display the page
+		return $view;
 	}
 	
 	

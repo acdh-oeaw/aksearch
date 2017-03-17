@@ -36,6 +36,7 @@ return array(
             'flashmessages' => 'VuFind\View\Helper\Bootstrap3\Factory::getFlashmessages',
             'layoutclass' => 'VuFind\View\Helper\Bootstrap3\Factory::getLayoutClass',
         	'searchbox' => 'AkSearch\View\Helper\Root\Factory::getSearchBox',
+        	'piwikoptout' => 'AkSearch\View\Helper\Root\Factory::getPiwikOptOut',
         ),
         'invokables' => array(
             'highlight' => 'VuFind\View\Helper\Bootstrap3\Highlight',

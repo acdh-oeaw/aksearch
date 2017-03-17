@@ -58,4 +58,15 @@ class Factory extends \VuFind\View\Helper\Root\Factory {
     public static function getAuth(ServiceManager $sm) {
     	return new \AkSearch\View\Helper\Root\Auth($sm->getServiceLocator()->get('VuFind\AuthManager'));
     }
+    
+    public static function getPiwikOptOut(ServiceManager $sm) {
+    	$config = $sm->getServiceLocator()->get('VuFind\Config');
+    	$piwikUrl = $config->get('config')->Piwik->url; // Piwik URL from config.ini
+    	$piwikOptOut = $config->get('AKsearch')->DataPrivacyStatement->piwikOptOut;
+    	
+    	// AKsearch config:
+    	//$config->get('AKsearch');
+
+    	return new \AkSearch\View\Helper\Root\PiwikOptOut($piwikUrl, $piwikOptOut);
+    }
 }

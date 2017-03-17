@@ -1,106 +1,51 @@
-<h3>Datenschutzerklärung</h3>
-<br />
-<h4>Gespeicherte Daten</h4>
-
-<p>
-AKsearch speichert und verarbeitet folgende personenbezogene Daten, wenn Sie unsere Website besuchen:
-<br /><br />
-</p>
-
-<p>
-<h5>Serverlogs</h5>
-Die IP-Adresse des Anfragenden Computers, gemeinsam mit dem Datum, der Uhrzeit, der Anfrage, welche Datei angefragt wird (Name und URL), welche Datenmenge an Sie übertragen wird, eine Meldung, ob die Anfrage erfolgreich war, Erkennungsdaten des verwendeten Browsers und des verwendeten Betriebssystems, sowie die Website, von der der Zugriff erfolgte (sollte der Zugriff über einen Link erfolgen). Die Serverlogs werden gespeichert, um die Systemsicherheit prüfen zu können, die Website technisch administrieren, sowie das Angebot optimieren zu können. Diese Daten werden – sollte es einen Hackangriff gegeben haben – an die Strafverfolgungsbehörden weitergeben. Eine darüberhinausgehende Weitergabe an Dritte erfolgt nicht.
-</p>
-<br />
-
-<p>
-<h5>Cookies</h5>
-Cookies sind kleine Textdateien, die AKsearch auf dem Computer des Benutzers speichert, um diesen wiederzuerkennen. So dienen die in den Cookies enthaltenen Informationen der Sitzungssteuerung. Bei den meisten Web-Browsern werden Cookies automatisch akzeptiert. Durch Änderung der Einstellungen Ihres Browsers können Sie dies vermeiden. Sie können auf Ihrem PC gespeicherte Cookies jederzeit durch Löschen der temporären Internetdateien entfernen.
-</p>
-<br />
-
-<p>
-<h5>Piwik</h5>
-AKsearch nutzt Piwik, eine Software, die Websitebesuche statistisch erfasst. Dabei wird durch Cookies eine Analyse der Nutzung von AKsearch durchgeführt. Dazu werden die Nutzungsinformationen an AKsearch gesendet, wobei Ihre IP-Adresse sofort anonymisiert wird. Eine Weitergabe der Daten an Dritte erfolgt nicht, personenbezogene Daten werden nicht gespeichert. Von Piwik genutzte Cookies beginnen mit „_pk“. Sie können nachfolgend die Auswertung Ihres Besuchs auf AKsearch deaktivieren oder wieder aktivieren.
-<br /><br />
 <?php
-echo '<div>';
-echo '<span id="akPiwikOptOutText"></span>';
+// Translated texts for javascript
+$this->jsTranslations()->addStrings(
+	array(
+		'DataPrivacyStatementPiwikOptOutBtnText' => 'DataPrivacyStatementPiwikOptOutBtnText',
+		'DataPrivacyStatementPiwikOptInBtnText' => 'DataPrivacyStatementPiwikOptInBtnText',
+		'DataPrivacyStatementPiwikOptOutText' => 'DataPrivacyStatementPiwikOptOutText',
+		'DataPrivacyStatementPiwikOptInText' => 'DataPrivacyStatementPiwikOptInText'
+	)
+);
+
+echo '<h3>'.$this->transEsc('DataPrivacyStatement').'</h3>';
 echo '<br />';
-echo '<button id="akPiwikOptOutBtn"></button>';
-echo '</div>';
-?>
-<br />
-Dabei wird ein Cookie in Ihrem Browser hinterlegt, das verhindert, dass Ihre Besuchsdaten an Piwik übertragen werden. Sollten Sie Ihre Browser Cookies löschen so müssen Sie die Auswertung erneut deaktivieren.
-</p>
 
+echo '<p>';
+echo $this->transEsc('DataPrivacyStatementIntroText');
+echo '<br /><br />';
+echo '</p>';
 
-<!-- 
-Piwik opt out javascript.
-Placing javascript here because checking on every other site than this one if the user already opted out or not would cause an overhead.
--->
-<script type="text/javascript">
+echo '<p>';
+echo '<h5>Serverlogs</h5>';
+echo $this->transEsc('DataPrivacyStatementServerlogsText');
+echo '<br /><br />';
+echo '</p>';
 
-$(document).ready(function() {
-	// Piwik opt out
-	var optOutBtnText = 'Auswertung deaktivieren';
-	var optOutText = 'Ihr Besuch wird momentan ausgewertet. Klicken Sie auf den folgenden Button, um die Auswertung zu deaktivieren.';
-	var optInBtnText = 'Auswertung aktivieren';
-	var optInText = 'Die Auswertung Ihres Besuchs ist momentan deaktiviert. Klicken Sie auf den folgenden Button um sie wieder zu aktivieren.';
+echo '<p>';
+echo '<h5>Cookies</h5>';
+echo $this->transEsc('DataPrivacyStatementCookiesText');
+echo '<br /><br />';
+echo '</p>';
 
-	// Check on load of the data privacy statement site if the user has already opted out or not
-	var isTraced = null;
-	$.ajax({
-		method: 'POST',
-		url: 'http://aksearch.localhost.at/piwik/index.php?module=API&method=AjaxOptOut.isTracked'
-	}).done(function(result) {
-		var xml = $(result);
-		isTracked = xml.find('result').text();
-
-		if (isTracked == '0') {
-			$('#akPiwikOptOutBtn').text(optInBtnText);
-			$('#akPiwikOptOutBtn').val('doOptIn');
-			$('#akPiwikOptOutText').text(optInText);
-		} else if (isTracked == '1') {
-			$('#akPiwikOptOutBtn').text(optOutBtnText);
-			$('#akPiwikOptOutBtn').val('doOptOut');
-			$('#akPiwikOptOutText').text(optOutText);
-		}
-	});
-
-	$('#akPiwikOptOutBtn').click(function(e) {
-		var btnValue = $(this).val();
-		optInOrOut(btnValue);
-	});
-
-	function optInOrOut(inOrOut) {
-
-		var urlSuffix = null;
-		if (inOrOut == 'doOptOut') {
-			urlSuffix = 'doIgnore';
-		} else if (inOrOut == 'doOptIn') {
-			urlSuffix = 'doTrack';
-		}
-		
-		$.ajax({
-			method: 'POST',
-			url: 'http://aksearch.localhost.at/piwik/index.php?module=API&method=AjaxOptOut.' + urlSuffix
-		}).done(function(result) {
-			var xml = $(result);
-			var successMessage = xml.find('success').attr('message');
-			if (successMessage == 'ok') {
-				if (inOrOut == 'doOptOut') {
-					$('#akPiwikOptOutBtn').text(optInBtnText);
-					$('#akPiwikOptOutBtn').val('doOptIn');
-					$('#akPiwikOptOutText').text(optInText);
-				} else if (inOrOut == 'doOptIn') {
-					$('#akPiwikOptOutBtn').text(optOutBtnText);
-					$('#akPiwikOptOutBtn').val('doOptOut');
-					$('#akPiwikOptOutText').text(optOutText);
-				}
-			}
-		});
+if ($this->showPiwikParagraph) {
+	echo '<p>';
+	echo '<h5>Piwik</h5>';
+	echo $this->transEsc('DataPrivacyStatementPiwikText');
+	
+	$optOutButton = $this->piwikOptOut();
+	if ($optOutButton != null && !empty($optOutButton)) {
+		echo '<br /><br />';
+		echo '<div>';
+		echo $this->transEsc('DataPrivacyStatementPiwikOptOutDescription');
+		echo '<br /><br />';
+		echo $optOutButton;
+		echo '<br /><br />';
+		echo $this->transEsc('DataPrivacyStatementPiwikOptOutCookieDescription');
+		echo '</div>';
 	}
-});
-
-</script>
+	echo '</p>';
+}
+?>
+</p>
