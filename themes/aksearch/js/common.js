@@ -216,7 +216,6 @@ function setupAutocomplete() {
  * @returns {undefined}
  */
 function keyboardShortcuts() {
-	console.log('keyboardShortcuts from commons.js')
   var $searchform = $('.searchForm_lookfor');
   if ($('.pager').length > 0) {
     $(window).keydown(function shortcutKeyDown(e) {
