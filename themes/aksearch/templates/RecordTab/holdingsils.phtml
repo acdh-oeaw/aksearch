@@ -233,7 +233,7 @@ if (! empty($journalHoldings)) {
 	}
 }
 
-if (empty($holdings) && empty($journalHoldings)) {
+if (empty($holdings) && empty($journalHoldings) && empty($urls)) {
 	echo '<br /><h3>' . $this->transEsc('akNoHoldings') . '</h3><br />';
 }
 
