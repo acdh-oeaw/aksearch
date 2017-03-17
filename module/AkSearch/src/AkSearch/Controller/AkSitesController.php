@@ -41,6 +41,17 @@ class AkSitesController extends AbstractBase {
 		return $this->createViewModel();
 	}
 	
+	
+	/**
+	 * Call action to go to "dataprivacystatement" page.
+	 *
+	 * @return \Zend\View\Model\ViewModel
+	 */
+	public function dataPrivacyStatementAction() {
+		return $this->createViewModel();
+	}
+	
+	
 	/**
 	 * Call action to go to "change user data" page.
 	 *
