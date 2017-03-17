@@ -494,9 +494,40 @@ a.list-group-item:hover, a.list-group-item:focus {
 	border-radius: 5px;
 }
 
-
 #akLoadMoreItemsSpinner {
 	display: none;
+}
+
+
+
+
+
+.akUseFacetsTooltip {
+	position: absolute;
+	background-color: #fcaf3e;
+	padding: 5px;
+	/*-webkit-box-shadow: 0px 0px 7px 0px rgba(85,85,85,1);
+	-moz-box-shadow: 0px 0px 7px 0px rgba(85,85,85,1);
+	box-shadow: 0px 0px 7px 0px rgba(85,85,85,1);*/
+	webkit-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	-moz-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	-ms-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	-o-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	z-index: 99;
+}
+
+.akUseFacetsTooltip:AFTER {
+	position: absolute;
+	width: 0; 
+	height: 0;
+	right: 50%;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-top: 10px solid #fcaf3e;
+	top: 100%;
+	content: " ";
+	z-index: 100;
 }
 
 
