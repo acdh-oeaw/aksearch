@@ -241,7 +241,7 @@ class SideFacets extends \VuFind\Recommend\SideFacets
         // Get config for AKsearch
         $akConfig = $this->configLoader->get('AKsearch'); // Get AKsearch.ini
         $akConfigFacetInfoObj = $akConfig['SearchListFacetInfo']; // Get section SearchListFacetInfo in AKsearch.ini
-        $akConfigFacetInfoArr = $akConfigFacetInfoObj->toArray(); // Convert object to array
+        $akConfigFacetInfoArr = ($akConfigFacetInfoObj != null && !empty($akConfigFacetInfoObj)) ? $akConfigFacetInfoObj->toArray() : null; // Convert object to array
         
        	if ($akConfigFacetInfoArr != null && !empty($akConfigFacetInfoArr)) {
 	        // Add two additional array fields to the facet array that tells us if an info tooltip should be applied to the
