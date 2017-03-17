@@ -1,4 +1,8 @@
 <?
+
+	// Get number of total results. This is a convenience variable to check for 0 results.
+	$recordTotal = $this->results->getResultTotal();
+	
   // Set up page title:
   $lookfor = $this->results->getUrlQuery()->isQuerySuppressed() ? '' : $this->params->getDisplayQuery();
   if (isset($this->overrideTitle)) {
@@ -36,12 +40,16 @@
   // Load Javascript dependencies into header:
   $this->headScript()->appendFile("check_item_statuses.js");
   $this->headScript()->appendFile("check_save_statuses.js");
+  if ($recordTotal > 0) {
+  	$this->headScript()->appendFile("results.aksearch.js");
+  }
+  
 ?>
 
 <div class="row">
   <div class="<?=$this->layoutClass('mainbody')?>">
     <?=$this->search()->renderSpellingSuggestions('<strong>' . $this->transEsc('spell_suggest') . '</strong>:', $this->results, $this); ?>
-    <? if (($recordTotal = $this->results->getResultTotal()) > 0): // only display these at very top if we have results ?>
+    <? if ($recordTotal > 0): // only display these at very top if we have results ?>
       <? foreach ($this->results->getRecommendations('top') as $current): ?>
         <?=$this->recommend($current)?>
       <? endforeach; ?>
