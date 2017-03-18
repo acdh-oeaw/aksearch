@@ -16,6 +16,15 @@
  * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 window.addEventListener("load", function() {
+	
+	var url = document.URL;
+	var urlWithoutHttp = url.replace(/^https?\:\/\//i, "");
+	var chunks = urlWithoutHttp.split('/');
+	var baseUrl = '';
+	if (chunks[1] == 'aksearch') {
+		baseUrl = '/aksearch';
+	}
+	
 	window.cookieconsent.initialise({
 		"palette": {
 			"popup": {
@@ -31,7 +40,7 @@ window.addEventListener("load", function() {
 			"message": "Um Ihnen den bestmöglichen Service zu bieten, speichert diese Website Informationen über Ihren Besuch in sogenannten Cookies. Durch die Nutzung dieser Webseite erklären Sie sich mit der Verwendung von Cookies einverstanden. Weitere Informationen finden Sie in der ",
 			"dismiss": "OK",
 			"link": "Datenschutzerklärung.",
-			"href": "AkSites/DataPrivacyStatement",
+			"href": baseUrl + "/AkSites/DataPrivacyStatement",
 		}
 	})
 });
