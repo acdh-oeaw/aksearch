@@ -499,16 +499,12 @@ a.list-group-item:hover, a.list-group-item:focus {
 }
 
 
-
-
-
-.akUseFacetsTooltip {
+/* Tip Tooltip general */
+.akTipTooltip {
 	position: absolute;
+	font-size: 11px;
 	background-color: #fcaf3e;
-	padding: 5px;
-	/*-webkit-box-shadow: 0px 0px 7px 0px rgba(85,85,85,1);
-	-moz-box-shadow: 0px 0px 7px 0px rgba(85,85,85,1);
-	box-shadow: 0px 0px 7px 0px rgba(85,85,85,1);*/
+	border-radius: 5px;
 	webkit-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
 	-moz-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
 	-ms-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
@@ -517,11 +513,11 @@ a.list-group-item:hover, a.list-group-item:focus {
 	z-index: 99;
 }
 
-.akUseFacetsTooltip:AFTER {
+.akTipTooltip:AFTER {
 	position: absolute;
 	width: 0; 
 	height: 0;
-	right: 50%;
+	right: 47%;
 	border-left: 10px solid transparent;
 	border-right: 10px solid transparent;
 	border-top: 10px solid #fcaf3e;
@@ -529,6 +525,45 @@ a.list-group-item:hover, a.list-group-item:focus {
 	content: " ";
 	z-index: 100;
 }
+
+.akTipTooltipHeader {
+	background-color: #f57900;
+	font-weight: bold;
+	border-radius: 5px 5px 0px 0px;
+	width: 100%;
+}
+
+.akTipTooltipHeaderText, .akTipTooltipHeaderClose {
+	padding: 8px;
+}
+
+.akTipTooltipHeaderText {
+	float: left;
+}
+
+.akTipTooltipHeaderClose {
+	float: right;
+	cursor: pointer;
+}
+
+.akTipTooltipHeaderClose .fa {
+	cursor: pointer;
+}
+
+.akTipTooltipText {
+	border-radius: 5px;
+	padding: 8px;
+}
+
+/* Tip Tooltip specific */
+#akFacetTipTooltip {
+	display: none;
+	max-width: 200px;
+	top: -90px;
+	left: 10px;
+}
+	
+
 
 
 @media ( max-width : 767px) {
@@ -677,7 +712,15 @@ a.list-group-item:hover, a.list-group-item:focus {
 		max-width: 50%;
 	}
 	
+	.akTipTooltip {
+		font-size: 13px;
+	}
 	
+	#akFacetTipTooltip {
+		top: -60px;
+		left: 20px;
+		max-width: 100%;
+	}
 }
 
 
