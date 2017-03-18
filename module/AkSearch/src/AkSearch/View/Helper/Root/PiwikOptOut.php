@@ -89,7 +89,21 @@ class PiwikOptOut extends \Zend\View\Helper\AbstractHelper {
 		return <<<EOT
 $(document).ready(function() {
 
-	// Check on load of the data privacy statement site if the user has already opted out or not
+// Function called if AdBlock is detected
+function adBlockDetected() {
+    // AdBlock was detected. Show a message that deactivating Piwik is only possible if the AdBlocker is deactivated.
+    $('#akPiwikOptOutText').html('<div style="color: red;">' + vufindString['DataPrivacyStatementDeactivateAdBlocker'] + '</div>');
+	$('#akPiwikOptOutBtn').remove();
+	return false;
+}
+
+// If AdBlock blocks the file 'blockadblock.js', the variable 'blockAdBlock' does not exist. This means that AdBlock is present.
+if(typeof blockAdBlock === 'undefined') {
+	adBlockDetected();
+} else {
+	blockAdBlock.onDetected(adBlockDetected);
+    
+    // Check on load of the data privacy statement site if the user has already opted out or not
 	var isTraced = null;
 	$.ajax({
 		method: 'POST',
@@ -108,7 +122,7 @@ $(document).ready(function() {
 			$('#akPiwikOptOutText').text(vufindString['DataPrivacyStatementPiwikOptOutText']);
 		} else {
 			console.log('Error: Result from Piwik is wether 0 nor 1!');
-			$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install this plugin under Piwik in "Administration -> Marketplace". Also check if the URL to your Piwik installation is correct and that Piwik runs under the same domain as AKsearch (Same-Origin-Policy). Also note that the URL should end with a slash, e. g.: https://aksearch.institution.com/piwik/</div>');
+			$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install it in Piwik under "Administration -> Marketplace". Also check if the URL to your Piwik installation in "local/config/vufind/config.ini" is correct and ends with a slash, e. g.: https://aksearch.institution.com/piwik/. Make also sure that Piwik runs under the same domain as AKsearch (Same-Origin-Policy).</div>');
 			$('#akPiwikOptOutBtn').remove();
 		}
 	}).fail(function(jqXHR, textStatus, errorThrown) {
@@ -116,7 +130,7 @@ $(document).ready(function() {
 		console.log(textStatus);
 		console.log(errorThrown);
 		$('#akPiwikOptOutBtn').remove();
-		$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install this plugin under Piwik in "Administration -> Marketplace". Also check if the URL to your Piwik installation is correct and that Piwik runs under the same domain as AKsearch (Same-Origin-Policy). Also note that the URL should end with a slash, e. g.: https://aksearch.institution.com/piwik/</div>');
+		$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install it in Piwik under "Administration -> Marketplace". Also check if the URL to your Piwik installation in "local/config/vufind/config.ini" is correct and ends with a slash, e. g.: https://aksearch.institution.com/piwik/. Make also sure that Piwik runs under the same domain as AKsearch (Same-Origin-Policy).</div>');
 	});
 	
 	$('#akPiwikOptOutBtn').click(function(e) {
@@ -152,6 +166,12 @@ $(document).ready(function() {
 			}
 		});
 	}
+}
+
+
+
+
+	
 });
 
 EOT;

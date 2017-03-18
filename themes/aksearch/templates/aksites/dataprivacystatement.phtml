@@ -1,11 +1,16 @@
 <?php
+
+// Add blockadblock.js for detecting AdBlocker.
+$this->headScript()->appendFile('vendor/blockadblock/blockadblock.js');
+
 // Translated texts for javascript
 $this->jsTranslations()->addStrings(
 	array(
 		'DataPrivacyStatementPiwikOptOutBtnText' => 'DataPrivacyStatementPiwikOptOutBtnText',
 		'DataPrivacyStatementPiwikOptInBtnText' => 'DataPrivacyStatementPiwikOptInBtnText',
 		'DataPrivacyStatementPiwikOptOutText' => 'DataPrivacyStatementPiwikOptOutText',
-		'DataPrivacyStatementPiwikOptInText' => 'DataPrivacyStatementPiwikOptInText'
+		'DataPrivacyStatementPiwikOptInText' => 'DataPrivacyStatementPiwikOptInText',
+		'DataPrivacyStatementDeactivateAdBlocker' => 'DataPrivacyStatementDeactivateAdBlocker'
 	)
 );
 
