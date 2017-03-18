@@ -108,7 +108,7 @@ $(document).ready(function() {
 			$('#akPiwikOptOutText').text(vufindString['DataPrivacyStatementPiwikOptOutText']);
 		} else {
 			console.log('Error: Result from Piwik is wether 0 nor 1!');
-			$('#akPiwikOptOutText').html('<div style="color: red;">Error with Piwik-Plugin "Ajax Opt Out". It does not return 0 or 1. Please check if the URL to your Piwik installation is correct. It should end with a slash, e. g.: https://aksearch.institution.com/piwik/</div>');
+			$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install this plugin under Piwik in "Administration -> Marketplace". Also check if the URL to your Piwik installation is correct and that Piwik runs under the same domain as AKsearch (Same-Origin-Policy). Also note that the URL should end with a slash, e. g.: https://aksearch.institution.com/piwik/</div>');
 			$('#akPiwikOptOutBtn').remove();
 		}
 	}).fail(function(jqXHR, textStatus, errorThrown) {
@@ -116,7 +116,7 @@ $(document).ready(function() {
 		console.log(textStatus);
 		console.log(errorThrown);
 		$('#akPiwikOptOutBtn').remove();
-		$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install this plugin under Piwik in "Administration -> Marketplace". Also check if the URL to your Piwik installation is correct. It should end with a slash, e. g.: https://aksearch.institution.com/piwik/</div>');
+		$('#akPiwikOptOutText').html('<div style="color: red;">Could not find Piwik-Plugin "Ajax Opt Out". Please install this plugin under Piwik in "Administration -> Marketplace". Also check if the URL to your Piwik installation is correct and that Piwik runs under the same domain as AKsearch (Same-Origin-Policy). Also note that the URL should end with a slash, e. g.: https://aksearch.institution.com/piwik/</div>');
 	});
 	
 	$('#akPiwikOptOutBtn').click(function(e) {
