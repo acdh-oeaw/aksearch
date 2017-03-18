@@ -41,6 +41,12 @@ window.addEventListener("load", function() {
 			"dismiss": "OK",
 			"link": "Datenschutzerklärung.",
 			"href": baseUrl + "/AkSites/DataPrivacyStatement",
+		},
+		"elements": {
+			"message": '<span id="cookieconsent:desc" class="cc-message">{{message}}</span>',
+			"messagelink": '<span id="cookieconsent:desc" class="cc-message">{{message}} <a aria-label="learn more about cookies" tabindex="0" class="cc-link" href="{{href}}" target="_self">{{link}}</a></span>',
+			"dismiss": '<a aria-label="dismiss cookie message" tabindex="0" class="cc-btn cc-dismiss">{{dismiss}}</a>',
+			"link": '<a aria-label="learn more about cookies" tabindex="0" class="cc-link" href="{{href}}" target="_self">{{link}}</a>',
 		}
 	})
 });
