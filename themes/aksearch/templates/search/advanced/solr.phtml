@@ -95,7 +95,7 @@
                   }
                   ?>
                   
-                  <option value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>"<?=(isset($value['selected']) && $value['selected'])?' selected="selected"':''?>><?=$this->escapeHtml($this->transEsc($displayText))?></option>
+                  <option value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>"<?=(isset($value['selected']) && $value['selected'])?' selected="selected"':''?> title="<?=$this->escapeHtml($this->transEsc($displayText))?>"><?=$this->escapeHtml($this->transEsc($displayText))?></option>
                 <? endforeach; ?>
 
               <? endif; ?>
