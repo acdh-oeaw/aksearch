@@ -29,13 +29,13 @@
 namespace AkSearch\Controller;
 
 class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuFindHttp\HttpServiceAwareInterface {
-
-	use \VuFindHttp\HttpServiceAwareTrait;
 	
+	use \VuFindHttp\HttpServiceAwareTrait;
+
 	/**
 	 * Call entity facts API
 	 * Example: http://hub.culturegraph.org/entityfacts/118540238
-	 * 
+	 *
 	 * @return JSON
 	 */
 	public function getEntityFactAjax() {
@@ -46,12 +46,61 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 		$result = $client->send();
 		
 		// If an error occurs
-		if (!$result->isSuccess()) {
+		if (! $result->isSuccess()) {
 			return $this->output($this->translate('An error has occurred'), self::STATUS_ERROR);
 		}
-				
+		
 		$json = $result->getBody();
-		return $this->output($json, self::STATUS_OK);		
+		return $this->output($json, self::STATUS_OK);
+	}
 
+	/**
+	 * Check Request is Valid
+	 *
+	 * @return \Zend\Http\Response
+	 */
+	protected function checkRequestIsValidAjax() {
+		
+		$this->writeSession(); // avoid session write timing bug
+		$id = $this->params()->fromQuery('id');
+		$data = $this->params()->fromQuery('data');
+		$requestType = $this->params()->fromQuery('requestType');
+		if (! empty($id) && ! empty($data)) {
+			// check if user is logged in
+			$user = $this->getUser();
+			//usleep(200000);
+			if (! $user) {
+				return $this->output(['status' => false, 'msg' => $this->translate('You must be logged in first')], self::STATUS_NEED_AUTH);
+			}
+			
+			try {
+				$catalog = $this->getILS();
+				$patron = $this->getILSAuthenticator()->storedCatalogLogin();
+				if ($patron) {
+					switch ($requestType) {
+						case 'ILLRequest' :
+							$results = $catalog->checkILLRequestIsValid($id, $data, $patron);
+							
+							$msg = $results ? $this->translate('ill_request_place_text') : $this->translate('ill_request_error_blocked');
+							break;
+						case 'StorageRetrievalRequest' :
+							$results = $catalog->checkStorageRetrievalRequestIsValid($id, $data, $patron);
+							
+							$msg = $results ? $this->translate('storage_retrieval_request_place_text') : $this->translate('storage_retrieval_request_error_blocked');
+							break;
+						default :
+							$results = $catalog->checkRequestIsValid($id, $data, $patron);
+							
+							$msg = $results ? $this->translate('request_place_text') : $this->translate('hold_error_blocked');
+							break;
+					}
+					return $this->output(['status' => $results, 'msg' => $msg], self::STATUS_OK);
+				}
+			} catch (\Exception $e) {
+				// Do nothing -- just fail through to the error message below.
+			}
+		}
+		
+		return $this->output($this->translate('An error has occurred'), self::STATUS_ERROR);
 	}
 }

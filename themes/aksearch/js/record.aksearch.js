@@ -79,3 +79,82 @@ function ajaxLoadTab(tabid) {
 	});
 	return false;
 }
+
+
+/**
+ * Removing the little flag from font-awesome on the "place hold" button
+ */
+/*
+function checkRequestIsValid(element, requestURL, requestType, blockedClass) {
+	
+	var recordId = requestURL.match(/\/Record\/([^\/]+)\//)[1];
+	var vars = {}, hash;
+	var hashes = requestURL.slice(requestURL.indexOf('?') + 1).split('&');
+
+	for(var i = 0; i < hashes.length; i++)
+	{
+		hash = hashes[i].split('=');
+		var x = hash[0];
+		var y = hash[1];
+		vars[x] = y;
+	}
+	vars['id'] = recordId;
+
+	var url = path + '/AJAX/JSON?' + $.param({method:'checkRequestIsValid', id: recordId, requestType: requestType, data: vars});
+	
+	// Wait some time before checking the if the request is valid to be sure that the user is seen as logged in.
+	setTimeout(function(){
+		$.ajax({
+			dataType: 'json',
+			cache: false,
+			url: url,
+			success: function(response) {
+				//console.log(response);
+				if (response.status == 'OK') {
+					if (response.data.status) {
+						$(element).removeClass('disabled')
+						.attr('title', response.data.msg)
+						.html(response.data.msg);
+						//.html('<i class="fa fa-flag"></i>&nbsp;'+response.data.msg);
+					} else {
+						$(element).remove();
+					}
+				} else if (response.status == 'NEED_AUTH') {
+					$(element).replaceWith('<span class="' + blockedClass + '">' + response.data.msg + '</span>');
+				}
+			},
+			error: function(response) {
+				//console.log(response);
+			}
+		});
+	},
+	200);
+}
+*/
+
+
+function checkRequestIsValid(element, requestURL, requestType, blockedClass) {
+	// Do nothing as this can cause errors when checking a lot of items (e. g. from newspapers)
+}
+
+
+
+$(document).ready(function() {
+
+	// Login link in holdings tab
+	$('#holdings-tab').on('click', '.akOpenLogin', function(e) {
+
+		// Get title for lightbox
+		var title = $(this).attr('title');
+		if(typeof title === "undefined") {
+			title = $(this).html();
+		}
+		$('#modal .modal-title').html(title);
+		Lightbox.titleSet = true;
+
+		return Lightbox.get('MyResearch', 'UserLogin');
+	});
+
+	
+});
+

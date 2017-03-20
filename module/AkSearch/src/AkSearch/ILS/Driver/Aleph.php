@@ -249,6 +249,7 @@ class Aleph extends AlephDefault {
 		}
 		
 		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
+		
 		foreach ($xml->{'items'}->{'item'} as $item) {
 			$item_status = (string) $item->{'z30-item-status-code'}; // $isc
 			$item_process_status = (string) $item->{'z30-item-process-status-code'}; // $ipsc
@@ -290,19 +291,24 @@ class Aleph extends AlephDefault {
 			}
 			if (! empty($patron)) {
 				$hold_request = $item->xpath('info[@type="HoldRequest"]/@allowed');
-				$addLink = ($hold_request[0] == 'Y');
+				$isHoldable = ($hold_request[0] == 'Y') ? true : false;
+				$addLink = ($hold_request[0] == 'Y') ? true : false;
 			}
 			
 			$matches = array();
 			if (preg_match("/([0-9]*\\/[a-zA-Z]*\\/[0-9]*);([a-zA-Z ]*)/", $status, $matches)) {
 				$duedate = $this->parseDate($matches[1]);
 				$requested = (trim($matches[2]) == "Requested");
+				$holdtype = ($isHoldable == true) ? 'reserve' : '';
 			} else if (preg_match("/([0-9]*\\/[a-zA-Z]*\\/[0-9]*)/", $status, $matches)) {
 				$duedate = $this->parseDate($matches[1]);
+				$holdtype = ($isHoldable == true) ? 'reserve' : '';
 			} else if (preg_match("/([0-9]*\\/[0-9]*\\/[0-9]*)\\s*([0-9]*:[0-9]*)/", $status, $matches)) { // added by AK Bibliothek Wien - MATCH GERMAN ALEPH DATES (E. G. "09/01/15 23:59") TO GET DUE-DATES!
 				$duedate = $this->parseDate($matches[1]);
+				$holdtype = ($isHoldable == true) ? 'reserve' : '';
 			} else {
 				$duedate = null;
+				$holdtype = ($isHoldable == true) ? 'hold' : '';
 			}
 			
 			// process duedate
@@ -320,14 +326,16 @@ class Aleph extends AlephDefault {
 			} else {
 				if ($status == "On Hold" || $status == "Requested") {
 					$duedate = "requested";
+					$holdtype = ($isHoldable == true) ? 'reserve' : '';
 				}
 			}
+			
 			$item_id = $item->attributes()->href;
 			$item_id = substr($item_id, strrpos($item_id, '/') + 1);
 			$note = (string) $z30->{'z30-note-opac'};
-			$holding[] = array('id' => $id, 'item_id' => $item_id, 'availability' => $availability, 'status' => (string) $item_status['desc'], 'location' => $sub_library_code, 'reserve' => 'N', 'callnumber' => (string) $z30->{'z30-call-no'}, 'duedate' => (string) $duedate, 'number' => (string) $z30->{'z30-inventory-number'}, 'barcode' => (string) $z30->{'z30-barcode'}, 'description' => (string) $z30->{'z30-description'}, 'notes' => ($note == null) ? null : array($note), 'is_holdable' => true, 'addLink' => $addLink, 'holdtype' => 'hold',
+			$holding[] = array('id' => $id, 'item_id' => $item_id, 'availability' => $availability, 'status' => (string) $item_status['desc'], 'location' => $sub_library_code, 'reserve' => 'N', 'callnumber' => (string) $z30->{'z30-call-no'}, 'duedate' => (string) $duedate, 'number' => (string) $z30->{'z30-inventory-number'}, 'barcode' => (string) $z30->{'z30-barcode'}, 'description' => (string) $z30->{'z30-description'}, 'notes' => ($note == null) ? null : array($note), 'is_holdable' => $isHoldable, 'addLink' => $addLink, 'holdtype' => $holdtype,
                 /* below are optional attributes*/
-                'collection' => (string) $collection, 'collection_desc' => (string) $collection_desc['desc'], 'callnumber_second' => (string) $z30->{'z30-call-no-2'}, 'sub_lib_desc' => (string) $item_status['sub_lib_desc'], 'no_of_loans' => (string) $z30->{'$no_of_loans'}, 'requested' => (string) $requested);
+                'collection' => (string) $collection, 'collection_desc' => (string) $collection_desc['desc'], 'callnumber_second' => (string) $z30->{'z30-call-no-2'}, 'sub_lib_desc' => (string) $item_status['sub_lib_desc'], 'no_of_loans' => (string) $z30->{'z30-no-loans'}, 'requested' => (string) $requested);
 		}
 		
 		return $holding;
