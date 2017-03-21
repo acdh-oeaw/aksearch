@@ -356,7 +356,6 @@ $(document).ready(function() {
 		}
     });
 
-
 	
 	$('.akLoadMore').on('click', '#akLoadMoreItems', function() {
 		if ($('#akLoadMoreItems > i').hasClass('fa-spinner')) {
@@ -365,8 +364,101 @@ $(document).ready(function() {
 			// Add loading spinner
 			$('#akLoadMoreItems').prepend('<i class="fa fa-spinner fa-spin"></i>&nbsp;');
 		}
-	});	
+	});
 	
+	
+	// AK Feature Intro	
+	$('#akFeatureIntroHeader, #akFeatureIntroSubHeader').animate({
+		'right': '+=105%'
+		},
+		600
+	);
+	$('#akFeatureIntroContentBox1').delay(100).animate({
+		'left': '+=105%'
+		},
+		600
+	);
+	$('#akFeatureIntroContentBox2').delay(250).animate({
+		'right': '+=105%'
+		},
+		600
+	);
+	$('#akFeatureIntroContentBox3').delay(400).animate({
+		'left': '+=105%'
+		},
+		600
+	);
+	$('#akFeatureIntroContentBox4').delay(500).animate({
+		'right': '+=105%'
+		},
+		600
+	);
+	/*
+	// Animate - one after another
+	$('#akFeatureIntroHeader, #akFeatureIntroSubHeader').animate({
+		'right': '+=105%'
+		}, {
+		queue: false,
+		duration: 600,
+		complete: function() {
+			$('#akFeatureIntroContentBox1').animate({
+				'left': '+=105%'
+			}, {
+				queue: false,
+				duration: 600,
+				complete: function() {
+					$('#akFeatureIntroContentBox2').animate({
+						'right': '+=105%'
+					}, {
+						queue: false,
+						duration: 600,
+						complete: function() {
+							$('#akFeatureIntroContentBox3').animate({
+								'left': '+=105%'
+							}, {
+								queue: false,
+								duration: 600,
+								complete: function() {
+									$('#akFeatureIntroContentBox4').animate({
+										'right': '+=105%'
+									}, {
+										queue: false,
+										duration: 600
+									});
+								}
+							});
+						}
+					});
+				}
+			});
+		}
+	});
+	*/
+	
+	// Open content of feature box
+	$('.akFeatureIntroContentBoxHeader').click(function(){
+		
+		// Get the selected content box
+		var akIntroContentBoxText = $(this).next('.akFeatureIntroContentBoxText');
+				
+		// Close all other content boxes and reset their chevrons
+		$('.akFeatureIntroContentBoxText').not(akIntroContentBoxText).hide(250);		
+		$('.akFeatureIntroContentBoxHeader').not(this).find('.fa-chevron-down').removeClass('fa-flip-vertical');
+
+		// Toggle the visibility of this content box
+		$(akIntroContentBoxText).slideToggle(250);
+		
+		// Flip the chevron of this content box (little arrow)
+		var chevron = $(this).find('.fa-chevron-down');
+		var isFlipped = $(chevron).hasClass('fa-flip-vertical');
+		if (!isFlipped) {
+			$(chevron).addClass('fa-flip-vertical');
+		} else {
+			$(chevron).removeClass('fa-flip-vertical');
+		}
+	});
+
+
 });
 
 

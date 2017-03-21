@@ -400,6 +400,14 @@ a.list-group-item:hover, a.list-group-item:focus {
 	vertical-align: top;
 }
 
+.akLeft {
+	float: left;
+}
+
+.akRight {
+	float: right;
+}
+
 .akClearer {
 	clear: both;
 }
@@ -562,7 +570,120 @@ a.list-group-item:hover, a.list-group-item:focus {
 	top: -90px;
 	left: 10px;
 }
-	
+
+
+
+/* Feature Intro */
+.akFeatureIntro {
+	position: relative;
+	height: 350px;
+	width: 100%;
+	margin-top: 30px;
+	margin-bottom: 40px;
+	z-index: 1;
+}
+
+.akFeatureIntro .fa-chevron-down {
+	cursor: pointer;
+}
+
+.akFeatureIntro a {
+	text-decoration: underline;
+	color: white;
+}
+
+.akFeatureIntroShadow {
+	/*
+	webkit-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	-moz-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	-ms-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	-o-filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	filter: drop-shadow(0 0 5px rgba(150, 150, 150, 0.75));
+	*/	
+}
+
+.akFeatureIntroHideRight {
+	position: absolute;
+	right: -105%;
+}
+
+.akFeatureIntroHideLeft {
+	position: absolute;
+	left: -105%;
+}
+
+.akTextAlignRight {
+	text-align: right;
+}
+.akFeatureIntroContentBoxHeader {
+	cursor: pointer;
+	font-weight: bold;
+	font-size: 14px;
+	width: 100%;
+}
+
+.akFeatureIntroContentBoxText {
+	margin-top: 30px;
+	font-weight: normal;
+	font-size: 14px;
+	display: none;
+}
+
+.akFeatureIntroContentBox {
+	padding: 10px;
+	background-color: #777;
+	color: white;
+}
+
+#akFeatureIntroHeader {
+	color: #be0021;
+	font-weight: bold;
+	font-size: 20px;
+	width: 85%;
+	z-index: 99;
+}
+
+#akFeatureIntroSubHeader {
+	/*padding-left: 10px;
+	padding-top: 3px;
+	padding-bottom: 3px;*/
+	padding: 10px;
+	background-color: #333;
+	border-left: 1px #333 solid;
+	border-right: 1px #333 solid;
+	border-bottom: 1px #333 solid;
+	color: white;
+	font-weight: bold;
+	font-size: 18px;
+	width: 100%;
+	margin-top: 38px;
+	padding-left: 10%;
+	z-index: 100;
+}
+
+#akFeatureIntroContentBox1 {
+	width: 55%;
+	margin-top: 105px;
+	z-index: 98;
+}
+
+#akFeatureIntroContentBox2 {
+	width: 70%;
+	margin-top: 160px;
+	z-index: 97;
+}
+
+#akFeatureIntroContentBox3 {
+	width: 60%;
+	margin-top: 215px;
+	z-index: 96;
+}
+
+#akFeatureIntroContentBox4 {
+	width: 65%;
+	margin-top: 270px;
+	z-index: 95;
+}
 
 
 
