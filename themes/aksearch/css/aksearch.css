@@ -566,9 +566,9 @@ a.list-group-item:hover, a.list-group-item:focus {
 /* Tip Tooltip specific */
 #akFacetTipTooltip {
 	display: none;
-	max-width: 200px;
-	top: -90px;
-	left: 10px;
+	max-width: 95%;
+	top: -75px;
+	left: 20px;
 }
 
 
