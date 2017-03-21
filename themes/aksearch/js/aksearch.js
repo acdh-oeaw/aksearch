@@ -367,73 +367,80 @@ $(document).ready(function() {
 	});
 	
 	
-	// AK Feature Intro	
-	$('#akFeatureIntroHeader, #akFeatureIntroSubHeader').animate({
-		'right': '+=105%'
-		},
-		600
-	);
-	$('#akFeatureIntroContentBox1').delay(100).animate({
-		'left': '+=105%'
-		},
-		600
-	);
-	$('#akFeatureIntroContentBox2').delay(250).animate({
-		'right': '+=105%'
-		},
-		600
-	);
-	$('#akFeatureIntroContentBox3').delay(400).animate({
-		'left': '+=105%'
-		},
-		600
-	);
-	$('#akFeatureIntroContentBox4').delay(500).animate({
-		'right': '+=105%'
-		},
-		600
-	);
-	/*
-	// Animate - one after another
-	$('#akFeatureIntroHeader, #akFeatureIntroSubHeader').animate({
-		'right': '+=105%'
-		}, {
-		queue: false,
-		duration: 600,
-		complete: function() {
-			$('#akFeatureIntroContentBox1').animate({
-				'left': '+=105%'
+	
+	var windowWidth = $(window).width();
+	
+	// Check if responsive design mode for mobile devices will be used from bootstrap CSS
+	// It will be used for screens smaller than 768px. We won't animate on mobile devices.
+	if (windowWidth >= 768) {
+		// AK Feature Intro	
+		$('#akFeatureIntroHeader, #akFeatureIntroSubHeader').animate({
+			'right': '+=105%'
+			},
+			600
+		);
+		$('#akFeatureIntroContentBox1').delay(100).animate({
+			'left': '+=105%'
+			},
+			600
+		);
+		$('#akFeatureIntroContentBox2').delay(250).animate({
+			'right': '+=105%'
+			},
+			600
+		);
+		$('#akFeatureIntroContentBox3').delay(400).animate({
+			'left': '+=105%'
+			},
+			600
+		);
+		$('#akFeatureIntroContentBox4').delay(500).animate({
+			'right': '+=105%'
+			},
+			600
+		);
+		/*
+		// Animate - one after another
+		$('#akFeatureIntroHeader, #akFeatureIntroSubHeader').animate({
+			'right': '+=105%'
 			}, {
-				queue: false,
-				duration: 600,
-				complete: function() {
-					$('#akFeatureIntroContentBox2').animate({
-						'right': '+=105%'
-					}, {
-						queue: false,
-						duration: 600,
-						complete: function() {
-							$('#akFeatureIntroContentBox3').animate({
-								'left': '+=105%'
-							}, {
-								queue: false,
-								duration: 600,
-								complete: function() {
-									$('#akFeatureIntroContentBox4').animate({
-										'right': '+=105%'
-									}, {
-										queue: false,
-										duration: 600
-									});
-								}
-							});
-						}
-					});
-				}
-			});
-		}
-	});
-	*/
+			queue: false,
+			duration: 600,
+			complete: function() {
+				$('#akFeatureIntroContentBox1').animate({
+					'left': '+=105%'
+				}, {
+					queue: false,
+					duration: 600,
+					complete: function() {
+						$('#akFeatureIntroContentBox2').animate({
+							'right': '+=105%'
+						}, {
+							queue: false,
+							duration: 600,
+							complete: function() {
+								$('#akFeatureIntroContentBox3').animate({
+									'left': '+=105%'
+								}, {
+									queue: false,
+									duration: 600,
+									complete: function() {
+										$('#akFeatureIntroContentBox4').animate({
+											'right': '+=105%'
+										}, {
+											queue: false,
+											duration: 600
+										});
+									}
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+		*/
+	}
 	
 	// Open content of feature box
 	$('.akFeatureIntroContentBoxHeader').click(function(){
