@@ -33,10 +33,11 @@ return array(
     'helpers' => array(
         'factories' => array(
         	'auth' => 'AkSearch\View\Helper\Root\Factory::getAuth',
+        	'citation' => 'AkSearch\View\Helper\Root\Factory::getCitation',
             'flashmessages' => 'VuFind\View\Helper\Bootstrap3\Factory::getFlashmessages',
             'layoutclass' => 'VuFind\View\Helper\Bootstrap3\Factory::getLayoutClass',
-        	'searchbox' => 'AkSearch\View\Helper\Root\Factory::getSearchBox',
         	'piwikoptout' => 'AkSearch\View\Helper\Root\Factory::getPiwikOptOut',
+        	'searchbox' => 'AkSearch\View\Helper\Root\Factory::getSearchBox',
         ),
         'invokables' => array(
             'highlight' => 'VuFind\View\Helper\Bootstrap3\Highlight',

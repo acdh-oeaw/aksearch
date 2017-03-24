@@ -4,7 +4,7 @@
  *
  * PHP version 5
  *
- * Copyright (C) AK Bibliothek Wien 2016.
+ * Copyright (C) AK Bibliothek Wien 2017.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -31,42 +31,57 @@ use Zend\ServiceManager\ServiceManager;
 
 class Factory extends \VuFind\View\Helper\Root\Factory {
 
-    /**
-     * Construct the SearchBox helper.
-     * Updated by AK Bibliothek Wien: returning \AkSearch\View\Helper\Root\SearchBox
-     * for making Akfilter search possible.
-     *
-     * @param ServiceManager $sm Service manager.
-     *
-     * @return SearchBox
-     */
-    public static function getSearchBox(ServiceManager $sm) {
-        $config = $sm->getServiceLocator()->get('VuFind\Config');
-        return new \AkSearch\View\Helper\Root\SearchBox(
-            $sm->getServiceLocator()->get('VuFind\SearchOptionsPluginManager'),
-            $config->get('searchbox')->toArray()
-        );
-    }
-    
+	
     /**
      * Construct the Auth helper.
      *
      * @param ServiceManager $sm Service manager.
-     *
      * @return Auth
      */
     public static function getAuth(ServiceManager $sm) {
     	return new \AkSearch\View\Helper\Root\Auth($sm->getServiceLocator()->get('VuFind\AuthManager'));
     }
     
+    
+    /**
+     * Construct the Citation helper.
+     *
+     * @param ServiceManager $sm Service manager.
+     * @return Citation
+     */
+    public static function getCitation(ServiceManager $sm) {
+    	return new \AkSearch\View\Helper\Root\Citation($sm->getServiceLocator()->get('VuFind\DateConverter'));
+    }
+    
+    
+    /**
+     * Construct the Piwik OptOut helper.
+     * 
+     * @param ServiceManager $sm
+     * @return \AkSearch\View\Helper\Root\PiwikOptOut
+     */
     public static function getPiwikOptOut(ServiceManager $sm) {
     	$config = $sm->getServiceLocator()->get('VuFind\Config');
     	$piwikUrl = $config->get('config')->Piwik->url; // Piwik URL from config.ini
     	$piwikOptOut = $config->get('AKsearch')->DataPrivacyStatement->piwikOptOut;
-    	
-    	// AKsearch config:
-    	//$config->get('AKsearch');
 
     	return new \AkSearch\View\Helper\Root\PiwikOptOut($piwikUrl, $piwikOptOut);
+    }
+    
+    
+    /**
+     * Construct the SearchBox helper.
+     * Updated by AK Bibliothek Wien: returning \AkSearch\View\Helper\Root\SearchBox
+     * for making Akfilter search possible.
+     *
+     * @param ServiceManager $sm Service manager.
+     * @return SearchBox
+     */
+    public static function getSearchBox(ServiceManager $sm) {
+    	$config = $sm->getServiceLocator()->get('VuFind\Config');
+    	return new \AkSearch\View\Helper\Root\SearchBox(
+    			$sm->getServiceLocator()->get('VuFind\SearchOptionsPluginManager'),
+    			$config->get('searchbox')->toArray()
+    			);
     }
 }
