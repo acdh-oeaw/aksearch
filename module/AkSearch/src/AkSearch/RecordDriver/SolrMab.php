@@ -31,6 +31,7 @@ namespace AkSearch\RecordDriver;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\RecordDriver\SolrDefault as SolrDefault;
 use ProxyManagerTestAsset\EmptyClass;
+use VuFind\Exception\Date as DateException;
 
 class SolrMab extends SolrDefault  {
 	
@@ -61,6 +62,11 @@ class SolrMab extends SolrDefault  {
      * AKsearch.ini configuration
      */
     protected $akConfig;
+    
+    /**
+     * DateConverter from VuFind
+     */
+    protected $dateConverter;
 
     
     /**
@@ -68,11 +74,13 @@ class SolrMab extends SolrDefault  {
      * 
      * Geting values from AKsearch.ini
      */
-    public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null) {
+    public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null, $dateConverter = null) {
     	
     	// Get AKsearch.ini config
     	// See 4th parameter for "new SolrMab(...)" in method "getSolrMab()" of class "AkSearch\RecordDriver\Factory"
     	$this->akConfig = (isset($akConfig)) ? $akConfig : null;
+    	
+    	$this->dateConverter = $dateConverter;
     	
     	// Call parent constructor
     	parent::__construct($mainConfig, $recordConfig, $searchSettings);
@@ -272,7 +280,7 @@ class SolrMab extends SolrDefault  {
      * @return string: Breadcrumb text to represent this record.
      */
     public function getBreadcrumb() {
-    	return str_replace(array("<", ">"), "", $this->getShortTitle());
+    	return str_replace(array('<', '>'), '', $this->getShortTitle());
     	
     }
     
@@ -666,16 +674,16 @@ class SolrMab extends SolrDefault  {
 		$childRecords = null;
 		
 		foreach($childRecordSYSs as $key => $childRecordSYS) {
-			$childVolumeNo = ($childVolumeNos[$key] == "0") ? null : $childVolumeNos[$key];
-			$childTitle = ($childRecordTitles[$key] == "0") ? null : $childRecordTitles[$key];
-			$childPublishDate = ($childPublishDates[$key] == "0") ? null : $childPublishDates[$key];
-			$childEdition = ($childEditions[$key] == "0") ? null : $childEditions[$key];
-			
+			$childVolumeNo = ($childVolumeNos[$key] == null || $childVolumeNos[$key] == '0') ? null : $childVolumeNos[$key];
+			$childTitle = ($childRecordTitles[$key] == null || $childRecordTitles[$key] == '0') ? null : $childRecordTitles[$key];
+			$childPublishDate = ($childPublishDates[$key] == null || $childPublishDates[$key] == '0') ? null : $childPublishDates[$key];
+			$childEdition = ($childEditions[$key] == null || $childEditions[$key] == '0') ? null : $childEditions[$key];
+
 			$childRecords[$childRecordSYS] = array(
-					"volumeNo" => $childVolumeNo,
-					"volumeTitle" => $childTitle,
-					"volumePublishDate" => $childPublishDate,
-					"volumeEdition" => $childEdition); 
+					'volumeNo' => $childVolumeNo,
+					'volumeTitle' => $childTitle,
+					'volumePublishDate' => $childPublishDate,
+					'volumeEdition' => $childEdition); 
 		}
 		
 		// Create array for sorting
@@ -1047,7 +1055,16 @@ class SolrMab extends SolrDefault  {
 	 * @return string or null if empty
 	 */
 	public function getArticleParentVolumeNo() {
-		return isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
+		$volNo = isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
+		$year = $this->getArticleParentYear();
+		
+		if ($volNo != null && $year != null) {
+			if ($volNo == $year) {
+				return null;
+			}
+		}
+		return $volNo;
+		//return isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
 	}
 	
 	/**
@@ -1136,7 +1153,21 @@ class SolrMab extends SolrDefault  {
 				}
 			}
 			$articleUrl = ($articleUrls[$key] == null) ? null : $articleUrls[$key];
-
+			
+			// Get year out from a date like 24.12.2017
+			if (strlen($articlePublishDate) > 4) {
+				try {
+					$articlePublishDate = $this->dateConverter->convertFromDisplayDate('Y', $articlePublishDate);
+				} catch (DateException $e) {
+					// Do nothing. Fail through and show the original publish date
+				}
+			}
+			
+			// If the volume no. is the same as the year, set $articleVolume to null as this would just display two same values which is useless.
+			if ($articleVolume == $articlePublishDate) {
+				$articleVolume = null;
+			}
+			
 			$articleDetails[$articleSYS] = array(
 					'articleTitle' => $articleTitle,
 					'articlePublishDate' => $articlePublishDate,
@@ -1151,13 +1182,14 @@ class SolrMab extends SolrDefault  {
 	
 		// Create array for sorting
 		foreach ($articleDetails as $key => $rowToSort) {
+			$yr[$key] = $rowToSort['articlePublishDate'];
 			$vol[$key] = $rowToSort['articleVolume'];
 			$iss[$key] = $rowToSort['articleIssue'];
 			$pFrom[$key] = str_replace('[', '', $rowToSort['articlePageFrom']);
 			$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
 		}
 	
-		array_multisort($vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
+		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
 	
 		return $articleDetails;
 	}
@@ -1434,6 +1466,21 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
+	 * Get the item's place of publication - this is for the citation dialog
+	 *
+	 * @return array
+	 */
+	public function getPlacesOfPublication() {
+		$pubPlaces = [];
+		$pubPlace = $this->fields['publishPlace_txt'];
+		if ($pubPlace != null && !empty($pubPlace)) {
+			$pubPlaces[] = $pubPlace;
+		}
+		return $pubPlaces;
+	}
+	
+	
+	/**
 	 * Get the full title of the record.
 	 *
 	 * @return string
@@ -1445,8 +1492,6 @@ class SolrMab extends SolrDefault  {
 	/**
 	 * Get Solrfield title_alt (alternative title)
 	 * 
-	 * TODO: Check if we should return null if field is empty instead of an empty array.
-	 * 
 	 * @return array
 	 */
 	public function getFurtherTitles() {
@@ -1456,11 +1501,10 @@ class SolrMab extends SolrDefault  {
 	/**
 	 * Get Solrfield author
 	 * 
-	 * TODO: Check if we should return null if field is empty instead of an empty string.
-	 * 
+	 * @param Set to false if responsibility note should not be given back if no other authors were found. Default is true.
 	 * @return string
 	 */
-	public function getPrimaryAuthor() {
+	public function getPrimaryAuthor($useResponsibilityNote = true) {
 		
 		// Primary author is set
 		if (isset($this->fields['author'])) {
@@ -1471,27 +1515,19 @@ class SolrMab extends SolrDefault  {
 		if (isset($this->fields['corporateAuthorName_txt'])) {
 			return $this->fields['corporateAuthorName_txt'];
 		}
-		if (isset($this->fields['corporateAuthorName_txt'])) {
-			return $this->fields['corporateAuthorName_txt'];
-		}
 		
 		// If no primary author is set, check for "responsability note"
-		if (isset($this->fields['responsibilityNote_txt'])) {
+		if ($useResponsibilityNote == true && isset($this->fields['responsibilityNote_txt'])) {
 			return $this->fields['responsibilityNote_txt'];
 		}
 		
 		// If we got this far, no apropriate author field is set
 		return '';
-		
-		// Original:
-		//return (isset($this->fields['author'])) ? $this->fields['author'] : '';
 	}
 	
 	
 	/**
 	 * Get Solrfield author2 (secondary authors)
-	 *
-	 * TODO: Check if we should return null if field is empty instead of an empty array.
 	 *
 	 * @return array
 	 */
@@ -1502,22 +1538,30 @@ class SolrMab extends SolrDefault  {
 			return $this->fields['author2'];
 		}
 		
-		// Field corporateAuthor2NameGnd_txt_mv author is set
-		if (isset($this->fields['corporateAuthor2NameGnd_txt_mv'])) {
-			return $this->fields['corporateAuthor2NameGnd_txt_mv'];
-		}
-		
-		// Field corporateAuthor2GndNo_str_mv author is set
-		if (isset($this->fields['corporateAuthor2GndNo_str_mv'])) {
-			return $this->fields['corporateAuthor2GndNo_str_mv'];
+		// Field  corporateAuthor2Name_txt_mv author is set
+		if (isset($this->fields[' corporateAuthor2Name_txt_mv'])) {
+			return $this->fields[' corporateAuthor2Name_txt_mv'];
 		}
 		
 		// If we got this far, no apropriate author field is set
 		return array();
-		
-		// Original:
-		//return isset($this->fields['author2']) ? $this->fields['author2'] : array();
 	}
+	
+	
+	/**
+	 * Get additional authors
+	 *
+	 * @return array
+	 */
+	public function getAdditionalAuthors() {
+		if (isset($this->fields['author_additional'])) {
+			return $this->fields['author_additional'];
+		}
+		
+		// If we got this far, no apropriate author field is set
+		return array();
+	}
+	
 	
 	/**
 	 * Get all authors

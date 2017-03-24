@@ -44,7 +44,8 @@ class Factory extends RecordDriverFactory {
     			$sm->getServiceLocator()->get('VuFind\Config')->get('config'),
     			null,
     			$sm->getServiceLocator()->get('VuFind\Config')->get('searches'),
-    			$sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch')
+    			$sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch'),
+    			new \VuFind\Date\Converter
     	);
     	
     	$driver->attachILS (
