@@ -124,51 +124,6 @@ foreach ($participants as $role => $participant) {
 		}
 	}
 }
-/*
-$author = $this->driver->tryMethod('getPrimaryAuthor');
-if (!empty($author)) {
-	echo 'AU  - ' . "$author\r\n";
-}
-$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
-if (is_array($secondaryAuthors)) {
-	foreach ($secondaryAuthors as $current) {
-		echo 'AU  - ' . "$current\r\n";
-	}
-}
-$additionalAuthors = $this->driver->tryMethod('getAdditionalAuthors');
-if (is_array($additionalAuthors) && !empty($additionalAuthors)) {
-	// Add tertiary author
-	echo 'AU  - ' . "$additionalAuthors[0]\r\n";
-	// Remove tertiary author (as we already added him) and then add all others
-	unset($additionalAuthors[0]);
-	foreach ($additionalAuthors as $additionalAuthor) {
-		echo 'AU  - ' . "$additionalAuthor\r\n";
-	}
-}
-*/
-
-/*
-$author = $this->driver->tryMethod('getPrimaryAuthor');
-if (!empty($author)) {
-    echo 'A1  - ' . "$author\r\n";
-}
-$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
-if (is_array($secondaryAuthors)) {
-    foreach ($secondaryAuthors as $current) {
-        echo 'A2  - ' . "$current\r\n";
-    }
-}
-$additionalAuthors = $this->driver->tryMethod('getAdditionalAuthors');
-if (is_array($additionalAuthors) && !empty($additionalAuthors)) {
-	// Add tertiary author
-	echo 'A3  - ' . "$additionalAuthors[0]\r\n";
-	// Remove tertiary author (as we already added him) and then add all others
-	unset($additionalAuthors[0]);
-	foreach ($additionalAuthors as $additionalAuthor) {
-		echo 'A4  - ' . "$additionalAuthor\r\n";
-	}
-}
-*/
 
 $pubPlaces = $this->driver->tryMethod('getPlacesOfPublication');
 $pubDates = $this->driver->tryMethod('getPublicationDates');
@@ -267,16 +222,13 @@ if (!empty($callNumber)) {
 	echo 'CN  - ' . "$callNumber\r\n";
 }
 
-foreach ($this->record($this->driver)->getUrlList() as $url) {
-    echo 'UR  - ' . "$url\r\n";
-}
-
 $urls = $this->driver->tryMethod('getURLs');
 if (!empty($urls)) {
 	foreach ($urls as $urlArray) {
-		if ($urlArray['desc'] == 'Volltext') {
+		if ($urlArray['desc'] == 'Volltext' || $urlArray['desc'] == 'Fulltext' || $urlArray['desc'] == 'SSOAR' || $urlArray['desc'] == 'DOAJ') {
 			$url = $urlArray['url'];
 			$mime = $urlArray['mime'];
+			echo 'UR  - ' . "$url\r\n";
 			if (strpos($mime, 'pdf') !== false) {
 				echo 'L1  - ' . "$url\r\n";
 			} else {
@@ -285,15 +237,11 @@ if (!empty($urls)) {
 		}
 	}
 }
+$urlToAKsearchRecord = $this->serverUrl($this->recordLink()->getUrl($this->driver));
+echo 'UR  - ' . "$urlToAKsearchRecord\r\n";
 
 echo 'DP  - ' . "AKsearch - AK Bibliothek Wien für Sozialwissenschaften\r\n";
 
-/*
-if ($digitalLocations != null) {
-	$digitalLocation = $digitalLocations[0];
-	echo 'DB  - ' . "$digitalLocation\r\n";
-}
-*/
 $physicalLocations = $this->driver->tryMethod('getPhysicalLocation');
 if ($physicalLocations != null) {
 	$physicalLocation = $physicalLocations[0];
@@ -305,12 +253,7 @@ if ($digitalLocations != null) {
 	$digitalLocation = $digitalLocations[0];
 	echo 'DB  - ' . "$digitalLocation\r\n";
 	echo 'AV  - ' . "Online\r\n";
-	
 }
-
-$baseUrl = $this->serverUrl();
-$urlToRecord = $baseUrl . $this->recordLink()->getUrl($this->driver);
-echo 'LK  - ' . "$urlToRecord\r\n";
 
 // End of Record:
 echo "ER  -\r\n\r\n";
