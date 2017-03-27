@@ -1,11 +1,64 @@
 <?
 // A driver-specific template may pass in format overrides; check for these before going to the driver itself:
 $formats = isset($this->overrideFormats) ? $this->overrideFormats : $this->driver->tryMethod('getFormats');
+$pubType = $this->driver->tryMethod('getPublicationTypeFromIndex');
+$structType = $this->driver->tryMethod('getStructType');
+$sourceType = null;
 if (is_array($formats)) {
-    foreach ($formats as $format) {
-    	$format = ucfirst($format);
-        echo "RT $format\n";
-    }
+	if (in_array('printed', $formats)) {
+		$sourceType = 'Print(0)';
+		$format = 'Book, Whole';
+		if (isset($pubType)) {
+			if ($pubType == 'Monographisch') {
+				if ($structType != null && ($structType == 'Chapter' || $structType == 'Aufsatz')) {
+					$format = 'Book, Section';
+				}
+			} else if ($pubType == 'Serie' || $pubType == 'Mehrbändig' || $pubType == 'Fortsetzung' || $pubType == 'Zeitschriftenartig') {
+				$format = 'Book, Whole';
+			} else if ($pubType == 'Unselbständig') {
+				if ($structType != null && ($structType == 'Artikel' || $structType == 'Article' || $structType == 'Rezension' || $structType == 'Review' || $structType == 'Editorial')) {
+					$format = 'Journal Article';
+				}
+			} else {
+				$format = 'Generic';
+			}
+		}
+	} else if (in_array('electronic', $formats)) {
+		$sourceType = 'Electronic(1)';
+		$format = 'Book, Whole';
+		if (isset($pubType)) {
+			if ($pubType == 'Monographisch') {
+				if ($structType != null && ($structType == 'Chapter' || $structType == 'Aufsatz')) {
+					$format = 'Book, Section';
+				}
+			} else if ($pubType == 'Serie' || $pubType == 'Mehrbändig' || $pubType == 'Fortsetzung' || $pubType == 'Zeitschriftenartig') {
+				$format = 'Book, Whole';
+			} else if ($pubType == 'Unselbständig') {
+				if ($structType != null && ($structType == 'Artikel' || $structType == 'Article' || $structType == 'Rezension' || $structType == 'Review' || $structType == 'Editorial')) {
+					$format = 'Journal, Electronic';
+				}
+			} else {
+				$format = 'Generic';
+			}
+		}
+	} else if (in_array('dvd', $formats) || in_array('videorecording', $formats) || in_array('filmforprojection', $formats) || in_array('avunknown', $formats)) {
+		$format = 'Video/ DVD';
+	} else if (in_array('compactdisc', $formats) || in_array('soundcarrier', $formats)) {
+		$format = 'Sound Recording';
+	} else if (in_array('mapcard', $formats)) {
+		$format = 'Map';
+	} else if (in_array('manuscript', $formats)) {
+		$format = 'Generic';
+	} else if (in_array('file', $formats)) {
+		$format = 'Computer Program';
+	} else {
+		$format = 'Generic';
+	}
+}
+echo "RT $format\n";
+
+if ($sourceType != null) {
+	echo "SR $sourceType\n";
 }
 
 $title = rtrim($this->driver->getTitle(), " /");
@@ -39,16 +92,19 @@ if ($journalTitle != null && !empty($journalTitle)) {
     }
 }
 
-$author = $this->driver->tryMethod('getPrimaryAuthor');
-if (!empty($author)) {
-    echo "A1 $author\n";
-}
-
-$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
-if (is_array($secondaryAuthors)) {
-    foreach ($secondaryAuthors as $current) {
-        echo "A2 $current\n";
-    }
+$participants = $this->driver->tryMethod('getParticipants');
+foreach ($participants as $role => $participant) {
+	if (stripos($role, 'heraus') !== false || stripos($role, 'hrsg') !== false || stripos($role, 'editor') !== false || stripos($role, 'corporateeditor') !== false || stripos($role, 'edt') !== false || stripos($role, 'isb') !== false) {
+		foreach ($participant as $key => $gndAndName) {
+			$name = $gndAndName[key($gndAndName)];
+			echo "A2 $name\n";
+		}
+	} else {
+		foreach ($participant as $key => $gndAndName) {
+			$name = $gndAndName[key($gndAndName)];
+			echo "A1 $name\n";
+		}
+	}
 }
 
 $languages = $this->driver->tryMethod('getLanguages');
@@ -89,7 +145,17 @@ if (!empty($edition)) {
     echo "ED $edition\n";
 }
 
-echo "UL " . $this->serverUrl($this->recordLink()->getUrl($this->driver)) . "\n";
+$urls = $this->driver->tryMethod('getURLs');
+if (!empty($urls)) {
+	foreach ($urls as $urlArray) {
+		if ($urlArray['desc'] == 'Volltext' || $urlArray['desc'] == 'Fulltext' || $urlArray['desc'] == 'SSOAR' || $urlArray['desc'] == 'DOAJ') {
+			$url = $urlArray['url'];
+			echo "UL " . $url . "\n";
+		}
+	}
+}
+$urlToAKsearchRecord = $this->serverUrl($this->recordLink()->getUrl($this->driver));
+echo "UL " . $urlToAKsearchRecord . "\n";
 
 $summary = $this->driver->tryMethod('getAbstract');
 if (is_array($summary)) {
@@ -121,11 +187,27 @@ if (!empty($callNo)) {
     echo "CN $callNo\n";
 }
 
+echo "SL AK Bibliothek Wien für Sozialwissenschaften\n";
+
+$digitalLocations = $this->driver->tryMethod('getDigitalLocation');
+if ($digitalLocations != null) {
+	$digitalLocation = $digitalLocations[0];
+	echo "DB $digitalLocation\n";
+	echo "DS Online\n";
+}
+
 $isbns = $this->driver->tryMethod('getISBNs');
 if (is_array($isbns)) {
     foreach ($isbns as $isbn) {
         echo "SN $isbn\n";
     }
+}
+
+$issns = $this->driver->tryMethod('getISSNs');
+if (is_array($issns)) {
+	foreach ($issns as $issn) {
+		echo "SN $issn\n";
+	}
 }
 
 $subjects = $this->driver->tryMethod('getAllSubjectHeadings');
