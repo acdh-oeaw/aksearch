@@ -1077,6 +1077,25 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
+	 * Get first page of article
+	 * 
+	 * @return NULL|string
+	 */
+	public function getArticlePageFrom() {
+		return isset($this->fields['pageFrom_str']) ? $this->fields['pageFrom_str'] : null;
+	}
+	
+	/**
+	 * Get last page of article
+	 *
+	 * @return NULL|string
+	 */
+	public function getArticlePageTo() {
+		return isset($this->fields['pageTo_str']) ? $this->fields['pageTo_str'] : null;
+	}
+	
+	
+	/**
 	 * Get "from" and "to" pages of an article
 	 *
 	 * @return string or null if empty
@@ -1227,6 +1246,15 @@ class SolrMab extends SolrDefault  {
 		return isset($this->fields['erscheinungsform_str']) ? $this->fields['erscheinungsform_str'] : null;
 	}
 	
+	
+	/**
+	 * Gets the structure type of publication
+	 * @return NULL|string
+	 */
+	public function  getStructType() {
+		return isset($this->fields['structType_str']) ? $this->fields['structType_str'] : null;
+	}
+	
 	/**
 	 * Get publication type code (first character of field 051 or 052)
 	 *
@@ -1317,6 +1345,36 @@ class SolrMab extends SolrDefault  {
 		}
 		
 		return $publicationType;
+	}
+	
+	
+	/**
+	 * Get the location of the record. This is the value of the field "location_txtF_mv".
+	 * 
+	 * @return NULL|array	Array of location(s) or null
+	 */
+	public function getLocation() {
+		return isset($this->fields['location_txtF_mv']) ? $this->fields['location_txtF_mv'] : null;
+	}
+	
+	
+	/**
+	 * Get the digital location of the record. This is the value of the field "locationDigital_txtF_mv".
+	 *
+	 * @return NULL|array	Array of digital location(s) or null
+	 */
+	public function getDigitalLocation() {
+		return isset($this->fields['locationDigital_txtF_mv']) ? $this->fields['locationDigital_txtF_mv'] : null;
+	}
+	
+	
+	/**
+	 * Get the physical location of the record. This is the value of the field "locationPhysical_txtF_mv".
+	 *
+	 * @return NULL|array	Array of physical location(s) or null
+	 */
+	public function getPhysicalLocation() {
+		return isset($this->fields['locationPhysical_txtF_mv']) ? $this->fields['locationPhysical_txtF_mv'] : null;
 	}
 
 	
@@ -1466,7 +1524,7 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
-	 * Get the item's place of publication - this is for the citation dialog
+	 * Get the item's place of publication - this is for the citation dialog end export formats
 	 *
 	 * @return array
 	 */
@@ -1496,6 +1554,17 @@ class SolrMab extends SolrDefault  {
 	 */
 	public function getFurtherTitles() {
 		return isset($this->fields['title_alt']) ? $this->fields['title_alt'] : array();
+	}
+	
+	
+	/**
+	 * Get all abstracts of a record.
+	 * 
+	 * @return NULL|array
+	 */
+	public function getAbstract() {
+		return isset($this->fields['abstract_txt_mv']) ? $this->fields['abstract_txt_mv'] : null;
+		
 	}
 	
 	/**
@@ -1698,7 +1767,7 @@ class SolrMab extends SolrDefault  {
 	/**
 	 * Get all keyword chains
 	 * 
-	 * @return array
+	 * @return array or null
 	 */
 	public function getAllKeywordChains() {
 		$allKeywordChains = null;
@@ -1710,6 +1779,29 @@ class SolrMab extends SolrDefault  {
 			}
 		}
 		return $allKeywordChains;
+	}
+	
+	
+	/**
+	 * Get all keywords that are used in keyword chains as an array. Duplicates are removed.
+	 * 
+	 * @return NULL|array
+	 */
+	public function getUniqueKeywordChainKeywords() {
+		$uniqueKeywordChainKeywords = null;
+		$allKeywordChains = $this->getAllKeywordChains();
+
+		if ($allKeywordChains != null) {
+			$uniqueKeywordChainKeywords = [];
+			foreach ($allKeywordChains as $allKeywordChain) {
+				foreach ($allKeywordChain as $keyword) {
+					if (!in_array($keyword, $uniqueKeywordChainKeywords)) {
+						$uniqueKeywordChainKeywords[] = $keyword;
+					}
+				}
+			}
+		}
+		return $uniqueKeywordChainKeywords;
 	}
 	
 	/**
@@ -1739,6 +1831,14 @@ class SolrMab extends SolrDefault  {
 		return $ddcs;
 	}
 	
+	/**
+	 * Get topics from Solr "topic" field
+	 *
+	 * @return array		Array of all topic values or null if none exists
+	 */
+	public function getTopics() {
+		return (isset($this->fields['topic'])) ? $this->fields['topic'] : null;
+	}
 	
 	/**
 	 * Get Formats (electronic, printed, microform ...)

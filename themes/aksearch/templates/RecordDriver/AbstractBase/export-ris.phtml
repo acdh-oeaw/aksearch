@@ -1,0 +1,331 @@
+<?
+use Zend\View\Helper\ServerUrl;
+
+/*
+// TODO: fold this logic into record driver methods at some point:
+$marc = $this->driver->tryMethod('getMarcRecord');
+if (is_object($marc)) {
+    $marcPhdField = $marc->getField('502');
+    $marcProceedingsField = $marc->getField('711');
+} else {
+    $marcPhdField = $marcProceedingsField = false;
+}
+*/
+
+$journalTitle = $this->driver->tryMethod('getArticleParentTitle');
+$formats = $this->driver->tryMethod('getFormats');
+$pubType = $this->driver->tryMethod('getPublicationTypeFromIndex');
+$structType = $this->driver->tryMethod('getStructType');
+
+if (in_array('printed', $formats)) {
+	// Default for "printed" format. Overwrite below if other format is available.
+	$format = 'BOOK';
+	if (isset($pubType)) {
+		if ($pubType == 'Monographisch') {
+			if ($structType != null && ($structType == 'Chapter' || $structType == 'Aufsatz')) {
+				$format = 'CHAP';
+			}
+		} else if ($pubType == 'Serie' || $pubType == 'Mehrbändig' || $pubType == 'Fortsetzung' || $pubType == 'Zeitschriftenartig') {
+			$format = 'SER';
+		} else if ($pubType == 'Unselbständig') {
+			if ($structType != null && ($structType == 'Artikel' || $structType == 'Article' || $structType == 'Rezension' || $structType == 'Review' || $structType == 'Editorial')) {
+				$format = 'JOUR';
+			}
+		} else if ($pubType == 'NoErscheinungsform') {
+			$format = 'GEN';
+		} else if ($pubType == 'Zeitschrift') {
+			$format = 'JFULL';
+		} else if ($pubType == 'Zeitung') {
+			$format = 'NEWS';
+		}
+	}
+} else if (in_array('electronic', $formats)) {
+	// Default for "electronic" format. Overwrite below if other format is available.
+	$format = 'EJOUR';
+	
+	if (isset($pubType)) {
+		if ($pubType == 'Monographisch') {
+			$format = 'EBOOK';
+			if ($structType != null && ($structType == 'Chapter' || $structType == 'Aufsatz')) {
+				$format = 'ECHAP';
+			}
+		} else if ($pubType == 'Serie' || $pubType == 'Mehrbändig' || $pubType == 'Fortsetzung' || $pubType == 'Zeitschriftenartig') {
+			$format = 'SER';
+		} else if ($pubType == 'Unselbständig') {
+			if ($structType != null && ($structType == 'Artikel' || $structType == 'Article' || $structType == 'Rezension' || $structType == 'Review' || $structType == 'Editorial')) {
+				$format = 'EJOUR';
+			}
+		} else if ($pubType == 'NoErscheinungsform') {
+			$format = 'GEN';
+		} else if ($pubType == 'Zeitschrift') {
+			$format = 'JFULL';
+		} else if ($pubType == 'Zeitung') {
+			$format = 'NEWS';
+		}
+	}
+} else if (in_array('dvd', $formats) || in_array('compactdisc', $formats) || in_array('videorecording', $formats) || in_array('soundcarrier', $formats) || in_array('filmforprojection', $formats) || in_array('avunknown', $formats)) {
+	$format = 'ADVS';
+} else if (in_array('mapcard', $formats)) {
+	$format = 'MAP';
+} else if (in_array('manuscript', $formats)) {
+	$format = 'MANSCPT';
+} else if (in_array('file', $formats)) {
+	$format = 'DATA';
+} else {
+	$format = 'GEN';
+}
+
+
+// Type
+echo 'TY  - ' . $format . "\r\n";
+
+$title = rtrim($this->driver->getTitle(), " /");
+$subTitle = trim(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())));
+if (!empty($title)) {
+	if (!empty($subTitle)) {
+		echo 'TI  - ' . "$title: $subTitle\r\n";
+	} else {
+		echo 'TI  - ' . "$title\r\n";
+	}
+}
+
+if (!empty($journalTitle)) {
+    if (empty($title)) {
+        echo 'TI  - ' . "$journalTitle\r\n";
+    } else {
+        echo 'T2  - ' . "$journalTitle\r\n";
+    }
+    echo 'JF  - ' . "$journalTitle\r\n";
+    echo 'JO  - ' . "$journalTitle\r\n";
+    
+    $volume = $this->driver->tryMethod('getArticleParentVolumeNo');
+    if (!empty($volume)) {
+        echo 'VL  - ' . "$volume\r\n";
+    }
+    $number = $this->driver->tryMethod('getArticleParentIssueNo');
+    if (!empty($number)) {
+        echo 'IS  - ' . "$number\r\n";
+    }
+    $start = $this->driver->tryMethod('getArticlePageFrom');
+    $end = $this->driver->tryMethod('getArticlePageTo');
+    if ($start != null && !empty($start) && trim($start) != '-') {
+    	echo 'SP  - ' . "$start\r\n";
+    }
+    if ($end != null && !empty($end) && trim($start) != '-') {
+    	echo 'EP  - ' . "$end\r\n";
+    }
+}
+
+$series = $this->driver->tryMethod('getSeries');
+if (is_array($series)) {
+    foreach ($series as $current) {
+        echo 'T3  - ' . (is_array($current) ? $current['name'] : $current) . "\r\n";
+    }
+}
+
+$participants = $this->driver->tryMethod('getParticipants');
+foreach ($participants as $role => $participant) {
+	
+	if (stripos($role, 'heraus') !== false || stripos($role, 'hrsg') !== false || stripos($role, 'editor') !== false || stripos($role, 'corporateeditor') !== false || stripos($role, 'edt') !== false || stripos($role, 'isb') !== false) {
+		foreach ($participant as $key => $gndAndName) {
+			$name = $gndAndName[key($gndAndName)];
+			echo 'A3  - ' . "$name\r\n";
+		}
+	} else {
+		foreach ($participant as $key => $gndAndName) {
+			$name = $gndAndName[key($gndAndName)];
+			echo 'AU  - ' . "$name\r\n";
+		}
+	}
+}
+/*
+$author = $this->driver->tryMethod('getPrimaryAuthor');
+if (!empty($author)) {
+	echo 'AU  - ' . "$author\r\n";
+}
+$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
+if (is_array($secondaryAuthors)) {
+	foreach ($secondaryAuthors as $current) {
+		echo 'AU  - ' . "$current\r\n";
+	}
+}
+$additionalAuthors = $this->driver->tryMethod('getAdditionalAuthors');
+if (is_array($additionalAuthors) && !empty($additionalAuthors)) {
+	// Add tertiary author
+	echo 'AU  - ' . "$additionalAuthors[0]\r\n";
+	// Remove tertiary author (as we already added him) and then add all others
+	unset($additionalAuthors[0]);
+	foreach ($additionalAuthors as $additionalAuthor) {
+		echo 'AU  - ' . "$additionalAuthor\r\n";
+	}
+}
+*/
+
+/*
+$author = $this->driver->tryMethod('getPrimaryAuthor');
+if (!empty($author)) {
+    echo 'A1  - ' . "$author\r\n";
+}
+$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
+if (is_array($secondaryAuthors)) {
+    foreach ($secondaryAuthors as $current) {
+        echo 'A2  - ' . "$current\r\n";
+    }
+}
+$additionalAuthors = $this->driver->tryMethod('getAdditionalAuthors');
+if (is_array($additionalAuthors) && !empty($additionalAuthors)) {
+	// Add tertiary author
+	echo 'A3  - ' . "$additionalAuthors[0]\r\n";
+	// Remove tertiary author (as we already added him) and then add all others
+	unset($additionalAuthors[0]);
+	foreach ($additionalAuthors as $additionalAuthor) {
+		echo 'A4  - ' . "$additionalAuthor\r\n";
+	}
+}
+*/
+
+$pubPlaces = $this->driver->tryMethod('getPlacesOfPublication');
+$pubDates = $this->driver->tryMethod('getPublicationDates');
+$pubNames = $this->driver->tryMethod('getPublishers');
+if (is_array($pubPlaces) && is_array($pubDates) && is_array($pubNames)) {
+    $total = min(count($pubPlaces), count($pubDates), count($pubNames));
+    // if we have pub dates but no other details, we still want to export the year:
+    if ($total == 0 && count($pubDates) > 0) {
+        $total = 1;
+    }
+    for ($i = 0; $i < $total; $i++) {
+        if (isset($pubPlaces[$i])) {
+            echo "CY  - " . rtrim(str_replace(array('[', ']'), '', $pubPlaces[$i]), ': '). "\r\n";
+            echo "PP  - " . rtrim(str_replace(array('[', ']'), '', $pubPlaces[$i]), ': '). "\r\n";
+        }
+        if (isset($pubNames[$i])) {
+            echo "PB  - " . rtrim($pubNames[$i], ", ") . "\r\n";
+        }
+        $date = trim($pubDates[$i], '[]. ');
+        if (strlen($date) > 4) {
+            $date = $this->dateTime()->extractYear($date);
+        }
+        if ($date) {
+            echo 'PY  - ' . "$date\r\n";
+        }
+    }
+}
+
+$languages = $this->driver->tryMethod('getLanguages');
+if (is_array($languages)) {
+    foreach ($languages as $lang) {
+    	$lang = $this->transEsc($lang);
+        echo 'LA  - ' . "$lang\r\n";
+    }
+}
+
+$genres =  $this->driver->tryMethod('getGenres');
+if (is_array($genres)) {
+    foreach ($genres as $genre) {
+        echo 'M3  - ' . "$genre\r\n";
+    }
+}
+
+$topics = $this->driver->tryMethod('getUniqueKeywordChainKeywords');
+if ($topics == null) {
+	$topics =  $this->driver->tryMethod('getTopics');
+}
+if (is_array($topics)) {
+    foreach ($topics as $topic) {
+    	$topic = ucfirst($topic);
+        echo 'KW  - ' . "$topic\r\n";
+    }
+}
+
+$isbns = $this->driver->tryMethod('getISBNs');
+if (is_array($isbns)) {
+    foreach ($isbns as $isbn) {
+        echo 'SN  - ' . "$isbn\r\n";
+    }
+}
+
+$issns = $this->driver->tryMethod('getISSNs');
+if (is_array($issns)) {
+    foreach ($issns as $issn) {
+        echo 'SN  - ' . "$issn\r\n";
+    }
+}
+
+$edition = $this->driver->tryMethod('getEdition');
+if (!empty($edition)) {
+    echo 'ET  - ' . "$edition\r\n";
+}
+
+$notes = $this->driver->tryMethod('getGeneralNotes');
+if (is_array($notes)) {
+    foreach ($notes as $note) {
+        echo 'N1  - ' . "$note\r\n";
+    }
+}
+
+$abstracts = $this->driver->tryMethod('getAbstract');
+if ($abstracts != null && is_array($abstracts)) {
+	// Get the first available abstract
+	$abstract = $abstracts[0];
+	echo 'AB  - ' . "$abstract\r\n";
+	
+	// Remove first abstract (as we already added it) and then add all others
+	unset($abstracts[0]);
+	foreach ($abstracts as $abstract) {
+		echo 'N2  - ' . "$abstract\r\n";
+	}
+}
+
+$callNumber = $this->driver->tryMethod('getCallNumber');
+if (!empty($callNumber)) {
+	echo 'CN  - ' . "$callNumber\r\n";
+}
+
+foreach ($this->record($this->driver)->getUrlList() as $url) {
+    echo 'UR  - ' . "$url\r\n";
+}
+
+$urls = $this->driver->tryMethod('getURLs');
+if (!empty($urls)) {
+	foreach ($urls as $urlArray) {
+		if ($urlArray['desc'] == 'Volltext') {
+			$url = $urlArray['url'];
+			$mime = $urlArray['mime'];
+			if (strpos($mime, 'pdf') !== false) {
+				echo 'L1  - ' . "$url\r\n";
+			} else {
+				echo 'L2  - ' . "$url\r\n";
+			}			
+		}
+	}
+}
+
+echo 'DP  - ' . "AKsearch - AK Bibliothek Wien für Sozialwissenschaften\r\n";
+
+/*
+if ($digitalLocations != null) {
+	$digitalLocation = $digitalLocations[0];
+	echo 'DB  - ' . "$digitalLocation\r\n";
+}
+*/
+$physicalLocations = $this->driver->tryMethod('getPhysicalLocation');
+if ($physicalLocations != null) {
+	$physicalLocation = $physicalLocations[0];
+	echo 'DB  - ' . "AK Bibliothek Wien für Sozialwissenschaften\r\n";
+	echo 'AV  - ' . "$physicalLocation\r\n";
+}
+$digitalLocations = $this->driver->tryMethod('getDigitalLocation');
+if ($digitalLocations != null) {
+	$digitalLocation = $digitalLocations[0];
+	echo 'DB  - ' . "$digitalLocation\r\n";
+	echo 'AV  - ' . "Online\r\n";
+	
+}
+
+$baseUrl = $this->serverUrl();
+$urlToRecord = $baseUrl . $this->recordLink()->getUrl($this->driver);
+echo 'LK  - ' . "$urlToRecord\r\n";
+
+// End of Record:
+echo "ER  -\r\n\r\n";
+?>
