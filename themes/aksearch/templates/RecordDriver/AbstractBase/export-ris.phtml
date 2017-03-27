@@ -1,22 +1,9 @@
 <?
 use Zend\View\Helper\ServerUrl;
 
-/*
-// TODO: fold this logic into record driver methods at some point:
-$marc = $this->driver->tryMethod('getMarcRecord');
-if (is_object($marc)) {
-    $marcPhdField = $marc->getField('502');
-    $marcProceedingsField = $marc->getField('711');
-} else {
-    $marcPhdField = $marcProceedingsField = false;
-}
-*/
-
-$journalTitle = $this->driver->tryMethod('getArticleParentTitle');
 $formats = $this->driver->tryMethod('getFormats');
 $pubType = $this->driver->tryMethod('getPublicationTypeFromIndex');
 $structType = $this->driver->tryMethod('getStructType');
-
 if (in_array('printed', $formats)) {
 	// Default for "printed" format. Overwrite below if other format is available.
 	$format = 'BOOK';
@@ -74,8 +61,6 @@ if (in_array('printed', $formats)) {
 } else {
 	$format = 'GEN';
 }
-
-
 // Type
 echo 'TY  - ' . $format . "\r\n";
 
@@ -89,6 +74,7 @@ if (!empty($title)) {
 	}
 }
 
+$journalTitle = $this->driver->tryMethod('getArticleParentTitle');
 if (!empty($journalTitle)) {
     if (empty($title)) {
         echo 'TI  - ' . "$journalTitle\r\n";
