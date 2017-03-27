@@ -109,9 +109,10 @@ foreach ($participants as $role => $participant) {
 
 $languages = $this->driver->tryMethod('getLanguages');
 if (is_array($languages)) {
-    foreach ($languages as $lang) {
-        echo "LA $lang\n";
-    }
+	foreach ($languages as $lang) {
+		$lang = $this->transEsc($lang);
+		echo "LA $lang\n";
+	}
 }
 
 $pubPlaces = $this->driver->tryMethod('getPlacesOfPublication');

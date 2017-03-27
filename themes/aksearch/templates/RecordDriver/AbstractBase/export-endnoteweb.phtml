@@ -1,5 +1,4 @@
 <?
-
 use Zend\View\Helper\ServerUrl;
 
 $formats = $this->driver->tryMethod('getFormats');
@@ -223,16 +222,13 @@ if (!empty($callNumber)) {
 	echo 'CN  - ' . "$callNumber\r\n";
 }
 
-foreach ($this->record($this->driver)->getUrlList() as $url) {
-	echo 'UR  - ' . "$url\r\n";
-}
-
 $urls = $this->driver->tryMethod('getURLs');
 if (!empty($urls)) {
 	foreach ($urls as $urlArray) {
-		if ($urlArray['desc'] == 'Volltext') {
+		if ($urlArray['desc'] == 'Volltext' || $urlArray['desc'] == 'Fulltext' || $urlArray['desc'] == 'SSOAR' || $urlArray['desc'] == 'DOAJ') {
 			$url = $urlArray['url'];
 			$mime = $urlArray['mime'];
+			echo 'UR  - ' . "$url\r\n";
 			if (strpos($mime, 'pdf') !== false) {
 				echo 'L1  - ' . "$url\r\n";
 			} else {
@@ -241,6 +237,8 @@ if (!empty($urls)) {
 		}
 	}
 }
+$urlToAKsearchRecord = $this->serverUrl($this->recordLink()->getUrl($this->driver));
+echo 'UR  - ' . "$urlToAKsearchRecord\r\n";
 
 echo 'DP  - ' . "AKsearch - AK Bibliothek Wien für Sozialwissenschaften\r\n";
 
@@ -253,14 +251,12 @@ if ($physicalLocations != null) {
 $digitalLocations = $this->driver->tryMethod('getDigitalLocation');
 if ($digitalLocations != null) {
 	$digitalLocation = $digitalLocations[0];
+	if ($digitalLocation == 'eMedien') {
+		$digitalLocation = 'eMedien der AK Wien';
+	}
 	echo 'DB  - ' . "$digitalLocation\r\n";
 	echo 'AV  - ' . "Online\r\n";
-
 }
-
-$baseUrl = $this->serverUrl();
-$urlToRecord = $baseUrl . $this->recordLink()->getUrl($this->driver);
-echo 'LK  - ' . "$urlToRecord\r\n";
 
 // Record separator:
 echo "ER  -\n";

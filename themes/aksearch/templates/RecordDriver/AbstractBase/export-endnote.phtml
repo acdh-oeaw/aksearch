@@ -1,26 +1,96 @@
 <?
-// A driver-specific template may pass in format overrides; check for these before going to the driver itself:
-$formats = isset($this->overrideFormats) ? $this->overrideFormats : $this->driver->tryMethod('getFormats');
-if (is_array($formats) && !empty($formats)) {
-    foreach ($formats as $format) {
-    	$format = ucfirst($format);
-        echo "%0 $format\n";
-    }
-} else {
-    // Assume book if no format found (otherwise data may be considered invalid):
-    echo "%0 Book\n";
-}
 
+$formats = $this->driver->tryMethod('getFormats');
+$pubType = $this->driver->tryMethod('getPublicationTypeFromIndex');
+$structType = $this->driver->tryMethod('getStructType');
+if (in_array('printed', $formats)) {
+	// Default for "printed" format. Overwrite below if other format is available.
+	$format = 'Book';
+	if (isset($pubType)) {
+		if ($pubType == 'Monographisch') {
+			if ($structType != null && ($structType == 'Chapter' || $structType == 'Aufsatz')) {
+				$format = 'Book Section';
+			}
+		} else if ($pubType == 'Serie' || $pubType == 'Mehrbändig' || $pubType == 'Fortsetzung' || $pubType == 'Zeitschriftenartig' || $pubType == 'Zeitschrift' || $pubType == 'Zeitung') {
+			$format = 'Serial';
+		} else if ($pubType == 'Unselbständig') {
+			if ($structType != null && ($structType == 'Artikel' || $structType == 'Article' || $structType == 'Rezension' || $structType == 'Review' || $structType == 'Editorial')) {
+				$format = 'Journal Article';
+			} else if ($structType != null && ($structType == 'Interview')) {
+				$format = 'Interview';
+			}
+		} else {
+			$format = 'Generic';
+		}
+	}
+} else if (in_array('electronic', $formats)) {
+	// Default for "electronic" format. Overwrite below if other format is available.
+	$format = 'Electronic Book';
+	if (isset($pubType)) {
+		if ($pubType == 'Monographisch') {
+			if ($structType != null && ($structType == 'Chapter' || $structType == 'Aufsatz')) {
+				$format = 'Electronic Book Section';
+			}
+		} else if ($pubType == 'Serie' || $pubType == 'Mehrbändig' || $pubType == 'Fortsetzung' || $pubType == 'Zeitschriftenartig' || $pubType == 'Zeitschrift' || $pubType == 'Zeitung') {
+			$format = 'Serial';
+		} else if ($pubType == 'Unselbständig') {
+			if ($structType != null && ($structType == 'Artikel' || $structType == 'Article' || $structType == 'Rezension' || $structType == 'Review' || $structType == 'Editorial')) {
+				$format = 'Electronic Article';
+			} else if ($structType != null && ($structType == 'Interview')) {
+				$format = 'Interview';
+			}
+		} else {
+			$format = 'Generic';
+		}
+	}
+} else if (in_array('dvd', $formats) || in_array('compactdisc', $formats) || in_array('videorecording', $formats) || in_array('soundcarrier', $formats) || in_array('filmforprojection', $formats) || in_array('avunknown', $formats)) {
+	$format = 'Audiovisual Material';
+} else if (in_array('mapcard', $formats)) {
+	$format = 'Map';
+} else if (in_array('manuscript', $formats)) {
+	$format = 'Manuscript';
+} else if (in_array('file', $formats)) {
+	$format = 'Computer Program';
+} else {
+	$format = 'Generic';
+}
+// Type
+echo "%0 $format\n";
+
+
+/*
 $author = $this->driver->tryMethod('getPrimaryAuthor');
+$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
+$additionalAuthors = $this->driver->tryMethod('getAdditionalAuthors');
 if (!empty($author)) {
     echo "%A $author\n";
 }
-
-$secondaryAuthors = $this->driver->tryMethod('getSecondaryAuthors');
-if (is_array($secondaryAuthors)) {
+if (!empty($secondaryAuthors) && is_array($secondaryAuthors)) {
     foreach ($secondaryAuthors as $current) {
-        echo "%E $current\n";
+        echo "%A $current\n";
     }
+}
+if (!empty($additionalAuthors) && is_array($additionalAuthors)) {
+	foreach ($additionalAuthors as $current) {
+		echo "%A $current\n";
+	}
+}
+*/
+
+$participants = $this->driver->tryMethod('getParticipants');
+foreach ($participants as $role => $participant) {
+
+	if (stripos($role, 'heraus') !== false || stripos($role, 'hrsg') !== false || stripos($role, 'editor') !== false || stripos($role, 'corporateeditor') !== false || stripos($role, 'edt') !== false || stripos($role, 'isb') !== false) {
+		foreach ($participant as $key => $gndAndName) {
+			$name = $gndAndName[key($gndAndName)];
+			echo "%Y $name\n";
+		}
+	} else {
+		foreach ($participant as $key => $gndAndName) {
+			$name = $gndAndName[key($gndAndName)];
+			echo "%A $name\n";
+		}
+	}
 }
 
 $pubPlaces = $this->driver->tryMethod('getPlacesOfPublication');
@@ -52,6 +122,7 @@ if (is_array($pubPlaces) && is_array($pubDates) && is_array($pubNames)) {
 $languages = $this->driver->tryMethod('getLanguages');
 if (is_array($languages)) {
     foreach ($languages as $lang) {
+    	$lang = $this->transEsc($lang);
         echo "%G $lang\n";
     }
 }
@@ -77,12 +148,19 @@ if (is_array($issns)) {
     }
 }
 
+$callNumber = $this->driver->tryMethod('getCallNumber');
+if (!empty($callNumber)) {
+	echo "%L $callNumber\n";
+}
+
 $title = rtrim($this->driver->getTitle(), " /");
 echo "%T $title\n";
+echo "%! $title\n";
 
 $journalTitle = $this->driver->tryMethod('getArticleParentTitle');
 if ($journalTitle != null && !empty($journalTitle)) {
     echo "%J $journalTitle\n";
+    echo "%B $journalTitle\n";
     $volume = $this->driver->tryMethod('getArticleParentVolumeNo');
     if ($volume != null && !empty($volume)) {
         echo "%V $volume\n";
@@ -101,9 +179,33 @@ if ($journalTitle != null && !empty($journalTitle)) {
     }
 }
 
+$topics = $this->driver->tryMethod('getUniqueKeywordChainKeywords');
+if ($topics == null) {
+	$topics =  $this->driver->tryMethod('getTopics');
+}
+if (is_array($topics)) {
+	foreach ($topics as $topic) {
+		$topic = ucfirst($topic);
+		echo "%K $topic\n";
+	}
+}
+
+/*
 foreach ($this->record($this->driver)->getUrlList() as $url) {
     echo "%U $url\n";
 }
+*/
+$urls = $this->driver->tryMethod('getURLs');
+if (!empty($urls)) {
+	foreach ($urls as $urlArray) {
+		if ($urlArray['desc'] == 'Volltext' || $urlArray['desc'] == 'Fulltext' || $urlArray['desc'] == 'SSOAR' || $urlArray['desc'] == 'DOAJ') {
+			$url = $urlArray['url'];
+			echo "%U $url\n";
+		}
+	}
+}
+$urlToAKsearchRecord = $this->serverUrl($this->recordLink()->getUrl($this->driver));
+echo "%U $urlToAKsearchRecord\n";
 
 $edition = $this->driver->tryMethod('getEdition');
 if (!empty($edition)) {
@@ -113,6 +215,21 @@ if (!empty($edition)) {
 $summary = $this->driver->tryMethod('getAbstract');
 if (!empty($summary)) {
     echo "%X {$summary[0]}\n";
+}
+
+$physicalLocations = $this->driver->tryMethod('getPhysicalLocation');
+if ($physicalLocations != null) {
+	$physicalLocation = $physicalLocations[0];
+	echo "%W AK Bibliothek Wien für Sozialwissenschaften\n";
+}
+$digitalLocations = $this->driver->tryMethod('getDigitalLocation');
+if ($digitalLocations != null) {
+	$digitalLocation = $digitalLocations[0];
+	if ($digitalLocation == 'eMedien') {
+		$digitalLocation = 'eMedien der AK Wien';
+	}
+	echo "%~ $digitalLocation\n";
+	echo "%Z Online\n";
 }
 
 // Record separator:
