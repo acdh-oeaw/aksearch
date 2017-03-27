@@ -150,12 +150,12 @@ if (!empty($urls)) {
 	foreach ($urls as $urlArray) {
 		if ($urlArray['desc'] == 'Volltext' || $urlArray['desc'] == 'Fulltext' || $urlArray['desc'] == 'SSOAR' || $urlArray['desc'] == 'DOAJ') {
 			$url = $urlArray['url'];
-			echo "UL " . $url . "\n";
+			echo "LK " . $url . "\n";
 		}
 	}
 }
 $urlToAKsearchRecord = $this->serverUrl($this->recordLink()->getUrl($this->driver));
-echo "UL " . $urlToAKsearchRecord . "\n";
+echo "LK " . $urlToAKsearchRecord . "\n";
 
 $summary = $this->driver->tryMethod('getAbstract');
 if (is_array($summary)) {
@@ -187,11 +187,14 @@ if (!empty($callNo)) {
     echo "CN $callNo\n";
 }
 
-echo "SL AK Bibliothek Wien für Sozialwissenschaften\n";
+//echo "SL AK Bibliothek Wien für Sozialwissenschaften\n";
 
 $digitalLocations = $this->driver->tryMethod('getDigitalLocation');
 if ($digitalLocations != null) {
 	$digitalLocation = $digitalLocations[0];
+	if ($digitalLocation == 'eMedien') {
+		$digitalLocation = 'eMedien der AK Wien';
+	}
 	echo "DB $digitalLocation\n";
 	echo "DS Online\n";
 }

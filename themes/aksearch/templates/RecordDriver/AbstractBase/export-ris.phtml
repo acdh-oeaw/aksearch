@@ -251,6 +251,9 @@ if ($physicalLocations != null) {
 $digitalLocations = $this->driver->tryMethod('getDigitalLocation');
 if ($digitalLocations != null) {
 	$digitalLocation = $digitalLocations[0];
+	if ($digitalLocation == 'eMedien') {
+		$digitalLocation = 'eMedien der AK Wien';
+	}
 	echo 'DB  - ' . "$digitalLocation\r\n";
 	echo 'AV  - ' . "Online\r\n";
 }
