@@ -1,59 +1,72 @@
 <?php
-echo '<h2>About AKsearch</h2>';
+echo '<h2>'.$this->transEsc('AboutAKsearch').'</h2>';
+echo '<br />';
+
 echo '<p>';
-echo '<h3>Icon credits</h3>';
+echo '<h4>'.$this->transEsc('AboutDisclosureHeading').'</h4>';
+echo '<h5>'.$this->transEsc('AboutDisclosurePublisherHeading').'</h5>';
+echo $this->transEsc('AboutDisclosureInstitutionName').'<br />';
+echo $this->transEsc('AboutDisclosureInstitutionAddress').'<br />';
+echo $this->transEsc('AboutDisclosureTelephoneHeading').': '.$this->transEsc('AboutDisclosureTelephoneText').'<br />';
+echo $this->transEsc('AboutDisclosureEmailHeading').': '.$this->transEsc('AboutDisclosureEmailText').'<br />';
+echo '<br />';
+echo (!empty($this->transEsc('AboutDisclosureLineHeading'))) ? '<h5>'.$this->transEsc('AboutDisclosureLineHeading').'</h5>' : '';
+echo (!empty($this->transEsc('AboutDisclosureLine1'))) ? $this->transEsc('AboutDisclosureLine1').'<br />' : '';
+echo (!empty($this->transEsc('AboutDisclosureLine2'))) ? $this->transEsc('AboutDisclosureLine2').'<br />' : '';
+echo (!empty($this->transEsc('AboutDisclosureLine3'))) ? $this->transEsc('AboutDisclosureLine3').'<br />' : '';
+echo (!empty($this->transEsc('AboutDisclosureLine4'))) ? $this->transEsc('AboutDisclosureLine4').'<br />' : '';
+echo (!empty($this->transEsc('AboutDisclosureLine5'))) ? $this->transEsc('AboutDisclosureLine5').'<br />' : '';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('AboutIconCreditsHeading').'</h4>';
+echo $this->transEsc('AboutIconCreditsText');
+echo '<br /><br />';
+echo '<ul>';
+echo '<li><a href="https://thenounproject.com/icon/70094/" target="new">article</a> by Dmitry Podluzny from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/108321/" target="new">audiobook</a> by Creative Stall from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/353763/" target="new">Book</a> by To Uyen from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/137857/" target="new">books</a> by Jakub Čaja from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/2301/" target="new">Braille</a> by Jakob Vogel from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/329990/" target="new">Clapperboard</a> by lastspark from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/166097/" target="new">Compact Disc</a> by Jamison Wieser from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/166093/" target="new">DVD</a> by Jamison Wieser from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/253541/" target="new">ebook</a> by Vectors Market from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/16250/" target="new">Film</a> by José Campos from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/102049/" target="new">Help Document</a> by Muneer A.Safiah from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/91481/" target="new">html</a> by Konstantin  Velichko from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/11528/" target="new">Knight</a> by Christopher T. Howlett from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/75077/" target="new">magazine</a> by Glenis Gómez Rios from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/26944/" target="new">Map</a> by Juan Pablo Bravo from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/1565/" target="new">Media</a> by Thibault Geffroy from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/145152/" target="new">Music Note</a> by Creative Stall from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/62502/" target="new">Newspaper</a> by Konrad Michalik from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/541/" target="new">Picture</a> by Edward Boatman from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/19817/" target="new">Poster</a> by irene hoffman from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/36568/" target="new">quill</a> by Mister Pixel from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/18924/" target="new">Speaker</a> by Icomatic from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '<li><a href="https://thenounproject.com/icon/36452/" target="new">video-support</a> by Vicons Design from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>';
+echo '</ul>';
+echo '<br />';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('AboutCookieConsentCreditsHeading').'</h4>';
+echo '<p>';
+echo $this->transEsc('AboutCookieConsentCreditsText');
+echo '</p>';
+echo '<br />';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('AboutBlockAdBlockCreditsHeading').'</h4>';
+echo '<p>';
+echo $this->transEsc('AboutBlockAdBlockCreditsText');
+echo '</p>';
+echo '<br />';
+echo '</p>';
+
 ?>
-
-<p>
-The icons listed below are used in AKsearch. They were gratefully taken from the 
-<a href="https://thenounproject.com" target="new">"Noun Project"</a>.
-Many thanks to all the creators who share their work. All icons are licensed under 
-<a href="http://creativecommons.org/licenses/by/3.0/" target="new">CC BY 3.0</a>.
-All icons are changed slightly (mainly in size and color).
-</p>
-
-<ul>
-<li><a href="https://thenounproject.com/icon/70094/" target="new">article</a> by Dmitry Podluzny from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/108321/" target="new">audiobook</a> by Creative Stall from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/353763/" target="new">Book</a> by To Uyen from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/137857/" target="new">books</a> by Jakub Čaja from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/2301/" target="new">Braille</a> by Jakob Vogel from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/329990/" target="new">Clapperboard</a> by lastspark from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/166097/" target="new">Compact Disc</a> by Jamison Wieser from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/166093/" target="new">DVD</a> by Jamison Wieser from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/253541/" target="new">ebook</a> by Vectors Market from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/16250/" target="new">Film</a> by José Campos from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/102049/" target="new">Help Document</a> by Muneer A.Safiah from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/91481/" target="new">html</a> by Konstantin  Velichko from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/11528/" target="new">Knight</a> by Christopher T. Howlett from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/75077/" target="new">magazine</a> by Glenis Gómez Rios from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/26944/" target="new">Map</a> by Juan Pablo Bravo from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/1565/" target="new">Media</a> by Thibault Geffroy from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/145152/" target="new">Music Note</a> by Creative Stall from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/62502/" target="new">Newspaper</a> by Konrad Michalik from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/541/" target="new">Picture</a> by Edward Boatman from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/19817/" target="new">Poster</a> by irene hoffman from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/36568/" target="new">quill</a> by Mister Pixel from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/18924/" target="new">Speaker</a> by Icomatic from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-<li><a href="https://thenounproject.com/icon/36452/" target="new">video-support</a> by Vicons Design from <a href="https://thenounproject.com" target="new">the Noun Project</a></li>
-</ul>
-<?php
-echo '</p>';
-
-
-echo '<p>';
-echo '<h3>Cookie consent credits</h3>';
-echo '<p>';
-echo 'The code for the cookie consent popup comes from Silktide Ltd. This company provides the code Free and Open Source under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a> on <a href="https://cookieconsent.insites.com/" target="_blank">https://cookieconsent.insites.com/</a>. We like to say thanx.';
-echo '</p>';
-echo '</p>';
-
-
-echo '<p>';
-echo '<h3>BlockAdBlock credits</h3>';
-echo '<p>';
-echo 'The code for the software BlockAdBlock, that is used for the detection of AdBlockers that do not just block ads, but also the Piwik OptOut button on the data privacy statement site, comes from Valentin Allaire. He provides the code Free and Open Source under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a> on <a href="https://github.com/sitexw/BlockAdBlock" target="_blank">https://github.com/sitexw/BlockAdBlock</a>. Thank you very much for that.';
-echo '</p>';
-echo '</p>';
-?>
-
