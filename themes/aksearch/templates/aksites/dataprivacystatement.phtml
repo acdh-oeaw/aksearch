@@ -14,43 +14,88 @@ $this->jsTranslations()->addStrings(
 	)
 );
 
-echo '<h3>'.$this->transEsc('DataPrivacyStatement').'</h3>';
+
+echo '<h2>'.$this->transEsc('DataPrivacyStatement').'</h2>';
 echo '<br />';
 
-echo '<p>';
-echo $this->transEsc('DataPrivacyStatementIntroText');
-echo '<br /><br />';
-echo '</p>';
 
 echo '<p>';
-echo '<h5>Serverlogs</h5>';
-echo $this->transEsc('DataPrivacyStatementServerlogsText');
-echo '<br /><br />';
+	echo $this->transEsc('DataPrivacyStatementIntroText');
+	echo '<br /><br />';
 echo '</p>';
+
 
 echo '<p>';
-echo '<h5>Cookies</h5>';
-echo $this->transEsc('DataPrivacyStatementCookiesText');
-echo '<br /><br />';
+	echo '<h4>'.$this->transEsc('DataPrivacyStatementGeneralNotesHeading').'</h4>';
+	echo $this->transEsc('DataPrivacyStatementGeneralNotesText');
+	echo '<br /><br />';
 echo '</p>';
 
-if ($this->showPiwikParagraph) {
-	echo '<p>';
-	echo '<h5>Piwik</h5>';
-	echo $this->transEsc('DataPrivacyStatementPiwikText');
+
+echo '<p>';
+	echo '<h4>'.$this->transEsc('DataPrivacyStatementSavedDataHeading').'</h4>';
+	echo $this->transEsc('DataPrivacyStatementSavedDataText');
+	echo '<br /><br />';
 	
-	$optOutButton = $this->piwikOptOut();
-	if ($optOutButton != null && !empty($optOutButton)) {
-		echo '<br /><br />';
-		echo '<div>';
-		echo $this->transEsc('DataPrivacyStatementPiwikOptOutDescription');
-		echo '<br /><br />';
-		echo $optOutButton;
-		echo '<br /><br />';
-		echo $this->transEsc('DataPrivacyStatementPiwikOptOutCookieDescription');
-		echo '</div>';
-	}
+	echo '<p>';
+	echo '<h5>'.$this->transEsc('DataPrivacyStatementServerlogsHeading').'</h5>';
+	echo $this->transEsc('DataPrivacyStatementServerlogsText');
+	echo '<br /><br />';
 	echo '</p>';
-}
+	
+	echo '<p>';
+	echo '<h5>'.$this->transEsc('DataPrivacyStatementCookiesHeading').'</h5>';
+	echo $this->transEsc('DataPrivacyStatementCookiesText');
+	echo '<br /><br />';
+	echo '</p>';
+	
+	if ($this->showPiwikParagraph) {
+		echo '<p>';
+		echo '<h5>'.$this->transEsc('DataPrivacyStatementPiwikHeading').'</h5>';
+		echo $this->transEsc('DataPrivacyStatementPiwikText');
+		
+		$optOutButton = $this->piwikOptOut();
+		if ($optOutButton != null && !empty($optOutButton)) {
+			echo '<br /><br />';
+			echo '<div>';
+			echo $this->transEsc('DataPrivacyStatementPiwikOptOutDescription');
+			echo '<br /><br />';
+			echo $optOutButton;
+			echo '<br /><br />';
+			echo $this->transEsc('DataPrivacyStatementPiwikOptOutCookieDescription');
+			echo '</div>';
+		}
+		echo '</p>';
+	}
+echo '<br />';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('DataPrivacyStatementEnteredDataHeading').'</h4>';
+echo $this->transEsc('DataPrivacyStatementEnteredDataText');
+echo '<br /><br />';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('DataPrivacyStatementObjectionHeading').'</h4>';
+echo $this->transEsc('DataPrivacyStatementObjectionText');
+echo '<br /><br />';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('DataPrivacyStatementDisclaimerHeading').'</h4>';
+echo $this->transEsc('DataPrivacyStatementDisclaimerText');
+echo '<br /><br />';
+echo '</p>';
+
+
+echo '<p>';
+echo '<h4>'.$this->transEsc('DataPrivacyStatementDataUseHeading').'</h4>';
+echo $this->transEsc('DataPrivacyStatementDataUseText');
+echo '<br /><br />';
+echo '</p>';
+
 ?>
-</p>
