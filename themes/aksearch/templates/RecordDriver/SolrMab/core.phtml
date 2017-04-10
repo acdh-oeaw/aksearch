@@ -171,6 +171,21 @@
 
 		$participants = $this->driver->getParticipants();
 		if (isset($participants) && !empty($participants)) {
+			
+			// 'NoRole' is normally the same as 'Author' or 'VerfasserIn'. So if we have a record with persons that do have a role 'Author' and
+			// also persons that do not have a role (which gives us 'NoRole'), then we have to put 'NoRole' and 'Author' togehter into one row.
+			// Example: 000459783 / AC13391021
+			$participantsNoRole = [];
+			$participantsTranslated = [];
+			foreach ($participants as $role => $participant) {
+				if ($role == 'NoRole') {
+					$participantsNoRole[$this->transEsc($role)] = $participant;
+				} else {
+					$participantsTranslated[$role] = $participant;
+				}
+			}
+			$participants = array_merge_recursive($participantsNoRole, $participantsTranslated);
+			
 			foreach ($participants as $role => $participant) {
 				echo '<tr>';
 					echo '<th>'.$this->transEsc($role).':</th>';
@@ -197,7 +212,7 @@
 							echo '<br/>';
 						}
 					echo '</td>';
-	        	echo '</tr>';
+	        	echo '</tr>';	        	
 			}
 		}
 		?>
