@@ -2,7 +2,6 @@
 // Set up convenience variables:
 $account = $this->auth()->getManager();
 $user = $account->isLoggedIn();
-$holdings = $this->driver->getRealTimeHoldings();
 $openUrl = $this->openUrl($this->driver, 'holdings');
 $openUrlActive = $openUrl->isActive();
 $urls = $this->record($this->driver)->getLinkDetails($openUrlActive);
@@ -64,9 +63,65 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 
 
 <?php
+/* ########################### JOURNAL HOLDINGS ########################### */
+// Get journal holdings from API
+$journalHoldings = $this->driver->getJournalHoldings();
+
+if (! empty($journalHoldings)) {
+
+	// Get no of holdings
+	$noOfHolings = count($journalHoldings);
+	
+	echo '<br /><h3>' . $this->transEsc('journalHoldingsText') . '</h3><br />';
+
+	foreach ($journalHoldings as $key => $journalHolding) {
+
+		echo '<table class="table" style="width: auto;">';
+		if ($noOfHolings > 1) {
+			echo '<tr>';
+			echo '<th colspan="2" style="text-align: center; border-top: 0px; margin-top: 5px;">' . $this->translate('Bestand') . ' ' .$key . '</th>';
+			echo '</tr>';
+		}
+		if (!empty($journalHolding['holding'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('journalHoldings') . '</th>';
+			echo '<td width="99%">' . $journalHolding['holding'] . '</td>';
+			echo '</tr>';
+		}
+		if (!empty($journalHolding['gaps'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('gaps') . '</th>';
+			echo '<td width="99%">' . $journalHolding['gaps'] . '</td>';
+			echo '</tr>';
+		}
+		if (!empty($journalHolding['location'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('Location') . '</th>';
+			echo '<td width="99%">' . $journalHolding['location'] . '</td>';
+			echo '</tr>';
+		}
+		if (!empty($journalHolding['shelfmark'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('Call Number') . '</th>';
+			echo '<td width="99%">' . $journalHolding['shelfmark'] . '</td>';
+			echo '</tr>';
+		}
+		if (!empty($journalHolding['comment'])) {
+			echo '<tr>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('comment') . '</th>';
+			echo '<td width="99%">' . $journalHolding['comment'] . '</td>';
+			echo '</tr>';
+		}
+		echo '</table>';
+	}
+}
+
+// Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time. 500000 microseconds = 0,5 seconds
+usleep(500000);
 
 /*########################### ITEM HOLDINGS ###########################*/
-
+// Get item holdings from API
+$holdings = $this->driver->getRealTimeHoldings();
 
 if (! empty($holdings)) {
 
@@ -233,61 +288,6 @@ if (! empty($holdings)) {
 	}
 }
 
-/* ########################### JOURNAL HOLDINGS ########################### */
-// Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time. 500000 microseconds = 0,5 seconds
-usleep(500000);
-
-// Getting journal holdings from API
-$journalHoldings = $this->driver->getJournalHoldings();
-
-// Get no of holdings
-$noOfHolings = count($journalHoldings);
-
-if (! empty($journalHoldings)) {
-	
-	echo '<br /><h3>' . $this->transEsc('journalHoldingsText') . '</h3><br />';
-	
-	foreach ($journalHoldings as $key => $journalHolding) {
-
-		echo '<table class="table" style="width: auto;">';
-		if ($noOfHolings > 1) {
-			echo '<tr>';
-			echo '<th colspan="2" style="text-align: center; border-top: 0px; margin-top: 5px;">' . $this->translate('Bestand') . ' ' .$key . '</th>';
-			echo '</tr>';
-		}
-		if (!empty($journalHolding['holding'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('journalHoldings') . '</th>';
-			echo '<td width="99%">' . $journalHolding['holding'] . '</td>';
-			echo '</tr>';
-		}
-		if (!empty($journalHolding['gaps'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('gaps') . '</th>';
-			echo '<td width="99%">' . $journalHolding['gaps'] . '</td>';
-			echo '</tr>';
-		}
-		if (!empty($journalHolding['location'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('Location') . '</th>';
-			echo '<td width="99%">' . $journalHolding['location'] . '</td>';
-			echo '</tr>';
-		}
-		if (!empty($journalHolding['shelfmark'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('Call Number') . '</th>';
-			echo '<td width="99%">' . $journalHolding['shelfmark'] . '</td>';
-			echo '</tr>';
-		}
-		if (!empty($journalHolding['comment'])) {
-			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('comment') . '</th>';
-			echo '<td width="99%">' . $journalHolding['comment'] . '</td>';
-			echo '</tr>';
-		}
-		echo '</table>';
-	}
-}
 
 if (empty($holdings) && empty($journalHoldings) && empty($urls)) {
 	echo '<br /><h3>' . $this->transEsc('akNoHoldings') . '</h3><br />';
