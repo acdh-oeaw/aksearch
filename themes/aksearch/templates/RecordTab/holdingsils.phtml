@@ -84,31 +84,31 @@ if (! empty($journalHoldings)) {
 		}
 		if (!empty($journalHolding['holding'])) {
 			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('journalHoldings') . '</th>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('journalHoldings') . ':</th>';
 			echo '<td width="99%">' . $journalHolding['holding'] . '</td>';
 			echo '</tr>';
 		}
 		if (!empty($journalHolding['gaps'])) {
 			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('gaps') . '</th>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('gaps') . ':</th>';
 			echo '<td width="99%">' . $journalHolding['gaps'] . '</td>';
 			echo '</tr>';
 		}
 		if (!empty($journalHolding['location'])) {
 			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('Location') . '</th>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('Location') . ':</th>';
 			echo '<td width="99%">' . $journalHolding['location'] . '</td>';
 			echo '</tr>';
 		}
 		if (!empty($journalHolding['shelfmark'])) {
 			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('Call Number') . '</th>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('Call Number') . ':</th>';
 			echo '<td width="99%">' . $journalHolding['shelfmark'] . '</td>';
 			echo '</tr>';
 		}
 		if (!empty($journalHolding['comment'])) {
 			echo '<tr>';
-			echo '<th style="white-space: nowrap;">' . $this->transEsc('comment') . '</th>';
+			echo '<th style="white-space: nowrap;">' . $this->transEsc('comment') . ':</th>';
 			echo '<td width="99%">' . $journalHolding['comment'] . '</td>';
 			echo '</tr>';
 		}
