@@ -1678,9 +1678,19 @@ class SolrMab extends SolrDefault  {
 	 * @return NULL|array
 	 */
 	public function getAbstract() {
-		return isset($this->fields['abstract_txt_mv']) ? $this->fields['abstract_txt_mv'] : null;
-		
+		return isset($this->fields['abstract_txt_mv']) ? $this->fields['abstract_txt_mv'] : null;	
 	}
+	
+	
+	/**
+	 * Get content summary of a record.
+	 *
+	 * @return NULL|array
+	 */
+	public function getContentSummary() {
+		return isset($this->fields['contentSummary_txt_mv']) ? $this->fields['contentSummary_txt_mv'] : null;
+	}
+	
 	
 	/**
 	 * Get Solrfield author

@@ -94,6 +94,42 @@ $isbn = $this->driver->getCleanISBN();
 			echo '</tr>';
 		}
 		
+		// Content summaries
+		$contentSummaries = $this->driver->tryMethod('getContentSummary');
+		if (isset($contentSummaries) && !empty($contentSummaries)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('ContentSummary') . ': </th>';
+			echo '<td>';
+			foreach ($contentSummaries as $contentSummary) {
+				echo '<div class="akTableInnerRow">';
+				if ($contentSummary != null && !empty($contentSummary)) {
+					echo $this->escapeHtml($contentSummary);
+				}
+				echo '</div>';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Abstracts
+		$abstracts = $this->driver->tryMethod('getAbstract');
+		if (isset($abstracts) && !empty($abstracts)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Abstract') . ': </th>';
+			echo '<td>';
+			foreach ($abstracts as $abstract) {
+				echo '<div class="akTableInnerRow">';
+				if ($abstract!= null && !empty($abstract)) {
+					echo $this->escapeHtml($abstract);
+				}
+				echo '</div>';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
 		// Attachments
 		$attachments = $this->driver->tryMethod('getAttachments');
 		if (isset($attachments) && !empty($attachments)) {
