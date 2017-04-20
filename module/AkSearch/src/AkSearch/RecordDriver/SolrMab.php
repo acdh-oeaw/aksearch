@@ -464,9 +464,8 @@ class SolrMab extends SolrDefault  {
 			$otherEditions = [];
 			$moduloCounter = 0;
 			$editionCounter = 0;
-			foreach ($otherEditionsRaw as $otherEditionEntry) {
-				
 			
+			foreach ($otherEditionsRaw as $otherEditionEntry) {
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$otherEditions[$editionCounter]['title'] = $otherEditionEntry;
 				}
@@ -500,15 +499,13 @@ class SolrMab extends SolrDefault  {
 		$attachments = null;
 		$attachmentsRaw = isset($this->fields['attachmentDisplay_str_mv']) ? $this->fields['attachmentDisplay_str_mv'] : null;
 	
-
 		if ($attachmentsRaw != null && isset($attachmentsRaw)) {
 				
 			$attachments = [];
 			$moduloCounter = 0;
 			$attachmentCounter = 0;
-			foreach ($attachmentsRaw as $attachmentEntry) {
-	
-					
+			
+			foreach ($attachmentsRaw as $attachmentEntry) {	
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$attachments[$attachmentCounter]['title'] = $attachmentEntry;
 				}
@@ -547,9 +544,8 @@ class SolrMab extends SolrDefault  {
 			$attachmentsTo = [];
 			$moduloCounter = 0;
 			$attachmentToCounter = 0;
+			
 			foreach ($attachmentsToRaw as $attachmentToEntry) {
-	
-					
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$attachmentsTo[$attachmentToCounter]['title'] = $attachmentToEntry;
 				}
@@ -573,6 +569,125 @@ class SolrMab extends SolrDefault  {
 		return $attachmentsTo;
 	}
 	
+	
+	/**
+	 * Get Solrfield otherRelationDisplay_txt_mv (title, type, comment, id original, id solr record for linking)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getOtherRelations() {
+		$otherRelations = null;
+		$otherRelationsRaw = isset($this->fields['otherRelationDisplay_txt_mv']) ? $this->fields['otherRelationDisplay_txt_mv'] : null;
+		
+		if ($otherRelationsRaw != null && isset($otherRelationsRaw)) {
+			
+			$otherRelations = [];
+			$moduloCounter = 0;
+			$relationCounter = 0;
+			
+			foreach ($otherRelationsRaw as $otherRelationEntry) {
+				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
+					$otherRelations[$relationCounter]['title'] = $otherRelationEntry;
+				}
+				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
+					$otherRelations[$relationCounter]['type'] = $otherRelationEntry;
+				}
+				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
+					$otherRelations[$relationCounter]['comment'] = $otherRelationEntry;
+				}
+				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
+					$otherRelations[$relationCounter]['originalId'] = $otherRelationEntry;
+				}
+				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
+					$otherRelations[$relationCounter]['solrId'] = $otherRelationEntry;
+					$relationCounter = $relationCounter + 1;
+				}
+				$moduloCounter = $moduloCounter + 1;
+			}
+		}
+		
+		return $otherRelations;
+	}
+	
+	
+	/**
+	 * Get Solrfield predecessorDisplay_str_mv (title, type, comment, id original, id solr record for linking)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getPredecessors() {
+		$predecessors = null;
+		$predecessorsRaw = isset($this->fields['predecessorDisplay_str_mv']) ? $this->fields['predecessorDisplay_str_mv'] : null;
+		
+		if ($predecessorsRaw != null && isset($predecessorsRaw)) {
+			
+			$predecessors = [];
+			$moduloCounter = 0;
+			$predecessorCounter = 0;
+			
+			foreach ($predecessorsRaw as $predecessorEntry) {
+				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
+					$predecessors[$predecessorCounter]['title'] = $predecessorEntry;
+				}
+				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
+					$predecessors[$predecessorCounter]['type'] = $predecessorEntry;
+				}
+				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
+					$predecessors[$predecessorCounter]['comment'] = $predecessorEntry;
+				}
+				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
+					$predecessors[$predecessorCounter]['originalId'] = $predecessorEntry;
+				}
+				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
+					$predecessors[$predecessorCounter]['solrId'] = $predecessorEntry;
+					$predecessorCounter = $predecessorCounter + 1;
+				}
+				$moduloCounter = $moduloCounter + 1;
+			}
+		}
+		
+		return $predecessors;
+	}
+	
+	
+	/**
+	 * Get Solrfield successorDisplay_str_mv (title, type, comment, id original, id solr record for linking)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getSuccessors() {
+		$successors = null;
+		$successorsRaw = isset($this->fields['successorDisplay_str_mv']) ? $this->fields['successorDisplay_str_mv'] : null;
+		
+		if ($successorsRaw != null && isset($successorsRaw)) {
+			
+			$successors = [];
+			$moduloCounter = 0;
+			$successorCounter = 0;
+			
+			foreach ($successorsRaw as $successorEntry) {
+				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
+					$successors[$successorCounter]['title'] = $successorEntry;
+				}
+				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
+					$successors[$successorCounter]['type'] = $successorEntry;
+				}
+				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
+					$successors[$successorCounter]['comment'] = $successorEntry;
+				}
+				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
+					$successors[$successorCounter]['originalId'] = $successorEntry;
+				}
+				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
+					$successors[$successorCounter]['solrId'] = $successorEntry;
+					$successorCounter = $successorCounter + 1;
+				}
+				$moduloCounter = $moduloCounter + 1;
+			}
+		}
+		
+		return $successors;
+	}
 	
 	
 	// ######################################################################################

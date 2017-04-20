@@ -685,7 +685,13 @@ a.list-group-item:hover, a.list-group-item:focus {
 	z-index: 95;
 }
 
+.akTableInnerRow {
+	margin-bottom: 10px;
+}
 
+.akTableInnerRow:LAST-CHILD {
+	margin-bottom: 0px;
+}
 
 @media ( max-width : 767px) {
 	

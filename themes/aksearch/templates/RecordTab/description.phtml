@@ -53,7 +53,7 @@ $isbn = $this->driver->getCleanISBN();
 		}
 		
 		$series = $this->driver->getSeries();
-		if (isset($series) && ! empty($series)) {
+		if (isset($series) && !empty($series)) {
 			$contentDisplayed = true;
 			echo '<tr>';
 			echo '<th>' . $this->transEsc('Series') . ':</th>';
@@ -65,9 +65,9 @@ $isbn = $this->driver->getCleanISBN();
 				 * name. We should account for both cases to maximize compatibility.
 				 */
 				if (is_array($field)) {
-					if (! empty($field['name'])) {
+					if (!empty($field['name'])) {
 						echo '<a href="' . $this->record($this->driver)->getLink('series', $field['name']) . '">' . $this->escapeHtml(str_replace(array("<", ">"), "", $field['name'])) . '</a>';
-						if (! empty($field['number'])) {
+						if (!empty($field['number'])) {
 							echo ' ' . $this->escapeHtml($field['number']);
 						}
 						echo '<br />';
@@ -82,7 +82,7 @@ $isbn = $this->driver->getCleanISBN();
 		
 		// Subseries
 		$subSeries = $this->driver->tryMethod('getSubseries');
-		if (isset($subSeries) && ! empty($subSeries)) {
+		if (isset($subSeries) && !empty($subSeries)) {
 			$contentDisplayed = true;
 			echo '<tr>';
 			echo '<th>' . $this->transEsc('subseries') . ': </th>';
@@ -95,13 +95,13 @@ $isbn = $this->driver->getCleanISBN();
 		}
 		
 		// Attachments
-		$otherEditions = $this->driver->tryMethod('getAttachments');
-		if (isset($otherEditions) && ! empty($otherEditions)) {
+		$attachments = $this->driver->tryMethod('getAttachments');
+		if (isset($attachments) && !empty($attachments)) {
 			$contentDisplayed = true;
 			echo '<tr>';
 			echo '<th>' . $this->transEsc('attachment') . ': </th>';
 			echo '<td>';
-			foreach ($otherEditions as $attachment) {
+			foreach ($attachments as $attachment) {
 				$attachmentTitle = str_replace(array('<', '>'), '', $attachment['title']);
 				$attachmentType = '';
 				// $attachmentType = ($attachment['type'] != 'NoAttachmentType') ? preg_replace('/\s*-+>/', '', $attachment['type']).': ' : null;
@@ -119,23 +119,47 @@ $isbn = $this->driver->getCleanISBN();
 		
 		// Attachment to
 		$attachmentsTo = $this->driver->tryMethod('getAttachmentsTo');
-		if (isset($attachmentsTo) && ! empty($attachmentsTo)) {
+		if (isset($attachmentsTo) && !empty($attachmentsTo)) {
 			$contentDisplayed = true;
 			
 			echo '<tr>';
 			echo '<th>' . $this->transEsc('attachmentTo') . ': </th>';
 			echo '<td>';
 			foreach ($attachmentsTo as $attachmentTo) {
-				
 				$attachmentToTitle = str_replace(array('<', '>'), '', $attachmentTo['title']);
 				$attachmentToType = ($attachmentTo['type'] != 'NoAttachmentToType' && preg_match('/^Beil. zu\s*$/', $attachmentTo['type']) != 1) ? preg_replace('/\s*-+>/', '', trim($attachmentTo['type'])) . ': ' : null;
 				$attachmentToSys = ($attachmentTo['solrId'] != 'NoAttachmentToSys') ? $attachmentTo['solrId'] : null;
-				
 				if ($attachmentToSys != null) {
 					echo '<a href="' . $this->recordLink()->getUrl() . $attachmentToSys . '">' . $attachmentToType . $this->escapeHtml($attachmentToTitle) . '</a><br/>';
 				} else {
 					echo $attachmentToType . $this->escapeHtml($attachmentToTitle) . '<br/>';
 				}
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Other relation
+		$predecessors = $this->driver->tryMethod('getOtherRelations');
+		if (isset($predecessors) && !empty($predecessors)) {
+			$contentDisplayed = true;
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('otherRelation') . ': </th>';
+			echo '<td>';
+			foreach ($predecessors as $otherRelation) {
+				$otherRelationTitle = str_replace(array('<<', '>>'), '', trim($otherRelation['title']));
+				$otherRelationType = ($otherRelation['type'] != 'NoRelationNote') ? trim($otherRelation['type']) . ': ' : null;
+				$otherRelationComment = ($otherRelation['comment'] != 'NoComment') ? trim($otherRelation['comment']) : null;
+				$otherRelationSys = ($otherRelation['solrId'] != 'NoOtherRelationId') ? $otherRelation['solrId'] : null;
+				echo '<div class="akTableInnerRow">';
+				echo $this->escapeHtml($otherRelationType);
+				if ($otherRelationSys!= null) {
+					echo '<a href="' . $this->recordLink()->getUrl() . $otherRelationSys. '">' . $this->escapeHtml($otherRelationTitle) . '</a>';
+				} else {
+					echo $this->escapeHtml($otherRelationTitle);
+				}
+				echo  ($otherRelationComment != null ? ' ('.$this->escapeHtml($otherRelationComment).')' : '');
+				echo '</div>';
 			}
 			echo '</td>';
 			echo '</tr>';

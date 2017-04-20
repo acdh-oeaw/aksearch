@@ -293,6 +293,54 @@
       </tr>
       <? endif; ?>
 
+
+
+		<?php
+		
+		// Predecessor title
+		$predecessors = $this->driver->tryMethod('getPredecessors');
+		if (isset($predecessors) && !empty($predecessors)) {
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('Previous Title') . ': </th>';
+			echo '<td>';
+			foreach ($predecessors as $predecessor) {
+				$predecessorTitle = str_replace(array('<', '>'), '', trim($predecessor['title']));
+				$predecessorSys = ($predecessor['solrId'] != 'NoPredecessorId') ? $predecessor['solrId'] : null;
+				echo '<div class="akTableInnerRow">';
+				if ($predecessorSys != null) {
+					echo '<a href="' . $this->recordLink()->getUrl() . $predecessorSys. '">' . $this->escapeHtml($predecessorTitle) . '</a>';
+				} else {
+					echo $this->escapeHtml($predecessorTitle);
+				}
+				echo '</div>';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		// Successor title
+		$successors = $this->driver->tryMethod('getSuccessors');
+		if (isset($successors) && !empty($successors)) {
+			echo '<tr>';
+			echo '<th>' . $this->transEsc('New Title') . ': </th>';
+			echo '<td>';
+			foreach ($successors as $successor) {
+				$successorTitle = str_replace(array('<', '>'), '', trim($successor['title']));
+				$successorSys = ($successor['solrId'] != 'NoSuccessorId') ? $successor['solrId'] : null;
+				echo '<div class="akTableInnerRow">';
+				if ($successorSys != null) {
+					echo '<a href="' . $this->recordLink()->getUrl() . $successorSys. '">' . $this->escapeHtml($successorTitle) . '</a>';
+				} else {
+					echo $this->escapeHtml($successorTitle);
+				}
+				echo '</div>';
+			}
+			echo '</td>';
+			echo '</tr>';
+		}
+		
+		/*
+		// ORIGINAL
       <? $nextTitles = $this->driver->getNewerTitles(); $prevTitles = $this->driver->getPreviousTitles(); ?>
       <? if (!empty($nextTitles)): ?>
       <tr>
@@ -315,6 +363,10 @@
         </td>
       </tr>
       <? endif; ?>
+      */
+      ?>
+      
+      
 
        <?
         $openUrl = $this->openUrl($this->driver, 'record');
@@ -356,12 +408,12 @@
 	    */
 	    
 	    // Other editions
-	    $otherEditions = $this->driver->tryMethod('getOtherEditions');
-	    if (isset($otherEditions) && !empty($otherEditions)) {
+	    $attachments = $this->driver->tryMethod('getOtherEditions');
+	    if (isset($attachments) && !empty($attachments)) {
 	    	echo '<tr>';
 	    	echo '<th>'.$this->transEsc('otherEdition').': </th>';
 	    	echo '<td>';
-	    	foreach ($otherEditions as $otherEdition) {
+	    	foreach ($attachments as $otherEdition) {
 	    		$otherEditionTitle = $otherEdition['title'];
 	    		$otherEditionType = ($otherEdition['type'] != 'NoOtherEditionType') ? preg_replace('/\s*-+>/', '', $otherEdition['type']).': ' : null;
 	    		$otherEditionSys = ($otherEdition['solrId'] != 'NoOtherEditionSys') ? $otherEdition['solrId'] : null;
