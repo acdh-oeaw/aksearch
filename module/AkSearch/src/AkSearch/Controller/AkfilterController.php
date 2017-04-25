@@ -46,7 +46,8 @@ class AkfilterController extends \VuFind\Controller\AbstractSearch {
      * @return bool
      */
     protected function resultScrollerActive() {
-    	$config = $this->getServiceLocator()->get('VuFind\Config')->get('Akfilter');
+    	//$config = $this->getServiceLocator()->get('VuFind\Config')->get('Akfilter');
+    	$config = $this->getServiceLocator()->get('VuFind\Config');
     	return (isset($config->Record->next_prev_navigation) && $config->Record->next_prev_navigation);
     }
     
