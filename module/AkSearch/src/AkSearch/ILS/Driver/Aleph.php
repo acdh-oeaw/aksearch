@@ -286,6 +286,12 @@ class Aleph extends AlephDefault {
 				$availability = false;
 			}
 			
+			// Check for "not_available_locations" in AKsearch.ini:
+			$not_available_locations = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->AlephItemStatus->not_available_locations);			
+			if (in_array($sub_library_code, $not_available_locations)) {
+				$availability = false;
+			}
+			
 			if ($item_status['request'] == 'Y' && $availability == false) {
 				$addLink = true;
 			}
@@ -310,7 +316,7 @@ class Aleph extends AlephDefault {
 				$duedate = null;
 				$holdtype = ($isHoldable == true) ? 'hold' : '';
 			}
-			
+						
 			// process duedate
 			if ($availability) {
 				if ($this->duedates) {
@@ -337,6 +343,11 @@ class Aleph extends AlephDefault {
                 /* below are optional attributes*/
                 'collection' => (string) $collection, 'collection_desc' => (string) $collection_desc['desc'], 'callnumber_second' => (string) $z30->{'z30-call-no-2'}, 'sub_lib_desc' => (string) $item_status['sub_lib_desc'], 'no_of_loans' => (string) $z30->{'z30-no-loans'}, 'requested' => (string) $requested);
 		}
+		
+		
+		echo '<pre>';
+		print_r($holding);
+		echo '</pre>';
 		
 		return $holding;
 	}
