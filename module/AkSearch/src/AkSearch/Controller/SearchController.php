@@ -76,13 +76,6 @@ class SearchController extends \VuFind\Controller\SearchController
     	if ($this->params()->fromQuery('range') !== null) {
     		return $this->forwardTo('Search', 'NewItemResults');
     	}
-    
-    	/*
-    	echo '<pre>';
-    	print_r($this->newItems()->getRanges());
-    	print_r($this->newItems()->getNewItemsFilter());
-    	echo '</pre>';
-    	*/
     	
     	return $this->createViewModel(
     			[

@@ -150,7 +150,7 @@ if (! empty($holdings)) {
 			if (isset($holdingOfLocation['description']) && ! empty(trim($holdingOfLocation['description']))) {
 				$hasDescription = true;
 			}
-			if ($holdingOfLocation['link']) {
+			if (isset($holdingOfLocation['link'])) {
 				$hasLink = true;
 			}
 		}

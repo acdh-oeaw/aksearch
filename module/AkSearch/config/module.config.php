@@ -768,6 +768,7 @@ $config = [
                 'serverParam' => 'VuFind\Role\PermissionProvider\Factory::getServerParam',
                 'shibboleth' => 'VuFind\Role\PermissionProvider\Factory::getShibboleth',
                 'username' => 'VuFind\Role\PermissionProvider\Factory::getUsername',
+            	'usergroup' => 'AkSearch\Role\PermissionProvider\Factory::getUsergroup',
             ],
             'invokables' => [
                 'role' => 'VuFind\Role\PermissionProvider\Role',

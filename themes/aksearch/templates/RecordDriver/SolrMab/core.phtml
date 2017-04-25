@@ -46,7 +46,7 @@
 
 	<?php
 	$mainTitle = $this->escapeHtml(str_replace(array('<', '>'), '', $this->driver->getShortTitle()));
-	$subseriesTitle = $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries'))));
+	$subseriesTitle = ($this->driver->tryMethod('getSubseries')) ? $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries')))) : null;
 	$subTitle = $this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array('<', '>'), '', $this->driver->getTitleSection()));
 	$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
     
@@ -449,7 +449,7 @@
 	    	echo '<th>'.$this->transEsc('classification').': </th>';
 	    	echo '<td>';
 	    	foreach ($ddcs as $ddc) {
-	    		echo '<a title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->url('search-results').'?lookfor='.urlencode($ddc).'&type=classification&limit=20" rel="nofollow">';
+	    		echo '<a title="'.$ddc.'" href="'.$this->url('search-results').'?lookfor='.urlencode($ddc).'&type=classification&limit=20" rel="nofollow">';
 	    		echo $this->escapeHtml($ddc).'<br />';
 	    		echo '</a>';
 	    	}

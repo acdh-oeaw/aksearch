@@ -29,16 +29,12 @@
  
 namespace AkSearch\ILS\Driver;
 
-use VuFind\Exception\ILS as ILSException;
-use VuFind\Exception\Auth as AuthException;
-use Zend\Log\LoggerInterface;
-use VuFindHttp\HttpServiceInterface;
 use DateTime;
-use VuFind\Exception\Date as DateException;
-use VuFind\SimpleXML;
+use VuFind\Exception\Auth as AuthException;
+use VuFind\Exception\ILS as ILSException;
 use VuFind\ILS\Driver\Aleph as AlephDefault;
-use VuFind\ILS\Driver\AlephTranslator as AlephTranslatorDefault;
 use VuFind\ILS\Driver\AlephRestfulException as AlephRestfulExceptionDefault;
+use VuFind\ILS\Driver\AlephTranslator as AlephTranslatorDefault;
 
 
 class Aleph extends AlephDefault {
@@ -295,7 +291,9 @@ class Aleph extends AlephDefault {
 			if ($item_status['request'] == 'Y' && $availability == false) {
 				$addLink = true;
 			}
-			if (! empty($patron)) {
+			
+			$isHoldable = false;
+			if (!empty($patron)) {
 				$hold_request = $item->xpath('info[@type="HoldRequest"]/@allowed');
 				$isHoldable = ($hold_request[0] == 'Y') ? true : false;
 				$addLink = ($hold_request[0] == 'Y') ? true : false;
@@ -343,12 +341,7 @@ class Aleph extends AlephDefault {
                 /* below are optional attributes*/
                 'collection' => (string) $collection, 'collection_desc' => (string) $collection_desc['desc'], 'callnumber_second' => (string) $z30->{'z30-call-no-2'}, 'sub_lib_desc' => (string) $item_status['sub_lib_desc'], 'no_of_loans' => (string) $z30->{'z30-no-loans'}, 'requested' => (string) $requested);
 		}
-		
-		
-		echo '<pre>';
-		print_r($holding);
-		echo '</pre>';
-		
+				
 		return $holding;
 	}
 	
@@ -452,14 +445,6 @@ class Aleph extends AlephDefault {
 			throw new ILSException($ex->getMessage());
 		}
 		
-		/*
-		// Error handling from X-Server-Request (e. g. Error 403 "Forbidden")
-		$xmlErrorTitle = ($xml->head->title != null && !empty($xml->head->title)) ? (string)$xml->head->title : null;
-		if (isset($xmlErrorTitle)) {
-			throw new AuthException($xmlErrorTitle. ': '. $xml->body->h1);
-		}
-		*/
-		
 		// Aleph interface error (e. g. verification error)
 		$borauthError = ($xml->error != null && !empty($xml->error)) ? (string)$xml->error : null;
 		if (isset($borauthError)) {
@@ -495,11 +480,11 @@ class Aleph extends AlephDefault {
 		$patron['cat_password'] = $password;
 		$patron['email'] = (string) $email_addr;
 		$patron['major'] = null;
-
+		
 		return $patron;
 	}
 	
-	
+
 	/**
 	 * Overriding "getMyProfile" method using X-server from original VuFind Aleph driver.
 	 * For our goals (changing user data) we need to gather more information (e. g. ALL
