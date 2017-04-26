@@ -244,6 +244,7 @@ $config = [
     'view_helpers' => [
         'initializers' => [
             'VuFind\ServiceManager\Initializer::initZendPlugin',
+        	//'ZfcRbac\Initializer\AuthorizationServiceInitializer', // Added by AK Bibliothek Wien - Search box permission
         ],
     ],
     'view_manager' => [

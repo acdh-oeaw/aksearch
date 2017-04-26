@@ -30,7 +30,15 @@
 
 namespace AkSearch\Search\Akfilter;
 
-class Options extends \VuFind\Search\Solr\Options {
+
+use \ZfcRbac\Service\AuthorizationServiceAwareInterface,
+\ZfcRbac\Service\AuthorizationServiceAwareTrait;
+
+
+class Options extends \VuFind\Search\Solr\Options implements AuthorizationServiceAwareInterface {
+	
+	use AuthorizationServiceAwareTrait;
+	
 	
 	/**
 	 * Constructor
@@ -40,7 +48,15 @@ class Options extends \VuFind\Search\Solr\Options {
 	public function __construct(\VuFind\Config\PluginManager $configLoader) {
 		parent::__construct($configLoader);
 		$akfilterSettings = $configLoader->get('Akfilter');
-		
+				
+		// Initialize the authorization service (for permissions)
+		$init = new \ZfcRbac\Initializer\AuthorizationServiceInitializer();
+		$init->initialize($this, $configLoader);
+		$auth = $this->getAuthorizationService();
+		if (!$auth) {
+			throw new \Exception('Authorization service missing');
+		}
+	
 		// TODO: Check if this is really necessary
 		// Unset default handler
 		unset($this->defaultHandler);
@@ -56,16 +72,46 @@ class Options extends \VuFind\Search\Solr\Options {
 		//   defined in Akfilter.ini and separated from it by colon (:). Filter values after the colon must be
 		//   defined as search options in searchspecs.yaml
 		foreach ($akfilterSettings as $akfilterKey => $akfilterValues) {
-			$this->basicHandlers[$akfilterKey.':'.$akfilterValues->toptarget[0]] = $akfilterValues->toplabel[0];			
-			if (isset($akfilterValues->subtarget)) {
-				foreach ($akfilterValues->subtarget as $subtargetKey => $subtargetValue) {
-					$this->basicHandlers[$akfilterKey.':'.$subtargetValue] = $akfilterValues->sublabel[$subtargetKey];
+			if (isset($akfilterValues->toppermission[0])) {
+				$topPermissionIsGranted = $auth->isGranted($akfilterValues->toppermission[0]);
+				if ($topPermissionIsGranted) {
+					$this->basicHandlers[$akfilterKey.':'.$akfilterValues->toptarget[0]] = $akfilterValues->toplabel[0];
+					$subTargets = (isset($akfilterValues->subtarget)) ? $akfilterValues->subtarget : null;
+					if ($subTargets != null && !empty($subTargets)) {
+						$this->setSubtargets($auth, $akfilterKey, $akfilterValues);
+					}
+				}
+			} else {
+				$this->basicHandlers[$akfilterKey.':'.$akfilterValues->toptarget[0]] = $akfilterValues->toplabel[0];
+				$subTargets = (isset($akfilterValues->subtarget)) ? $akfilterValues->subtarget : null;
+				if ($subTargets != null && !empty($subTargets)) {
+					$this->setSubtargets($auth, $akfilterKey, $akfilterValues);
 				}
 			}
-			
-
 		}
 	}
+	
+	
+	/**
+	 * Set the sub search targets, depending on the permission in permissions.ini
+	 * 
+	 * @param unknown $auth				The authentication object that handles the permissions of permissions.ini
+	 * @param unknown $akfilterKey		The key from the top target array that contains the sub target(s)
+	 * @param unknown $akfilterData		The data from the Akfilter.ini file
+	 */
+	private function setSubtargets($auth, $akfilterKey, $akfilterData) {
+		foreach ($akfilterData->subtarget as $subtargetKey => $subtargetValue) {
+			if (isset($akfilterData->subpermission[$subtargetKey])) {
+				$subPermissionIsGranted = $auth->isGranted($akfilterData->subpermission[$subtargetKey]);
+				if ($subPermissionIsGranted) {
+					$this->basicHandlers[$akfilterKey.':'.$subtargetValue] = $akfilterData->sublabel[$subtargetKey];
+				}
+			} else {
+				$this->basicHandlers[$akfilterKey.':'.$subtargetValue] = $akfilterData->sublabel[$subtargetKey];
+			}
+		}
+	}
+	
 	
 	/**
 	 * Return the route name for the search results action.
@@ -75,6 +121,7 @@ class Options extends \VuFind\Search\Solr\Options {
 	public function getSearchAction() {
 		return 'akfilter-results';
 	}
+	
 	
 	/**
 	 * Return the route name of the action used for performing advanced searches.
