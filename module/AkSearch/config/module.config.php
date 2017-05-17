@@ -91,12 +91,28 @@ $config = [
                         'action'     => 'Home',
                     ]
                 ]
-            ]
+            ],
+        	'api-user' => [
+        		'type'    => 'Zend\Mvc\Router\Http\Segment',
+        		'options' => [
+        			'route'    => '/Api/User/[:apiUserAction]',
+        			//'route'    => '/Api/User',
+        			'constraints' => [
+        				'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+        				'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        			],
+        			'defaults' => [
+        				'controller' => 'Api',
+        				'action' => 'User',
+        			],
+        		],
+        	],
         ],
     ],
     'controllers' => [
         'factories' => [
-            //'browse' => 'VuFind\Controller\Factory::getBrowseController',
+            'api' => 'AkSearch\Controller\Factory::getApiController',
+        	//'browse' => 'VuFind\Controller\Factory::getBrowseController',
         	'browse' => 'AkSearch\Controller\Factory::getBrowseController',
             'collection' => 'VuFind\Controller\Factory::getCollectionController',
             'collections' => 'VuFind\Controller\Factory::getCollectionsController',
