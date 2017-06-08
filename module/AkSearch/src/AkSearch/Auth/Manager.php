@@ -60,10 +60,16 @@ class Manager extends DefaultAuthManager {
      * @return bool
      */
     public function supportsUserDataChange($authMethod = null) {
-    	if ($this->getAuth($authMethod)->supportsUserDataChange()) {
-        	$changeUserData = isset($this->akConfig->User->change_userdata) && $this->akConfig->User->change_userdata;
-            return $changeUserData;
-        }
+    	
+    	$methodExists = method_exists($this->getAuth($authMethod),'supportsUserDataChange');
+    	
+    	if ($methodExists) {
+    		if ($this->getAuth($authMethod)->supportsUserDataChange()) {
+    			$changeUserData = isset($this->akConfig->User->change_userdata) && $this->akConfig->User->change_userdata;
+    			return $changeUserData;
+    		}
+    	}
+    	
         return false;
     }
     
