@@ -3,7 +3,9 @@
   <types>
     <!-- Define fieldType long as it is needed by the _version_ field required by Solr 4.x -->
     <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+    
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    
     <fieldType name="textFacet" class="solr.TextField" sortMissingLast="true" omitNorms="true">
       <analyzer>
         <tokenizer class="solr.KeywordTokenizerFactory"/>
@@ -11,6 +13,7 @@
         <filter class="solr.PatternReplaceFilterFactory" pattern="(?&lt;!\b[A-Z])[.\s]*$" replacement="" replace="first"/>
       </analyzer>
     </fieldType>
+    
     <fieldType name="textFacetRaw" class="solr.TextField" sortMissingLast="true" omitNorms="true">
       <analyzer>
         <tokenizer class="solr.KeywordTokenizerFactory"/>
@@ -92,13 +95,24 @@
 	<fieldType name="text_sort" class="solr.TextField" sortMissingLast="true" omitNorms="true" >
 		<analyzer type="index">
 			<tokenizer class="solr.KeywordTokenizerFactory"/>
+			<!-- <filter class="solr.ICUCollationKeyFilterFactory" locale="de" strength="primary"/> -->
+			<!-- <filter class="solr.ICUCollationKeyFilterFactory" locale="de@collation=phonebook" strength="primary" /> -->
+			<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
+			<filter class="solr.ASCIIFoldingFilterFactory"/>
 			<filter class="solr.LowerCaseFilterFactory"/>
 		</analyzer>
 		<analyzer type="query">
 			<tokenizer class="solr.KeywordTokenizerFactory"/>
+			<!-- <filter class="solr.ICUCollationKeyFilterFactory" locale="de" strength="primary"/> -->
+			<!-- <filter class="solr.ICUCollationKeyFilterFactory" locale="de@collation=phonebook" strength="primary" /> -->
+			<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
+			<filter class="solr.ASCIIFoldingFilterFactory"/>
 			<filter class="solr.LowerCaseFilterFactory"/>
 		</analyzer>
 	</fieldType>
+	
+	<!-- Field type "int_sort" added by AK Bibliothek Wien - Field type for numeric sorting (e. g. publish year) -->
+    <fieldType name="int_sort" class="solr.TrieIntField" precisionStep="0" sortMissingLast="true" omitNorms="true"/>
     
     <!-- Text Field without Stemming and Synonyms -->
     <fieldType name="textProper" class="solr.TextField" positionIncrementGap="100">
@@ -162,6 +176,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.ICUTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
 		<filter class="solr.HunspellStemFilterFactory" dictionary="de_AT_frami.dic" affix="de_AT_frami.aff" ignoreCase="true" /> <!-- German - for Umlauts like ö, ä, ... -->
       </analyzer>
     </fieldType>
@@ -324,7 +339,9 @@
    <field name="title_wildcard" type="textWildcard" indexed="true" stored="true" />
    <!-- <field name="author_de" type="textDe" indexed="true" stored="true" /> -->
    <field name="author_wildcard" type="textWildcard" indexed="true" stored="true" />
+   <field name="datePublishSortStrict" type="int_sort" indexed="true" stored="true"/>
    <!-- ADDED BY AK BIBLIOTHEK WIEN - END -->
+   
 
    <!-- Dynamic fields for customization without schema modification -->
    <dynamicField name="*_date" type="date" indexed="true" stored="true"/>
@@ -374,7 +391,7 @@
  <copyField source="dewey-raw" dest="dewey-search"/>
  <copyField source="callnumber-raw" dest="callnumber-search"/>
 
- <!-- ADDED BY AK BIBLIOTHEK WIEN - BEGIN -->
+<!-- ADDED BY AK BIBLIOTHEK WIEN - BEGIN -->
  <!-- <copyField source="title" dest="title_de" /> -->
  <copyField source="title" dest="title_wildcard" />
  <!-- <copyField source="author" dest="author_de" /> -->
