@@ -69,6 +69,8 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 	/**
 	 * {@inheritDoc}
+	 * Get API data from Alma.ini file.
+	 * 
 	 * @see \VuFind\ILS\Driver\DriverInterface::init()
 	 */
 	public function init() {
