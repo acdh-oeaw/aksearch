@@ -133,18 +133,18 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$location							= (string)$item->item_data->location; // = Location code. Location name would be (string)$item->item_data->location->attributes()->desc
 			$reserve							= ((string)$item->item_data->requested == 'false') ? 'N' : 'Y';
 			$callnumber							= (string)$item->holding_data->call_number;
-			//$duedate							= 'string';
-			//$returnDate						= 'string';
+			$duedate							= null; // Additional API call - see below
+			$returnDate							= false; // We don't use returnDate
 			$number								= $key;
 			//$requests_placed					= 'string or number';
 			$barcode							= (string)$item->item_data->barcode;
-			$public_note						= (string)$item->item_data->public_note;
-			$notes								= ($public_note == null) ? null : [$public_note]; // Deprecated in VuFind 3.0 in favor of holdings_notes
-			$holdings_notes						= ($public_note == null) ? null : [$public_note]; // New in VuFind 3.0
+			$public_note						= (string)$item->item_data->public_note; // = Not in item, not holding!
+			$notes								= null; // We don't use notes in holdings, just item notes (see above). Deprecated in VuFind 3.0 in favor of holdings_notes
+			$holdings_notes						= null; // // We don't use notes in holdings, just item notes (see above).New in VuFind 3.0
 			$item_notes							= ($public_note == null) ? null : [$public_note]; // New in VuFind 3.0
-			//$summary							= array();
-			//$supplements						= array();
-			//$indexes							= array();
+			//$summary							= array(); // We don't use summary information in holdings.
+			//$supplements						= array(); // We don't use supplement information in holdings.
+			//$indexes							= array(); // We don't use index information in holdings.
 			//$is_holdable						= '???';
 			//$holdtype							= '???';
 			//$addLink							= '???';
@@ -158,6 +158,18 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$callnumber_second					= (string)$item->item_data->alternative_call_number;
 			$sub_lib_desc						= (string)$item->item_data->library;
 			$requested							= ((string)$item->item_data->requested == 'false') ? false : 'Requested';
+			$process_type						= (string)$item->item_data->process_type;
+			$process_type_desc					= (string)$item->item_data->process_type->attributes()->desc;
+			
+			
+			// For some data we need to do additional API calls due to the Alma API architecture
+			if ($process_type == 'LOAN') {
+				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mms_id.'/holdings/'.$holdingId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
+				$loan = $loanData['xml']->item_loan;				
+				$duedate = (string)$loan->due_date;
+				$duedate = $this->parseDate($duedate);
+			}
+			
 			
 			$returnValue[] = [
 					// Array fields described on VuFind ILS page:
@@ -167,7 +179,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'location'							=> $location,
 					'reserve'							=> $reserve,
 					'callnumber'						=> $callnumber,
-					//'duedate'							=> 'string',
+					'duedate'							=> $duedate,
 					//'returnDate'						=> 'string',
 					'number'							=> $number,
 					//'requests_placed'					=> 'string or number',
@@ -196,7 +208,11 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'callnumber_second'					=> $callnumber_second,
 					'sub_lib_desc'						=> $sub_lib_desc,
 					//'no_of_loans'						=> 'string',
-					'requested'							=> $requested
+					'requested'							=> $requested,
+					
+					// Array fields added for Alma:
+					'process_type'						=> $process_type,
+					'process_type_desc'					=> $process_type_desc,
 			];	
 		}
 
@@ -464,6 +480,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			throw new ILSException($ex->getMessage());
 		}
 		
+		
 		if ($result['status'] == 204) {
 			$authSuccess = true;
 		} else {
@@ -472,6 +489,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 		// We got this far, the user must be a valid user.
 		if ($authSuccess) {
+
 			$patron = [];
 			
 			// Get the patrons details
@@ -498,15 +516,15 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$college = (isset($details->campus_code)) ? $details->campus_code : null;
 
 			$patron['id'] = (string) $id;
-			$patron['barcode'] = (string) $barcode;
+			$patron['barcode'] = ($barcode != null) ? (string) $barcode : (string) $id;
 			$patron['firstname'] = (string) $firstName;
 			$patron['lastname'] = (string) $lastName;
-			$patron['cat_username'] = (string) $barcode;
+			$patron['cat_username'] = ($barcode != null) ? (string) $barcode : (string) $id;
 			$patron['cat_password'] = $password;
 			$patron['email'] = (string) $email_addr;
 			$patron['college'] = (string) $college;
 			$patron['major'] = null;
-		
+			
 			return $patron;
 		}
 		
@@ -534,7 +552,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function parseDate($date) {
 		
-		// Remove Z from end of date (e. g. from Alma we get 2012-07-13Z): 
+		// Remove trailing Z from end of date (e. g. from Alma we get dates like 2012-07-13Z - without a time, this is wrong): 
 		if (strpos($date, 'Z', (strlen($date)-1))) {
 			$date = preg_replace('/Z{1}$/', '', $date);
 		}
@@ -552,9 +570,12 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		} else if (preg_match("/^[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2,4}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALEPH DATES
 			// 13/07/2012
 			return $this->dateConverter->convertToDisplayDate('d/m/y', $date);
-		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES
-			// 2012-07-13
+		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITHOUT TIME - Trailing Z is removed above
+			// 2012-07-13[Z] - Trailing Z is removed above
 			return $this->dateConverter->convertToDisplayDate('Y-m-d', $date);
+		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITH TIME - Trailing Z is removed above
+			// 2017-07-09T18:00:00[Z] - Trailing Z is removed above
+			return $this->dateConverter->convertToDisplayDate('Y-m-d', substr($date, 0, 10));
 		} else {
 			throw new \Exception("Invalid date: $date");
 		}
