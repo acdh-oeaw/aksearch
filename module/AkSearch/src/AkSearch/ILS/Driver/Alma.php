@@ -678,7 +678,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 
 	
-	public function placeHold($details) {	
+	public function placeHold($details) {
 		
 		$mmsId = $details['id'];
 		$holdingId = $details['holding_id'];
@@ -706,42 +706,54 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$body->addChild('pickup_location_library', $pickupLocation);
 		$body->addChild('last_interest_date', $requiredBy);
 		$body->addChild('comment', $comment);
-		//$body = 'post_xml=' . $body->asXML();
 		$body = $body->asXML();
 		
-		$result= $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
-
+		$result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
 		
-		/*
-		try {
-			$this->doRestDLFRequest(
-					[
-							'patron', $patronId, 'record', $recordId, 'items', $itemId,
-							'hold'
-					], null, 'POST', $body
-					);
-		} catch (AlephRestfulException $exception) {
-			$message = $exception->getMessage();
-			$note = $exception->getXmlResponse()
-			->xpath('/put-item-hold/create-hold/note[@type="error"]');
-			$note = $note[0];
+		if ($result) {
+			$httpReturnCode = $result['status'];
+			
+			if ($httpReturnCode == 200) {
+				return ['success' => true];
+			} else {
+				$almaErrorCode = $result['xml']->errorList->error->errorCode;
+				return [
+						'success' => false,
+						'sysMessage' => 'almaErrorCode'.$almaErrorCode // Translation of sysMessage in language files!
+				];
+			}
+		} else {
 			return [
 					'success' => false,
-					'sysMessage' => "$message ($note)"
+					'sysMessage' => "Bestellung konnte nicht abgesendet werden. Hold could not be placed."
 			];
 		}
-		*/
-		
 
-		/*
-		return [
-				'success' => false,
-				'sysMessage' => "$message ($note)"
-		];
-		*/
-		//Es wurde ein ungültiger Abholort eingegeben. Bitte versuchen Sie es erneut
+	}
+	
+	public function getMyHolds($user) {		
+		$patronId = $user['id'];
+		$result = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/requests/?limit=100&apikey='.$this->apiKey, 'GET');
 		
-		//return ['success' => true];
+		if ($result) {
+			$httpReturnCode = $result['status'];
+			
+			if ($httpReturnCode == 200) {
+				$userRequests = $result['xml']->user_request;
+				
+				foreach ($userRequests as $userRequest) {
+					
+					echo '<pre>';
+					print_r($userRequest);
+					echo '</pre>';
+					
+					// TODO: Create array as described here: https://vufind.org/wiki/development:plugins:ils_drivers#getmyholds
+				}
+				
+			}
+		}
+		
+		
 	}
 	
 	
