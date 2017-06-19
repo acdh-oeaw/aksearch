@@ -616,7 +616,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 *
 	 * @return string
 	 */
-	public function parseDate($date) {
+	public function parseDate($date, $withTime = false) {
 		
 		// Remove trailing Z from end of date (e. g. from Alma we get dates like 2012-07-13Z - without a time, this is wrong): 
 		if (strpos($date, 'Z', (strlen($date)-1))) {
@@ -639,9 +639,14 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITHOUT TIME - Trailing Z is removed above
 			// 2012-07-13[Z] - Trailing Z is removed above
 			return $this->dateConverter->convertToDisplayDate('Y-m-d', $date);
-		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITH TIME - Trailing Z is removed above
+		} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/", substr($date, 0, 19)) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITH TIME - Trailing Z is removed above
 			// 2017-07-09T18:00:00[Z] - Trailing Z is removed above
-			return $this->dateConverter->convertToDisplayDate('Y-m-d', substr($date, 0, 10));
+			if ($withTime) {
+				//2017-06-19T21:59:00[Z] - Trailing Z is removed above
+				return $this->dateConverter->convertToDisplayDateAndTime('Y-m-d\TH:i:s', substr($date, 0, 19));
+			} else {
+				return $this->dateConverter->convertToDisplayDate('Y-m-d', substr($date, 0, 10));
+			}
 		} else {
 			throw new \Exception("Invalid date: $date");
 		}
@@ -699,7 +704,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			];
 		}
 		
-		
 		$body = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><user_request></user_request>');
 		$body->addChild('request_type', 'HOLD');
 		$body->addChild('pickup_location_type', 'LIBRARY');
@@ -731,8 +735,12 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 	}
 	
-	public function getMyHolds($user) {		
+	
+	public function getMyHolds($user) {
+		
+		$returnArray = [];
 		$patronId = $user['id'];
+		
 		$result = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/requests/?limit=100&apikey='.$this->apiKey, 'GET');
 		
 		if ($result) {
@@ -741,19 +749,149 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			if ($httpReturnCode == 200) {
 				$userRequests = $result['xml']->user_request;
 				
-				foreach ($userRequests as $userRequest) {
+				foreach ($userRequests as $key => $userRequest) {
+
+					// VuFind specific values (see https://vufind.org/wiki/development:plugins:ils_drivers#getmyholds)
+					$requestData['type'] = strtolower((string)$userRequest->request_type);
+					$requestData['id'] = (string)$userRequest->mms_id;
+					//$requestData['source'] = 'Solr';
+					$requestData['location'] = (string)$userRequest->pickup_location_library;
+					//$requestData['reqnum'] = ;
+					$requestData['expire'] = $this->parseDate((string)$userRequest->expiry_date);
+					$requestData['create'] = $this->parseDate((string)$userRequest->request_date);
+					$requestData['position'] = (isset($userRequest->place_in_queue)) ? (string)$userRequest->place_in_queue : null;
+					$requestData['available'] = ((string)$userRequest->request_status == 'On Hold Shelf') ? true : false ;
+					$requestData['item_id'] = (isset($userRequest->item_id)) ? (string)$userRequest->item_id : (string)$userRequest->mms_id;
+					//$requestData['volume'] = ;
+					//$requestData['publication_year'] = ;
+					$requestData['title'] = (string)$userRequest->title;
+					//$requestData['isbn'] = ;
+					//$requestData['issn'] = ;
+					//$requestData['oclc'] = ;
+					//$requestData['upc'] = ;
+					$requestData['cancel_details'] = (string)$userRequest->id;
 					
-					echo '<pre>';
-					print_r($userRequest);
-					echo '</pre>';
+					// Some extra Alma values
+					$requestData['user_primary_id'] = (isset($userRequest->user_primary_id)) ? (string)$userRequest->user_primary_id : null;
+					$requestData['request_id'] = (string)$userRequest->request_id;
+					$requestData['request_sub_type'] = (isset($userRequest->request_sub_type)) ? (string)$userRequest->request_sub_type : null;
+					$requestData['pickup_location'] = (isset($userRequest->pickup_location)) ? (string)$userRequest->pickup_location : null;
+					$requestData['pickup_location_type'] = (isset($userRequest->pickup_location_type)) ? (string)$userRequest->pickup_location_type: null;
+					$requestData['pickup_location_circulation_desk'] = (isset($userRequest->pickup_location_circulation_desk)) ? (string)$userRequest->pickup_location_circulation_desk: null;
+					$requestData['material_type'] = (isset($userRequest->material_type)) ? (string)$userRequest->material_type : null;
+					$requestData['barcode'] = (isset($userRequest->barcode)) ? (string)$userRequest->barcode : null;
 					
-					// TODO: Create array as described here: https://vufind.org/wiki/development:plugins:ils_drivers#getmyholds
+					$returnArray[] = $requestData;
 				}
+				
+				return $returnArray;
 				
 			}
 		}
+	}
+	
+	
+	public function cancelHolds($cancelDetails) {
+		$returnArray = [];
+		$patronId = $cancelDetails['patron']['id'];
+		$results = [];
+		$success = false;
+		$count = 0;
 		
 		
+		foreach ($cancelDetails['details'] as $requestId) {
+			$item = [];
+			// Get some details of the requested items as we need them below. We only can get them from an API request.
+			$requestDetails = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/requests/'.$requestId.'/?apikey='.$this->apiKey, 'GET');
+			$title= $requestDetails['xml']->title;
+			$mmsId = $requestDetails['xml']->mms_id;
+			$itemId = (isset($requestDetails['xml']->item_id)) ? (string)$requestDetails['xml']->item_id : (string)$requestDetails['xml']->mms_id;
+			
+			// Delete the request and get the returned status message
+			$apiResult = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/requests/'.$requestId.'/?apikey='.$this->apiKey, 'DELETE');
+			$apiResultStatus = $apiResult['status'];
+			
+			// Check if the cancellation was successful and create an array as described here: https://vufind.org/wiki/development:plugins:ils_drivers#cancelholds
+			if ($apiResultStatus == 204) {
+				$count = $count + 1;
+				$item[$itemId]['success'] = true;
+				$item[$itemId]['status'] = 'hold_cancel_success_items';
+			} else {
+				if (isset($apiResult['xml'])) {
+					$almaErrorCode = $apiResult['xml']->errorList->error->errorCode;
+					$sysMessage = $apiResult['xml']->errorList->error->errorMessage;
+				} else {
+					$almaErrorCode = '401652'; // General error code
+					$sysMessage = 'HTTP status code: '.$apiResultStatus;
+				}
+				$item[$itemId]['success'] = false;
+				$item[$itemId]['status'] = 'almaErrorCode'.$almaErrorCode; // Translation of this message in language files!
+				$item[$itemId]['sysMessage'] = $sysMessage.'. Alma Request ID: '.$requestId;
+			}
+			
+			$returnArray['items'] = $item;
+		}
+		
+		$returnArray['count'] = $count;
+		
+		return $returnArray;
+	}
+	
+	
+	public function getCancelHoldDetails($holdDetails) {
+		return $holdDetails['request_id'];
+	}
+	
+	
+	public function getMyTransactions($patron) {
+		$returnArray = [];
+		$patronId = $patron['id'];
+		$nowTS = mktime();
+		
+		// Get loans from user via Alma API
+		$apiResult = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/loans/?limit=100&order_by=due_date&direction=DESC&expand=renewable&apikey='.$this->apiKey, 'GET');
+		
+		if ($apiResult) {
+			foreach ($apiResult['xml']->item_loan as $itemLoan) {
+				
+				$loan['duedate'] = $this->parseDate($itemLoan->due_date, true);
+				//$loan['dueTime'] = ;
+				$loan['dueStatus'] = null; // Calculated below
+				$loan['id'] = $itemLoan->mms_id;
+				//$loan['source'] = 'Solr';
+				$loan['barcode'] = $itemLoan->item_barcode;
+				//$loan['renew'] = ;
+				//$loan['renewLimit'] = ;
+				//$loan['request'] = ;
+				//$loan['volume'] = ;
+				//$loan['publication_year'] = ;
+				$loan['renewable'] = $itemLoan->renewable;
+				//$loan['message'] = ;
+				$loan['title'] = $itemLoan->title;
+				$loan['item_id'] = $itemLoan->loan_id;
+				$loan['institution_name'] = $itemLoan->library;
+				//$loan['isbn'] = ;
+				//$loan['issn'] = ;
+				//$loan['oclc'] = ;
+				//$loan['upc'] = ;
+				$loan['borrowingLocation'] = $itemLoan->circ_desk;
+				
+				// Calculate due status
+				$dueDateTS = strtotime($loan['duedate']);
+				
+				if ($nowTS > $dueDateTS) {
+					// Loan is overdue
+					$loan['dueStatus'] = 'overdue';
+				} else if (($dueDateTS - $nowTS) < 86400) {
+					// Due date within one day
+					$loan['dueStatus'] = 'due';
+				}				
+				
+				$returnArray[] = $loan;
+			}
+		}
+		
+		return $returnArray;
 	}
 	
 	
