@@ -90,6 +90,21 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function getStatus($id) {
 		// TODO: Auto-generated method stub
+		
+		/*
+		$returnArray = [];
+		$status = [];
+		$status['id'] = '991063820000541';
+		$status['status'] = 'Item Status';
+		$status['location'] = 'main';
+		$status['reserve'] = 'N';
+		$status['callnumber'] = 'B123456 Status';
+		$status['availability'] = false;
+		$status['use_unknown_message'] = true;
+		//$status['services'] = ;
+		$returnArray[] = $status;
+		return $returnArray;
+		*/
 	}
 
 	
@@ -99,6 +114,11 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function getStatuses($ids) {
 		// TODO: Auto-generated method stub
+		/*
+		$returnArray = [];
+		$returnArray = $this->getStatus('991063820000541');
+		return $returnArray;
+		*/
 	}
 	
 	
@@ -596,18 +616,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
-	/**
-	 * Get the sublibrary name by sublibrary code.
-	 *
-	 * @param string $subLibCode
-	 * 			Sublibrary code
-	 *
-	 * @return string
-	 */
-	public function getSubLibName($subLibCode) {
-		return null;
-	}
-	
 	
 	/**
 	 * Parse a date.
@@ -721,6 +729,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				return ['success' => true];
 			} else {
 				$almaErrorCode = $result['xml']->errorList->error->errorCode;
+				// TODO: Alma error code 401136 are also user blocks, not only "similar item" error!
 				return [
 						'success' => false,
 						'sysMessage' => 'almaErrorCode'.$almaErrorCode // Translation of sysMessage in language files!
@@ -794,10 +803,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	public function cancelHolds($cancelDetails) {
 		$returnArray = [];
 		$patronId = $cancelDetails['patron']['id'];
-		$results = [];
-		$success = false;
 		$count = 0;
-		
 		
 		foreach ($cancelDetails['details'] as $requestId) {
 			$item = [];
@@ -846,7 +852,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	public function getMyTransactions($patron) {
 		$returnArray = [];
 		$patronId = $patron['id'];
-		$nowTS = mktime();
+		$nowTS = mktime(); // Timestamp respecting the timezone. Use time() for timezone UTC
 		
 		// Get loans from user via Alma API
 		$apiResult = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/loans/?limit=100&order_by=due_date&direction=DESC&expand=renewable&apikey='.$this->apiKey, 'GET');
@@ -854,27 +860,27 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		if ($apiResult) {
 			foreach ($apiResult['xml']->item_loan as $itemLoan) {
 				
-				$loan['duedate'] = $this->parseDate($itemLoan->due_date, true);
+				$loan['duedate'] = $this->parseDate((string)$itemLoan->due_date, true);
 				//$loan['dueTime'] = ;
 				$loan['dueStatus'] = null; // Calculated below
-				$loan['id'] = $itemLoan->mms_id;
+				$loan['id'] = (string)$itemLoan->mms_id;
 				//$loan['source'] = 'Solr';
-				$loan['barcode'] = $itemLoan->item_barcode;
+				$loan['barcode'] = (string)$itemLoan->item_barcode;
 				//$loan['renew'] = ;
 				//$loan['renewLimit'] = ;
 				//$loan['request'] = ;
 				//$loan['volume'] = ;
 				//$loan['publication_year'] = ;
-				$loan['renewable'] = $itemLoan->renewable;
+				$loan['renewable'] = (strtolower((string)$itemLoan->renewable) == 'true') ? true : false;
 				//$loan['message'] = ;
-				$loan['title'] = $itemLoan->title;
-				$loan['item_id'] = $itemLoan->loan_id;
-				$loan['institution_name'] = $itemLoan->library;
+				$loan['title'] = (string)$itemLoan->title;
+				$loan['item_id'] = (string)$itemLoan->loan_id;
+				$loan['institution_name'] = (string)$itemLoan->library;
 				//$loan['isbn'] = ;
 				//$loan['issn'] = ;
 				//$loan['oclc'] = ;
 				//$loan['upc'] = ;
-				$loan['borrowingLocation'] = $itemLoan->circ_desk;
+				$loan['borrowingLocation'] = (string)$itemLoan->circ_desk;
 				
 				// Calculate due status
 				$dueDateTS = strtotime($loan['duedate']);
@@ -892,6 +898,85 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		}
 		
 		return $returnArray;
+	}
+	
+	
+	public function renewMyItems($renewDetails) {
+		$returnArray = [];
+		$patronId = $renewDetails['patron']['id'];
+
+		foreach ($renewDetails['details'] as $loanId) {
+			$renewal = [];
+			$apiResult = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/loans/'.$loanId.'/?op=renew&apikey='.$this->apiKey, 'POST');
+			$apiResultStatus = $apiResult['status'];
+			
+			if ($apiResultStatus == 200) {
+				$blocks = false;
+				$renewal[$loanId]['success'] = true;
+				$renewal[$loanId]['new_date'] = $this->parseDate((string)$apiResult['xml']->due_date, true);
+				//$renewal[$loanId]['new_time'] = ;
+				$renewal[$loanId]['item_id'] = (string)$apiResult['xml']->loan_id;
+				$renewal[$loanId]['sysMessage'] = 'renew_success';
+				
+				$returnArray['details'] = $renewal;
+			} else {
+				// TODO: Renewals in Alma are possible despite user blocks! This has to be checked in Alma again!
+				$blocks[] = 'renew_fail';
+			}
+		}
+		
+		$returnArray['blocks'] = $blocks;
+		
+		return $returnArray;
+	}
+	
+	
+	public function getRenewDetails($checkOutDetails) {
+		$loanId = $checkOutDetails['item_id'];
+		return $loanId;
+	}
+	
+	
+	// TODO: Implement this function!
+	public function getMyFines($patronDetails) {
+		$returnArray = [];
+		
+		$patronId = $patronDetails['id'];
+		$apiResult = $this->doHTTPRequest($this->apiUrl.'users/'.$patronId.'/fees/?apikey='.$this->apiKey, 'GET');
+		$apiResultStatus = $apiResult['status'];
+		
+		if ($apiResultStatus == 200) {
+			foreach ($apiResult['xml']->fee as $apiFee) {
+				$fee = [];
+				$fee['amount'] = ((string)$apiFee->original_amount*100); // VuFind uses Pennies/Cent!
+				//$fee['checkout'] = ;
+				$fee['fine'] = (string)$apiFee->type;
+				$fee['balance'] = ((string)$apiFee->balance*100); // VuFind uses Pennies/Cent!
+				$fee['createdate'] = $this->parseDate((string)$apiFee->creation_time, true);
+				//$fee['duedate'] = ;
+				$fee['id'] = null; // Calculated further down
+				//$fee['source'] = 'Solr';
+				
+				if (isset($apiFee->barcode)) {
+					$barcodeLink = (string)$apiFee->barcode['link'];
+					$itemByBarcode = $this->doHTTPRequest($barcodeLink.'&apikey='.$this->apiKey, 'GET');
+					if($itemByBarcode['status'] == 200) {
+						$mmsId = (string)$itemByBarcode['xml']->bib_data->mms_id;
+						$fee['id'] = $mmsId;
+					}
+				}
+
+				$returnArray[] = $fee;
+			}
+		}
+		
+		return $returnArray;
+	}
+	
+	
+	// TODO: Implement this function!
+	public function getNewItems($page, $limit, $daysOld, $fundId = null) {
+		
 	}
 	
 	
