@@ -302,11 +302,13 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 	
 	/**
+	 * Not implemented at the moment.
+	 * 
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getPurchaseHistory()
 	 */
 	public function getPurchaseHistory($id) {
-		// TODO: Auto-generated method stub
+		return []; // Return empty array as we do not implement this functionality yet
 	}
 	
 	
@@ -920,7 +922,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				
 				$returnArray['details'] = $renewal;
 			} else {
-				// TODO: Renewals in Alma are possible despite user blocks! This has to be checked in Alma again!
+				// TODO: Renewals in Alma are possible despite user blocks! This is a known bug in Alma and has to be checked again!
 				$blocks[] = 'renew_fail';
 			}
 		}
@@ -937,7 +939,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
-	// TODO: Implement this function!
 	public function getMyFines($patronDetails) {
 		$returnArray = [];
 		
@@ -974,9 +975,11 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
-	// TODO: Implement this function!
+	/**
+	 * We do this with Solr so we do not use this function. We just return an empty array.
+	 */
 	public function getNewItems($page, $limit, $daysOld, $fundId = null) {
-		
+		return [];
 	}
 	
 	

@@ -13,10 +13,18 @@ class Factory {
      * @return Reserves
      */
     public static function getNewItems(ServiceManager $sm) {
-        $search = $sm->getServiceLocator()->get('VuFind\Config')->get('searches');
-        $config = isset($search->NewItem) ? $search->NewItem : new \Zend\Config\Config([]);
-        $akConfig = $sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch'); // Get AKsearch.ini
-        $akNewItemsConfig = isset($akConfig->NewItemsFilter) ? $akConfig->NewItemsFilter : new \Zend\Config\Config([]);
-        return new NewItems($config, $akNewItemsConfig);
+    	// [NewItem] from searches.ini
+        $searchesIni = $sm->getServiceLocator()->get('VuFind\Config')->get('searches');
+        $newItemConfig = isset($searchesIni->NewItem) ? $searchesIni->NewItem : new \Zend\Config\Config([]);
+        
+        // [Catalog] from config.ini
+        $configIni = $sm->getServiceLocator()->get('VuFind\Config')->get('config');
+        $catalogConfig = isset($configIni->Catalog) ? $configIni->Catalog : new \Zend\Config\Config([]);
+        
+        // [NewItemsFilter] of AKsearch.ini
+        $akSearchIni = $sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch'); // Get AKsearch.ini
+        $akNewItemsConfig = isset($akSearchIni->NewItemsFilter) ? $akSearchIni->NewItemsFilter : new \Zend\Config\Config([]);
+        
+        return new NewItems($newItemConfig, $catalogConfig, $akNewItemsConfig);
     }
 }

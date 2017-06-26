@@ -1,19 +1,24 @@
 <?php
 
 namespace AkSearch\Controller\Plugin;
+use DateTime;
 use Zend\Config\Config;
-
-//namespace VuFind\Controller\Plugin;
-//use Zend\Mvc\Controller\Plugin\AbstractPlugin;
 
 
 class NewItems extends \VuFind\Controller\Plugin\NewItems {
     /**
-     * Configuration
+     * [NewItem] configuration from searches.ini
      *
      * @var Config
      */
     protected $config;
+    
+    /**
+     * [Catalog] configuration from config.ini
+     *
+     * @var Config
+     */
+    protected $catalogConfig;
     
     /**
      * AKsearch new items filter configuration
@@ -27,8 +32,9 @@ class NewItems extends \VuFind\Controller\Plugin\NewItems {
      *
      * @param Config $config Configuration
      */
-    public function __construct(Config $config, Config $akNewItemsConfig) {
+    public function __construct(Config $config, Config $catalogConfig, Config $akNewItemsConfig) {
         $this->config = $config;
+        $this->catalogConfig = $catalogConfig;
         $this->akNewItemsConfig = $akNewItemsConfig;
     }
 
@@ -88,6 +94,45 @@ class NewItems extends \VuFind\Controller\Plugin\NewItems {
     		}
     	}
     	return $newItemsFilter;
+    }
+        
+    
+    /**
+     * Get a Solr filter to limit to the specified number of days - extended version for use with Alma.
+     *
+     * @param int $range Days to search
+     *
+     * @return string
+     */
+    public function getSolrFilter($range) {
+    	$datePicker = false;
+    	
+    	// Default - with no. of days to calculate
+    	$returnValue = 'first_indexed:[NOW-' . $range . 'DAY TO NOW]';
+    	
+    	// Special AKsearch date picker function. We have to use a FROM - TO query here
+    	if (substr($range, 0, 10) == 'datePicker') {
+    		$datePicker = true;
+    		$dateBeginStr = substr($range, 11, 19);
+    		$dtFirstDate = DateTime::createFromFormat('Ymd', $dateBeginStr);
+    		$from = $dtFirstDate->format('Y-m-d\T00:00:00\Z');
+    		$to = $dtFirstDate->format('Y-m-t\T23:59:59\Z');
+    		
+    	}
+    	
+    	if ($datePicker) { // If we use date picker
+    		if (isset($this->catalogConfig->driver) && $this->catalogConfig->driver == 'Alma') { // If we use Alma
+    			$returnValue = 'receivingDates_date_mv:['.$from.' TO '.$to.']';
+    		} else {
+    			$returnValue = 'first_indexed:['.$from.' TO '.$to.']';
+    		}
+    	} else {
+    		if (isset($this->catalogConfig->driver) && $this->catalogConfig->driver == 'Alma') { // If we use Alma
+    			$returnValue = 'receivingDates_date_mv:[NOW-' . $range . 'DAY TO NOW]';
+    		}
+    	}
+    	
+    	return $returnValue;
     }
     
 }
