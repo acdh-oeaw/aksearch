@@ -31,9 +31,6 @@
 namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
-use Zend\Code\Scanner\FunctionScanner;
-
-
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
 	use \VuFind\Log\LoggerAwareTrait;
@@ -60,14 +57,21 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	protected $dateConverter = null;
 	
+	/**
+	 * AKsearch config
+	 * 
+	 * @var unknown
+	 */
+	protected $akConfig = null;
 	
 	/**
 	 * Constructor
 	 *
 	 * @param \VuFind\Date\Converter $dateConverter Date converter
 	 */
-	public function __construct(\VuFind\Date\Converter $dateConverter) {
+	public function __construct(\VuFind\Date\Converter $dateConverter, $akConfig = null) {
 		$this->dateConverter = $dateConverter;
+		$this->akConfig = $akConfig;
 	}
 
 	
@@ -91,7 +95,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function getStatus($id) {
 		// TODO: Auto-generated method stub
-		
 		/*
 		$returnArray = [];
 		$status = [];
@@ -132,6 +135,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// Variable for return value:
 		$returnValue = [];
 		
+		// Max. returned items per holding - defined in AKsearch.ini:
+		$maxItemsLoad= ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
+		
 		// Get config data:
 		$fulfillementUnits = $this->config['FulfillmentUnits'];
 		$requestableConfig = $this->config['Requestable'];
@@ -149,20 +155,32 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		}
 		
 		// Get items for each holding ID
-		$items = [];
+		$itemsAll = [];
 		if (!empty($holIds)) {
-			foreach ($holIds as $holdingId) {
-				$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items?limit=10&offset=0&apikey='.$this->apiKey, 'GET');
+			foreach ($holIds as $holId) {
+				$itemsForHolding = [];
+				$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items?limit='.$maxItemsLoad.'&offset=0&apikey='.$this->apiKey, 'GET');
+				$totalRecordCount = (string)$itemList['xml']['total_record_count'];
+
 				foreach ($itemList['xml'] as $item) {
-					$items[] = $item;
+					$item->holding_data->addChild('no_of_items', $totalRecordCount); // Add no of total items per holding to the SimpleXMLElement
+					$itemsForHolding[] = $item;
 				}
+				
+				// If more items exist and the user want's to display them, page through the items and load them
+				if (key_exists('loadAll', $_GET) && $totalRecordCount > $maxItemsLoad) {
+					$offset = ($maxItemsLoad > ($totalRecordCount-1)) ? ($totalRecordCount-1) : $maxItemsLoad;
+					$itemsForHolding = $this->getMoreItems($mmsId, $holId, $maxItemsLoad, $offset, $totalRecordCount, $itemsForHolding);
+				}
+				
+				$itemsAll = array_merge($itemsAll, $itemsForHolding);
 			}
 		}
 		
 		
 		// Iterate over items, get available information and add it to an array as described in the VuFind Wiki at:
 		// https://vufind.org/wiki/development:plugins:ils_drivers#getholding
-		foreach ($items as $key => $item) {
+		foreach ($itemsAll as $key => $item) {
 			$id									= $mmsId;
 			$availability						= ((string)$item->item_data->base_status == '1') ? true : false;
 			$status								= null; // We calculate the status below based on [DefaultPolicies] in Alma.ini and the item execption status (if set for the item)
@@ -190,7 +208,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$holdtype							= ''; // Additional checks necessary - see below
 			$addLink							= false; // Additional checks necessary - see below
 			$item_id							= (string)$item->item_data->pid;
-			$holdingId							= (string)$item->holding_data->holding_id;
+			$holId								= (string)$item->holding_data->holding_id;
 			$holdOverride						= false; // We don't override the holds mode
 			$addStorageRetrievalRequestLink		= false; // We don't use storage retreival requests at the moment
 			$addILLRequestLink					= false; // We don't use ILL requests over AKsearch and Alma at the moment
@@ -204,6 +222,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$process_type_desc					= (string)$item->item_data->process_type->attributes()->desc;
 			$policyCode							= (string)$item->item_data->policy;
 			$policyName							= (string)$item->item_data->policy->attributes()->desc;
+			$totalNoOfItems						= (string)$item->holding_data->no_of_items; // This is necessary for paging (load more items)!!!
 			
 			// Get the fulfillment unit for the item. We need it for some other calculations.
 			$itemFulfillmentUnit = $this->getFulfillmentUnitByLocation($locationCode, $fulfillementUnits);
@@ -220,7 +239,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			
 			// For some data we need to do additional API calls due to the Alma API architecture
 			if ($process_type == 'LOAN') {
-				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
+				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
 				$loan = $loanData['xml']->item_loan;
 				$duedate = (string)$loan->due_date;
 				$duedate = $this->parseDate($duedate);
@@ -235,9 +254,8 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				$availability = false;
 			}
 			
-			// TODO: $not_available_item_statuses einpflegen!
 			if ($policyCode == null || empty($policyCode)) {
-				// There is not exectipn policy set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
+				// There is no exection policy set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
 				$status = $defaultPolicies[$itemFulfillmentUnit];
 			} else {
 				// There is an exceptional item policy set. We use the API to get the description and display it to the user
@@ -284,7 +302,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'services'							=> $services,
 					
 					// Array fields not described in VuFind ILS driver documentation at: https://vufind.org/wiki/development:plugins:ils_drivers#getholding
-					'holding_id'						=> $holdingId,
+					'holding_id'						=> $holId,
 					'description'						=> $description,
 					'callnumber_second'					=> $callnumber_second,
 					'libraryCode'						=> $libraryCode,
@@ -298,10 +316,50 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'collection_desc'					=> $locationName,
 					'policyCode'						=> $policyCode,
 					'policyName'						=> $policyName,
-			];	
+					'totalNoOfItems'					=> $totalNoOfItems, // This is necessary for paging (load more items)!!!
+			];
 		}
-
+		
 		return $returnValue;
+	}
+	
+	
+	/**
+	 * Check if the "show more items" link/button should be displayed or not.
+	 *
+	 * @param int $noOfTotalItems	Total number of items that exists for a holding
+	 * @return boolean				true if the link/button should be displayed, false otherwise
+	 */
+	public function showLoadMore($noOfTotalItems) {
+		$showLoadMore = false;
+		if (!key_exists('loadAll', $_GET)) {
+			$noOfItemsToLoad= ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
+			if (strcasecmp($noOfItemsToLoad, 'all') != 0) { // If $noOfItemsToLoad is NOT 'all'
+				if ($noOfTotalItems > $noOfItemsToLoad) { // If the holding has more items than there are displayed, show the "load more" link/button.
+					$showLoadMore = true;
+				}
+			}
+		}
+		return $showLoadMore;
+	}
+	
+	
+	private function getMoreItems($mmsId, $holId, $maxItemsLoad, $offset, $totalRecordCount, &$items) {
+
+		$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items?limit='.$maxItemsLoad.'&offset='.$offset.'&apikey='.$this->apiKey, 'GET');		
+		
+		foreach ($itemList['xml'] as $item) {
+			$items[] = $item;
+		}
+		
+		if ($totalRecordCount > count($items)) {
+			$newOffset = $offset + $maxItemsLoad;
+			$newOffset = ($newOffset > ($totalRecordCount-1)) ? ($totalRecordCount-1) : $newOffset;
+			$this->getMoreItems($mmsId, $holId, $maxItemsLoad, $newOffset, $totalRecordCount, $items);
+		}
+		
+		return $items;
+		
 	}
 
 	

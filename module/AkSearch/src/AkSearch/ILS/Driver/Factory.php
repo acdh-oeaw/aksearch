@@ -54,7 +54,8 @@ class Factory {
      */
     public static function getAlma(ServiceManager $sm) {
     	return new Alma(
-    		$sm->getServiceLocator()->get('VuFind\DateConverter')
+    		$sm->getServiceLocator()->get('VuFind\DateConverter'),
+    		$sm->getServiceLocator()->get('VuFind\Config')->get('AKsearch') // Get AKsearch.ini
     	);
     }
 }

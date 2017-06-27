@@ -2194,10 +2194,11 @@ class SolrMab extends SolrDefault  {
     /**
      * Check if we have to show a "load more" link/button for items list in the holdings tab.
      * 
-     * @return boolean		true if the link/button should be displayed, false otherwise
+     * @var int $noOfTotalItems		No of totel items
+     * @return boolean				true if the link/button should be displayed, false otherwise
      */
-    public function showLoadMore() {
-    	return $this->ils->showLoadMore($this->getSysNo());
+    public function showLoadMore($noOfTotalItems) {
+    	return $this->ils->showLoadMore($noOfTotalItems);
     }
     
     

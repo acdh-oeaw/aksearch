@@ -245,6 +245,8 @@ class Aleph extends AlephDefault {
 		}
 		
 		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
+		$moreItemsToLoad = ($xml->{'items'}->{'partial'}) ? true : false;
+		$totalNoOfItems = ($moreItemsToLoad) ? $this->getNoOfTotalItems($id) : null;
 		
 		foreach ($xml->{'items'}->{'item'} as $item) {
 			$item_status = (string) $item->{'z30-item-status-code'}; // $isc
@@ -337,9 +339,32 @@ class Aleph extends AlephDefault {
 			$item_id = $item->attributes()->href;
 			$item_id = substr($item_id, strrpos($item_id, '/') + 1);
 			$note = (string) $z30->{'z30-note-opac'};
-			$holding[] = array('id' => $id, 'item_id' => $item_id, 'availability' => $availability, 'status' => (string) $item_status['desc'], 'location' => $sub_library_code, 'reserve' => 'N', 'callnumber' => (string) $z30->{'z30-call-no'}, 'duedate' => (string) $duedate, 'number' => (string) $z30->{'z30-inventory-number'}, 'barcode' => (string) $z30->{'z30-barcode'}, 'description' => (string) $z30->{'z30-description'}, 'notes' => ($note == null) ? null : array($note), 'is_holdable' => $isHoldable, 'addLink' => $addLink, 'holdtype' => $holdtype,
-                /* below are optional attributes*/
-                'collection' => (string) $collection, 'collection_desc' => (string) $collection_desc['desc'], 'callnumber_second' => (string) $z30->{'z30-call-no-2'}, 'sub_lib_desc' => (string) $item_status['sub_lib_desc'], 'no_of_loans' => (string) $z30->{'z30-no-loans'}, 'requested' => (string) $requested);
+			$holding[] = array(
+					'id' => $id,
+					'item_id' => $item_id,
+					'availability' => $availability,
+					'status' => (string) $item_status['desc'],
+					'location' => $sub_library_code,
+					'reserve' => 'N',
+					'callnumber' => (string) $z30->{'z30-call-no'},
+					'duedate' => (string) $duedate,
+					'number' => (string) $z30->{'z30-inventory-number'},
+					'barcode' => (string) $z30->{'z30-barcode'},
+					'description' => (string) $z30->{'z30-description'},
+					'notes' => ($note == null) ? null : array($note),
+					'is_holdable' => $isHoldable,
+					'addLink' => $addLink,
+					'holdtype' => $holdtype,
+					
+					// Below are optional attributes
+					'collection' => (string) $collection,
+					'collection_desc' => (string) $collection_desc['desc'],
+					'callnumber_second' => (string) $z30->{'z30-call-no-2'},
+					'sub_lib_desc' => (string) $item_status['sub_lib_desc'],
+					'no_of_loans' => (string) $z30->{'z30-no-loans'},
+					'requested' => (string) $requested,
+					'totalNoOfItems' => $totalNoOfItems, // This is necessary for paging (load more items)!!!
+			);
 		}
 				
 		return $holding;
@@ -349,16 +374,14 @@ class Aleph extends AlephDefault {
 	/**
 	 * Check if the "show more items" link/button should be displayed or not.
 	 * 
-	 * @param unknown $id	ID of a BIB record
-	 * @return boolean		true if the link/button should be displayed, false otherwise
+	 * @param int $noOfTotalItems		Number of total items
+	 * @return boolean					true if the link/button should be displayed, false otherwise
 	 */
-	public function showLoadMore($id) {
+	public function showLoadMore($noOfTotalItems) {
 		$showLoadMore = false;
-		
 		if (!key_exists('loadAll', $_GET)) {
 			$noOfItemsToLoad = ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
 			if (strcasecmp($noOfItemsToLoad, 'all') != 0) { // If $noOfItemsToLoad is NOT 'all'
-				$noOfTotalItems = $this->countItems($id); // Get the total number of items for this record
 				if ($noOfTotalItems > $noOfItemsToLoad) { // If the record has more records than there are displayed, show the "load more" link/button.
 					$showLoadMore = true;
 				}
@@ -367,25 +390,6 @@ class Aleph extends AlephDefault {
 		return $showLoadMore;
 	}
 	
-	
-	/**
-	 * Count the items of a BIB record.
-	 * 
-	 * @param unknown $id	ID of a BIB record 
-	 * @return number		The total number of items for the given BIB record
-	 */
-	public function countItems($id) {
-		usleep(200000); // Sleep some microseconds to avoid too many API-calls at the same time.
-		$holding = array();
-		list ($bib, $sys_no) = $this->parseId($id);
-		$resource = $bib . $sys_no;
-	
-		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'));
-		$noOfTotalItems = count($xml->{'items'}->{'item'});
-		
-		return $noOfTotalItems;
-	}
-
 	
 	/**
 	 * Parse a date.

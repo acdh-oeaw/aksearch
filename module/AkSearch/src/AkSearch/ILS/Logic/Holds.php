@@ -52,6 +52,51 @@ class Holds extends DefaultHolds {
         }
         return $this->formatHoldings($holdings);
     }
+    
+    
+    /**
+     * Extended for paging.
+     * Support method to rearrange the holdings array for displaying convenience.
+     *
+     * @param array $holdings An associative array of location => item array
+     *
+     * @return array          An associative array keyed by location with each
+     * entry being an array with 'notes', 'summary' and 'items' keys.  The 'notes'
+     * and 'summary' arrays are note/summary information collected from within the
+     * items.
+     */
+    protected function formatHoldings($holdings)
+    {
+    	$retVal = [];
+    	
+    	// Handle purchase history alongside other textual fields
+    	$textFieldNames = $this->catalog->getHoldingsTextFieldNames();
+    	$textFieldNames[] = 'purchase_history';
+    	
+    	foreach ($holdings as $groupKey => $items) {
+    		$retVal[$groupKey] = [
+    				'items' => $items,
+    				'location' => isset($items[0]['location']) ? $items[0]['location'] : '',
+    				'locationhref' => isset($items[0]['locationhref']) ? $items[0]['locationhref'] : '',
+    				'totalNoOfItems' => isset($items[0]['totalNoOfItems']) ? $items[0]['totalNoOfItems'] : ''
+    		];
+    		// Copy all text fields from the item to the holdings level
+    		foreach ($items as $item) {
+    			foreach ($textFieldNames as $fieldName) {
+    				if (!empty($item[$fieldName])) {
+    					$fields = is_array($item[$fieldName]) ? $item[$fieldName] : [$item[$fieldName]];
+    					foreach ($fields as $field) {
+    						if (empty($retVal[$groupKey][$fieldName]) || !in_array($field, $retVal[$groupKey][$fieldName])) {
+    							$retVal[$groupKey][$fieldName][] = $field;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	    	
+    	return $retVal;
+    }
 
 }
 
