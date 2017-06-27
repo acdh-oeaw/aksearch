@@ -31,6 +31,7 @@
 namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
+use Zend\Code\Scanner\FunctionScanner;
 
 
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
@@ -126,7 +127,8 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
 	 */
-	public function getHolding($mms_id, array $patron = null) {		
+	public function getHolding($mmsId, array $holIds = null, array $patron = null) {
+				
 		// Variable for return value:
 		$returnValue = [];
 		
@@ -135,20 +137,22 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$requestableConfig = $this->config['Requestable'];
 		$defaultPolicies = $this->config['DefaultPolicies'];
 		
-		// Get holdings from API:
-		$holdings = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mms_id.'/holdings?apikey='.$this->apiKey, 'GET');
-		
-		// Iterate over holdings and get IDs:
-		$holdingIds = []; // Create empty array
-		foreach ($holdings['xml']->holding as $holding) {
-			$holdingIds[] = (string)$holding->holding_id; // Add each ID to the array
+		// Check if we already get holding IDs from the data in Solr. If not, use the API.
+		if ($holIds == null) {
+			// Get holdings from API as we do not get them from the data in Sorl:
+			$holdings = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings?apikey='.$this->apiKey, 'GET');
+			// Iterate over holdings and get IDs:
+			$holIds = []; // Create empty array
+			foreach ($holdings['xml']->holding as $holding) {
+				$holIds[] = (string)$holding->holding_id; // Add each ID to the array
+			}
 		}
-				
+		
 		// Get items for each holding ID
 		$items = [];
-		if (!empty($holdingIds)) {
-			foreach ($holdingIds as $holdingId) {
-				$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mms_id.'/holdings/'.$holdingId.'/items?limit=10&offset=0&apikey='.$this->apiKey, 'GET');
+		if (!empty($holIds)) {
+			foreach ($holIds as $holdingId) {
+				$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items?limit=10&offset=0&apikey='.$this->apiKey, 'GET');
 				foreach ($itemList['xml'] as $item) {
 					$items[] = $item;
 				}
@@ -159,7 +163,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// Iterate over items, get available information and add it to an array as described in the VuFind Wiki at:
 		// https://vufind.org/wiki/development:plugins:ils_drivers#getholding
 		foreach ($items as $key => $item) {
-			$id									= $mms_id;
+			$id									= $mmsId;
 			$availability						= ((string)$item->item_data->base_status == '1') ? true : false;
 			$status								= null; // We calculate the status below based on [DefaultPolicies] in Alma.ini and the item execption status (if set for the item)
 			$baseStatus							= (string)$item->item_data->base_status->attributes()->desc; // The Alma base status for the item.
@@ -216,7 +220,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			
 			// For some data we need to do additional API calls due to the Alma API architecture
 			if ($process_type == 'LOAN') {
-				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mms_id.'/holdings/'.$holdingId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
+				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
 				$loan = $loanData['xml']->item_loan;
 				$duedate = (string)$loan->due_date;
 				$duedate = $this->parseDate($duedate);

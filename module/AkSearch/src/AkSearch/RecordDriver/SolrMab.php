@@ -47,7 +47,7 @@ class SolrMab extends SolrDefault  {
     /**
      * Hold logic
      *
-     * @var \VuFind\ILS\Logic\Holds
+     * @var \AkSearch\ILS\Logic\Holds
      */
     protected $holdLogic;
     
@@ -309,6 +309,15 @@ class SolrMab extends SolrDefault  {
 	 */
 	public function getSysNo() {
 		return isset($this->fields['sysNo_txt']) ? $this->fields['sysNo_txt'] : null;
+	}
+	
+	/**
+	 * Get Solrfield holdingIds_str_mv (Holding IDs of Alma)
+	 *
+	 * @return array or null if empty
+	 */
+	public function getHolIds() {
+		return isset($this->fields['holdingIds_str_mv']) ? $this->fields['holdingIds_str_mv'] : null;
 	}
 
 	
@@ -1998,12 +2007,12 @@ class SolrMab extends SolrDefault  {
      * Adopted from VuFind\RecordDriver\SolrMarc.
      * 
      * @param \VuFind\ILS\Connection       $ils            ILS connection
-     * @param \VuFind\ILS\Logic\Holds      $holdLogic      Hold logic handler
+     * @param \AkSearch\ILS\Logic\Holds    $holdLogic      Hold logic handler
      * @param \VuFind\ILS\Logic\TitleHolds $titleHoldLogic Title hold logic handler
      *
      * @return void
      */
-    public function attachILS(\VuFind\ILS\Connection $ils, \VuFind\ILS\Logic\Holds $holdLogic, \VuFind\ILS\Logic\TitleHolds $titleHoldLogic) {
+	public function attachILS(\VuFind\ILS\Connection $ils, \AkSearch\ILS\Logic\Holds $holdLogic, \VuFind\ILS\Logic\TitleHolds $titleHoldLogic) {
     	$this->ils = $ils;
         $this->holdLogic = $holdLogic;
         $this->titleHoldLogic = $titleHoldLogic;
@@ -2066,7 +2075,7 @@ class SolrMab extends SolrDefault  {
     		return array();
     	}
     	try {
-    		$holdings = $this->holdLogic->getHoldings($this->getSysNo());
+    		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds());
 
     		foreach ($holdings as &$holdingsOfLocation) {
     			$items = &$holdingsOfLocation['items'];
