@@ -18,7 +18,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	protected $host;
 	protected $database;
 	protected $configAKsearch;
-	protected $configAlma;
+	//protected $configAlma;
 	private $auth;
 	
 	// Response to external
@@ -37,7 +37,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		//parent::__construct($configLoader);
 		$configAleph = $configLoader->get('Aleph');
 		$this->configAKsearch = $configLoader->get('AKsearch');
-		$this->configAlma = $configLoader->get('Alma');
+		//$this->configAlma = $configLoader->get('Alma');
 		
 		date_default_timezone_set('Europe/Vienna');
 		$this->host = rtrim(trim($configAleph->Catalog->host),'/');
@@ -76,9 +76,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Perform user-api action
 		switch ($apiUserAction) {
-			case 'Challenge':
-				return $this->webhookChallenge();
-				break;
 			case 'UserChange':
 				return $this->webhookUserChange();
 			default:
@@ -97,19 +94,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	
 	private function webhookChallenge($returnFormat = 'json') {
-		
-		
-		/*
-		// Check if the webhook secret is set
-		$secret = (isset($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
-		if (!$secret) {
-			$this->httpResponse->setStatusCode(403); // Set HTTP status code to Forbidden (403)
-			$this->httpResponse->setContent('You have to define a secret in the [Webhook] section in Alma.ini! It has to be the same as in your webhook integration profile in Alma!');
-			return $this->httpResponse;
-		}
-		*/
-		
-		// Get challenge string from get parameter
+
+		// Get challenge string from the get parameter that Alma sends us. We need to return this string in the return message.
 		$secret = $this->params()->fromQuery('challenge');
 		
 		// Create the return array
