@@ -16,6 +16,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	protected $host;
 	protected $database;
 	protected $configAKsearch;
+	protected $configAlma;
 	private $auth;
 	
 	// Response to external
@@ -32,6 +33,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		//parent::__construct($configLoader);
 		$configAleph = $configLoader->get('Aleph');
 		$this->configAKsearch = $configLoader->get('AKsearch');
+		$this->configAlma = $configLoader->get('Alma');
 		
 		date_default_timezone_set('Europe/Vienna');
 		$this->host = rtrim(trim($configAleph->Catalog->host),'/');
@@ -49,35 +51,52 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		}
 	}
 	
-	
-	public function userAction() {
-		// Check activation of user API and it's access permission
-		if (!$this->configAKsearch->API->user) { // Check if user API is activated in AKsearch.ini (user = true)
-			$this->headers->addHeaderLine('Content-type', 'text/plain');
-			$this->response->setContent('User API is not activated in AKsearch.ini');
-			$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
-			return $this->response; // Stop code execution here if user API is not activated
-		} else { // If API is activated, check if the permission is granted (using "userPermission" in AKsearch.ini and the settings in permissions.ini)
-			
-			$permission = $this->configAKsearch->API->userPermission;
-			$permissionIsGranted = false; // Default
-			
-			if (isset($permission) && $permission != 'ALL') {
-				$permissionIsGranted = $this->auth->isGranted($permission); // Check if permission is granted	
-			} else if ($permission == 'ALL') {
-				// Permission is set to "ALL". Every IP-Adress can access the API. We do not check them with the authentication service.
-				$permissionIsGranted = true;
-			}
-			
-			if (!$permissionIsGranted) {
-				$this->headers->addHeaderLine('Content-type', 'text/plain');
-				$this->response->setContent('Access to API is not allowed.');
-				$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
-				return $this->response; // Stop code execution here if permission = false
-			}
+	public function webhookAction() {
+		// Check if API is activated and permission is granted. If not, return the response that is already set in checkApi();
+		if (!$this->checkApi('webhook', 'webhookPermission')) {
+			return $this->response;
 		}
 		
-		// Which user-api action should we perform (last part of URL)
+		// Which user-api action should we perform (last part of URL) - configured in module.config.php
+		$apiUserAction = $this->params()->fromRoute('apiWebhookAction');
+		
+		// Request from external
+		$request = $this->getRequest();
+		
+		// Get request method (GET, POST, ...)
+		$requestMethod = $request->getMethod();
+		
+		// Get request body if method is POST and is not empty
+		$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
+		
+		// Perform user-api action
+		switch ($apiUserAction) {
+			case 'Challenge':
+				return $this->webhookUserChange();
+				break;
+			default:
+				$this->headers->addHeaderLine('Content-type', 'text/plain');
+				$this->response->setContent('API is working. No action defined with this request.');
+				$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
+				return $this->response;
+		}
+	}
+	
+	private function webhookUserChange() {
+		$this->headers->addHeaderLine('Content-type', 'text/plain');
+		$this->response->setContent('WEBHOOK USER CHANGE');
+		$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
+		return $this->response;
+	}
+	
+	public function userAction() {
+		
+		// Check if API is activated and permission is granted. If not, return the response that is already set in checkApi();
+		if (!$this->checkApi('user', 'userPermission')) {
+			return $this->response;
+		}
+		
+		// Which user-api action should we perform (last part of URL) - configured in module.config.php
 		$apiUserAction = $this->params()->fromRoute('apiUserAction');
 		
 		// Request from external
@@ -305,6 +324,51 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		} else {
 			return $array;
 		}
+	}
+	
+	
+	
+	private function checkApi($apiName, $apiPermissionName) {
+		$returnValue = false;
+		// Check activation of user API and it's access permission
+		if (!$this->isApiActivated($apiName)) { // Check if user API is activated in AKsearch.ini (user = true)
+			$this->headers->addHeaderLine('Content-type', 'text/plain');
+			$this->response->setContent('API "'.$apiName.'" is not activated in AKsearch.ini');
+			$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+			//return $this->response; // Stop code execution here if user API is not activated
+		} else { // If API is activated, check if the permission is granted (using "userPermission" in AKsearch.ini and the settings in permissions.ini)
+			$permissionIsGranted = $this->isApiAccessAllowed($apiPermissionName);
+			if (!$permissionIsGranted) {
+				$this->headers->addHeaderLine('Content-type', 'text/plain');
+				$this->response->setContent('Access to API is not allowed.');
+				$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+				//return $this->response; // Stop code execution here if permission = false
+			} else {
+				// If everything is OK, return true
+				$returnValue = true;
+			}
+		}
+		
+		return $returnValue;
+	}
+	
+	
+	private function isApiActivated($apiName) {
+		return (isset($this->configAKsearch->API->$apiName)) ? filter_var($this->configAKsearch->API->$apiName, FILTER_VALIDATE_BOOLEAN) : false;
+	}
+	
+	private function isApiAccessAllowed($apiPermissionName) {
+		$permission = $this->configAKsearch->API->$apiPermissionName;
+		$permissionIsGranted = false; // Default
+		
+		if (isset($permission) && $permission != 'ALL') {
+			$permissionIsGranted = $this->auth->isGranted($permission); // Check if permission is granted
+		} else if ($permission == 'ALL') {
+			// Permission is set to "ALL". Every IP-Adress can access the API. We do not check them with the authentication service.
+			$permissionIsGranted = true;
+		}
+		
+		return $permissionIsGranted;
 	}
 	
 }
