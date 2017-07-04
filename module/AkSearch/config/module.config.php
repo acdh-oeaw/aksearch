@@ -295,16 +295,19 @@ $config = [
         // pluggable components:
         'plugin_managers' => [
             'auth' => [
-                'abstract_factories' => ['VuFind\Auth\PluginFactory'],
+                'abstract_factories' => [
+                		'VuFind\Auth\PluginFactory',
+                ],
                 'factories' => [
                     //'ils' => 'VuFind\Auth\Factory::getILS',
                 	'ils' => 'AkSearch\Auth\Factory::getILS',
-                    'multiils' => 'VuFind\Auth\Factory::getMultiILS',
+                    'multiils' => 'VuFind\Auth\Factory::getMultiILS',                	
                 ],
                 'invokables' => [
                     'cas' => 'VuFind\Auth\CAS',
                     'choiceauth' => 'VuFind\Auth\ChoiceAuth',
-                    'database' => 'VuFind\Auth\Database',
+                    //'database' => 'VuFind\Auth\Database',
+                	'database' => 'AkSearch\Auth\Database',
                     'facebook' => 'VuFind\Auth\Facebook',
                     'ldap' => 'VuFind\Auth\LDAP',
                     'multiauth' => 'VuFind\Auth\MultiAuth',
