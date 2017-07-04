@@ -72,20 +72,61 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Perform user-api action
 		switch ($apiUserAction) {
 			case 'Challenge':
-				return $this->webhookUserChange();
+				return $this->webhookChallenge();
 				break;
 			default:
+				/*
 				$this->headers->addHeaderLine('Content-type', 'text/plain');
 				$this->response->setContent('API is working. No action defined with this request.');
 				$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
 				return $this->response;
+				*/
+				break;
 		}
 	}
 	
+	/*
 	private function webhookUserChange() {
 		$this->headers->addHeaderLine('Content-type', 'text/plain');
 		$this->response->setContent('WEBHOOK USER CHANGE');
 		$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
+		return $this->response;
+	}
+	*/
+	
+	private function webhookChallenge($returnFormat = 'json') {
+		
+		// Check if the webhook secret is set
+		$secret = (isset($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
+		if (!$secret) {
+			$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+			$this->response->setContent('You have to define a secret in the [Webhook] section in Alma.ini! It has to be the same as in your webhook integration profile in Alma!');
+			return $this->response;
+		}
+		
+		// Create the return array
+		$returnArray['challenge'] = $secret;
+		$returnArray = array_filter($returnArray); // Remove null from array
+		
+		// Create return json value
+		$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+		
+		// Set HTTP status code to OK (200)
+		$this->response->setStatusCode(200);
+		
+		// Return XML
+		if ($returnFormat == 'xml') {
+			$this->headers->addHeaderLine('Content-type', 'text/plain');
+			$this->response->setContent('Only "json" response is supported at the moment!');
+		} else if ($returnFormat == 'json') {
+			// Return JSON (Default)
+			$this->headers->addHeaderLine('Content-type', 'application/json');
+			$this->headers->setHeader('Content-type', 'application/json');
+			$this->response->setContent($returnJson);
+		} else {
+			$this->response->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+		}
+		
 		return $this->response;
 	}
 	
@@ -265,7 +306,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			$this->headers->addHeaderLine('Content-type', 'application/json');
 			$this->response->setContent($returnJson);
 		} else {
-			$this->response->setContent('You have to define a valid respons format! Only "json" is supported at the moment!');
+			$this->response->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
 		}
 		
 		return $this->response;
