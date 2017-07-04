@@ -2,7 +2,9 @@
 namespace AkSearch\Controller;
 
 use VuFind\Controller\AbstractBase;
-use \ZfcRbac\Service\AuthorizationServiceAwareInterface, \ZfcRbac\Service\AuthorizationServiceAwareTrait;
+use \ZfcRbac\Service\AuthorizationServiceAwareInterface;
+use \ZfcRbac\Service\AuthorizationServiceAwareTrait;
+use \Zend\Http\Response as HttpResponse;
 
 // Hide all PHP errors and warnings as this could brake the JSON and XML output
 ini_set('display_errors', 0);
@@ -20,8 +22,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	private $auth;
 	
 	// Response to external
-	protected $response;
-	protected $headers;
+	protected $httpResponse;
+	protected $httpHeaders;
+	
+	protected $test;
 
 	
 	/**
@@ -39,8 +43,9 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$this->host = rtrim(trim($configAleph->Catalog->host),'/');
 		$this->database = $configAleph->Catalog->useradm;
 		
-		$this->response = $this->getResponse();
-		$this->headers = $this->response->getHeaders();
+		//$this->response = $this->getResponse();
+		$this->httpResponse = new HttpResponse();
+		$this->httpHeaders = $this->httpResponse->getHeaders();
 
 		// Initialize the authorization service (for permissions)
 		$init = new \ZfcRbac\Initializer\AuthorizationServiceInitializer();
@@ -54,7 +59,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	public function webhookAction() {
 		// Check if API is activated and permission is granted. If not, return the response that is already set in checkApi();
 		if (!$this->checkApi('webhook', 'webhookPermission')) {
-			return $this->response;
+			return $this->httpResponse;
 		}
 		
 		// Which user-api action should we perform (last part of URL) - configured in module.config.php
@@ -74,67 +79,63 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			case 'Challenge':
 				return $this->webhookChallenge();
 				break;
+			case 'UserChange':
+				return $this->webhookUserChange();
 			default:
-				/*
-				$this->headers->addHeaderLine('Content-type', 'text/plain');
-				$this->response->setContent('API is working. No action defined with this request.');
-				$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
-				return $this->response;
-				*/
+				return $this->webhookChallenge();
 				break;
 		}
 	}
 	
-	/*
+	
 	private function webhookUserChange() {
-		$this->headers->addHeaderLine('Content-type', 'text/plain');
-		$this->response->setContent('WEBHOOK USER CHANGE');
-		$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
-		return $this->response;
+		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+		$this->httpResponse->setContent('User change webhook is not implemented yet!');
+		$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+		return $this->httpResponse;
 	}
-	*/
+	
 	
 	private function webhookChallenge($returnFormat = 'json') {
-		
+
 		// Check if the webhook secret is set
 		$secret = (isset($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
 		if (!$secret) {
-			$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
-			$this->response->setContent('You have to define a secret in the [Webhook] section in Alma.ini! It has to be the same as in your webhook integration profile in Alma!');
-			return $this->response;
+			$this->httpResponse->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+			$this->httpResponse->setContent('You have to define a secret in the [Webhook] section in Alma.ini! It has to be the same as in your webhook integration profile in Alma!');
+			return $this->httpResponse;
 		}
 		
 		// Create the return array
-		$returnArray['challenge'] = $secret;
+		$returnArray['challenge'] = $secret; // Secret from Alma.ini - according to format described at https://developers.exlibrisgroup.com/alma/integrations/webhooks
 		$returnArray = array_filter($returnArray); // Remove null from array
 		
 		// Create return json value
 		$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
 		
 		// Set HTTP status code to OK (200)
-		$this->response->setStatusCode(200);
+		$this->httpResponse->setStatusCode(200);
 		
 		// Return XML
 		if ($returnFormat == 'xml') {
-			$this->headers->addHeaderLine('Content-type', 'text/plain');
-			$this->response->setContent('Only "json" response is supported at the moment!');
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Only "json" response is supported at the moment!');
 		} else if ($returnFormat == 'json') {
 			// Return JSON (Default)
-			$this->headers->addHeaderLine('Content-type', 'application/json');
-			$this->headers->setHeader('Content-type', 'application/json');
-			$this->response->setContent($returnJson);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setContent($returnJson);
 		} else {
-			$this->response->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+			$this->httpResponse->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
 		}
 		
-		return $this->response;
+		return $this->httpResponse;
 	}
 	
 	public function userAction() {
 		
 		// Check if API is activated and permission is granted. If not, return the response that is already set in checkApi();
 		if (!$this->checkApi('user', 'userPermission')) {
-			return $this->response;
+			return $this->httpResponse;
 		}
 		
 		// Which user-api action should we perform (last part of URL) - configured in module.config.php
@@ -157,10 +158,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				return $this->userAuth($requestMethod, $this->host, $this->database, $username, $password);
 				break;
 			default:
-				$this->headers->addHeaderLine('Content-type', 'text/plain');
-				$this->response->setContent('API is working. No action defined with this request.');
-				$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
-				return $this->response;
+				$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+				$this->httpResponse->setContent('API is working. No action defined with this request.');
+				$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+				return $this->httpResponse;
 		}
 	}
 	
@@ -168,10 +169,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	private function userAuth($requestMethod, $host, $library, $username, $password, $returnFormat = 'json') {
 		// Only POST requests are allowed
 		if ($requestMethod != 'POST') {
-			$this->headers->addHeaderLine('Content-type', 'text/plain');
-			$this->response->setContent('Only POST requests are allowed.');
-			$this->response->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
-			return $this->response; // Stop code execution here if request method is not POST
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Only POST requests are allowed.');
+			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
+			return $this->httpResponse; // Stop code execution here if request method is not POST
 		}
 		
 		// Default values for return array
@@ -211,14 +212,14 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		if ($errorMsg) {
 			$isValid = 'N'; // N = No. User is not valid			
 			$hasError = 'Y'; // Y = Yes. There is an error
-			$this->response->setStatusCode(500); // Default HTTP return status code: Internal Server Error (500)
+			$this->httpResponse->setStatusCode(500); // Default HTTP return status code: Internal Server Error (500)
 			
 			// Check if user exists or not and set HTTP status code for return headers
 			if ($errorMsg == 'Error in Verification') {
 				$userExists = 'N'; // Set from default "U" to "N" as 'Error in Verification' tells us that the user credentials does not exist
-				$this->response->setStatusCode(401);
+				$this->httpResponse->setStatusCode(401);
 			} else if ($errorMsg == 'Both Bor_Id and Verification must be supplied') {
-				$this->response->setStatusCode(401); // At least one part of the user credentials was not supplied
+				$this->httpResponse->setStatusCode(401); // At least one part of the user credentials was not supplied
 			}
 		} else {
 			
@@ -276,10 +277,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			// Check if user is valid
 			if ($isExpired == 'N' && $isBlocked == 'N') {
 				$isValid = 'Y'; // The user is valid (not expired and no blocks) and is allowed to access the resource
-				$this->response->setStatusCode(200); // Set HTTP status code to OK (200)
+				$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
 			} else {
 				$isValid = 'N'; // The user is NOT valid (expired or has blocks) and is NOTallowed to access the resource
-				$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+				$this->httpResponse->setStatusCode(403); // Set HTTP status code to Forbidden (403)
 			}
 		}
 		
@@ -297,19 +298,19 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Return XML
 		if ($returnFormat == 'xml') {
-			$this->headers->addHeaderLine('Content-type', 'text/plain');
-			$this->response->setContent('Only "json" response is supported at the moment!');
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Only "json" response is supported at the moment!');
 			// $headers->addHeaderLine('Content-type', 'text/xml');
 			// $this->response->setContent($XML);
 		} else if ($returnFormat == 'json') {
 			// Return JSON (Default)
-			$this->headers->addHeaderLine('Content-type', 'application/json');
-			$this->response->setContent($returnJson);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setContent($returnJson);
 		} else {
-			$this->response->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+			$this->httpResponse->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
 		}
 		
-		return $this->response;
+		return $this->httpResponse;
 	}
 	
 	
@@ -373,16 +374,16 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$returnValue = false;
 		// Check activation of user API and it's access permission
 		if (!$this->isApiActivated($apiName)) { // Check if user API is activated in AKsearch.ini (user = true)
-			$this->headers->addHeaderLine('Content-type', 'text/plain');
-			$this->response->setContent('API "'.$apiName.'" is not activated in AKsearch.ini');
-			$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('API "'.$apiName.'" is not activated in AKsearch.ini');
+			$this->httpResponse->setStatusCode(403); // Set HTTP status code to Forbidden (403)
 			//return $this->response; // Stop code execution here if user API is not activated
 		} else { // If API is activated, check if the permission is granted (using "userPermission" in AKsearch.ini and the settings in permissions.ini)
 			$permissionIsGranted = $this->isApiAccessAllowed($apiPermissionName);
 			if (!$permissionIsGranted) {
-				$this->headers->addHeaderLine('Content-type', 'text/plain');
-				$this->response->setContent('Access to API is not allowed.');
-				$this->response->setStatusCode(403); // Set HTTP status code to Forbidden (403)
+				$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+				$this->httpResponse->setContent('Access to API is not allowed.');
+				$this->httpResponse->setStatusCode(403); // Set HTTP status code to Forbidden (403)
 				//return $this->response; // Stop code execution here if permission = false
 			} else {
 				// If everything is OK, return true
