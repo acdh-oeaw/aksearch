@@ -90,14 +90,16 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	private function webhookUserChange() {
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setContent('User change webhook is not implemented yet!');
+		$this->httpResponse->setContent('User change webhook is not implemented yet! '.$challenge);
 		$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
 		return $this->httpResponse;
 	}
 	
 	
 	private function webhookChallenge($returnFormat = 'json') {
-
+		
+		
+		/*
 		// Check if the webhook secret is set
 		$secret = (isset($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
 		if (!$secret) {
@@ -105,6 +107,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			$this->httpResponse->setContent('You have to define a secret in the [Webhook] section in Alma.ini! It has to be the same as in your webhook integration profile in Alma!');
 			return $this->httpResponse;
 		}
+		*/
+		
+		// Get challenge string from get parameter
+		$secret = $this->params()->fromQuery('challenge');
 		
 		// Create the return array
 		$returnArray['challenge'] = $secret; // Secret from Alma.ini - according to format described at https://developers.exlibrisgroup.com/alma/integrations/webhooks
