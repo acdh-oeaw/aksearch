@@ -107,6 +107,21 @@ $config = [
         			],
         		],
         	],
+        	'api-webhook' => [
+        		'type'    => 'Zend\Mvc\Router\Http\Segment',
+        		'options' => [
+        			'route'    => '/Api/Webhook/[:apiWebhookAction]',
+        			//'route'    => '/Api/Webhook',
+        			'constraints' => [
+        				'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+        				'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        			],
+        			'defaults' => [
+        				'controller' => 'Api',
+        				'action' => 'Webhook',
+        			],
+        		],
+        	],
         ],
     ],
     'controllers' => [
