@@ -130,7 +130,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
 	 */
-	public function getHolding($mmsId, array $holIds = null, array $patron = null) {
+	public function getHolding($mmsId, array $patron = null, array $holIds = null) {
 				
 		// Variable for return value:
 		$returnValue = [];

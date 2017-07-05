@@ -75,7 +75,7 @@ class Aleph extends AlephDefault {
 		//echo 'Send HTTP request ' . date('h:i:s') . '<br>';
 		//usleep(200000); // Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time
 		$this->akHttpRequestRetries++;
-	
+
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
 		}
@@ -220,7 +220,7 @@ class Aleph extends AlephDefault {
 	 *         duedate, number, barcode.
 	 */
 	public function getHolding($id, array $patron = null) {
-		
+
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;
@@ -285,21 +285,26 @@ class Aleph extends AlephDefault {
 			}
 			
 			// Check for "not_available_locations" in AKsearch.ini:
-			$not_available_locations = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->AlephItemStatus->not_available_locations);			
+			$not_available_locations = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->AlephItemStatus->not_available_locations);
 			if (in_array($sub_library_code, $not_available_locations)) {
 				$availability = false;
 			}
 			
+			// Get from reading room collections. For these collections, the text "GetFromReadingRoom" (see language files) will be shown
+			$readingRoomCollections = (isset($this->akConfig->AlephCollections->reading_room_collections) && !empty($this->akConfig->AlephCollections->reading_room_collections)) ? $this->akConfig->AlephCollections->reading_room_collections : array();
+			$readingRoomCollections = (!empty($readingRoomCollections)) ? $readingRoomCollections->toArray() : $readingRoomCollections;
+			$getFromReadingRoom = in_array($collection, $readingRoomCollections);
+			
 			if ($item_status['request'] == 'Y' && $availability == false) {
 				$addLink = true;
 			}
-			
+					
 			$isHoldable = false;
 			if (!empty($patron)) {
 				$hold_request = $item->xpath('info[@type="HoldRequest"]/@allowed');
 				$isHoldable = ($hold_request[0] == 'Y') ? true : false;
 				$addLink = ($hold_request[0] == 'Y') ? true : false;
-			}
+			}		
 			
 			$matches = array();
 			if (preg_match("/([0-9]*\\/[a-zA-Z]*\\/[0-9]*);([a-zA-Z ]*)/", $status, $matches)) {
@@ -359,6 +364,7 @@ class Aleph extends AlephDefault {
 					// Below are optional attributes
 					'collection' => (string) $collection,
 					'collection_desc' => (string) $collection_desc['desc'],
+					'get_from_readingroom' => $getFromReadingRoom,
 					'callnumber_second' => (string) $z30->{'z30-call-no-2'},
 					'sub_lib_desc' => (string) $item_status['sub_lib_desc'],
 					'no_of_loans' => (string) $z30->{'z30-no-loans'},
@@ -366,7 +372,7 @@ class Aleph extends AlephDefault {
 					'totalNoOfItems' => $totalNoOfItems, // This is necessary for paging (load more items)!!!
 			);
 		}
-				
+
 		return $holding;
 	}
 	

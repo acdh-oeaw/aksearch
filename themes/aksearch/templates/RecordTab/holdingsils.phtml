@@ -225,7 +225,7 @@ if (! empty($holdings)) {
 							echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
 						}
 						
-						if (! $holdingOfLocation['duedate'] && ! $holdingOfLocation['requests_placed'] && ! $holdingOfLocation['returnDate']) {
+						if ((!isset($holdingOfLocation['duedate']) || !$holdingOfLocation['duedate']) && (!isset($holdingOfLocation['requests_placed']) || !$holdingOfLocation['requests_placed']) && (!isset($holdingOfLocation['returnDate']) || !$holdingOfLocation['returnDate'])) {
 							echo '<span class="statusExtra">' . $this->transEsc("not_available_at_the_moment") . '</span>';
 						}
 						echo '</span>';
@@ -266,7 +266,12 @@ if (! empty($holdings)) {
 									echo '<a class="btn btn-default clear-btn holdPlace" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($holdButtonText) . '</span></a>';
 										
 								} else {
-									echo $this->transEsc('GetFromReadingRoom');
+									if (isset($holdingOfLocation['get_from_readingroom']) && $holdingOfLocation['get_from_readingroom'] == true) {
+										echo $this->transEsc('GetFromReadingRoom');
+									} else {
+										echo $this->transEsc('AskLibraryStaff');
+									}
+									
 								}
 							}
 						} else {

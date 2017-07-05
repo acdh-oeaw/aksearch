@@ -28,13 +28,14 @@ class Holds extends DefaultHolds {
             // controller and view to inform the user that these credentials are
             // needed for hold data.
             $patron = $this->ilsAuth->storedCatalogLogin();
-
+            
             // Does this ILS Driver handle consortial holdings?
             $config = $this->catalog->checkFunction('Holds', compact('id', 'patron'));
             if (isset($config['consortium']) && $config['consortium'] == true) {
                 $result = $this->catalog->getConsortialHoldings($id, $patron ? $patron : null, $ids);
-            } else {
-            	$result = $this->catalog->getHolding($id, $ids, $patron ? $patron : null);
+            } else {            	
+            	// Added $ids as last parameter as we will pass in the Alma Holding IDs to save an API request
+            	$result = $this->catalog->getHolding($id, (($patron) ? $patron : null), $ids);
             }
 
             $mode = $this->catalog->getHoldsMode();
