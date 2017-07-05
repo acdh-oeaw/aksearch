@@ -246,7 +246,7 @@ class Aleph extends AlephDefault {
 		
 		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
 		$moreItemsToLoad = ($xml->{'items'}->{'partial'}) ? true : false;
-		$totalNoOfItems = ($moreItemsToLoad) ? $this->getNoOfTotalItems($id) : null;
+		$totalNoOfItems = ($moreItemsToLoad) ? 1 : 0; // We use this as "true" (= 1) or "false" (= 0) as we already know through the "partial" value in XML if we should load more items.
 		
 		foreach ($xml->{'items'}->{'item'} as $item) {
 			$item_status = (string) $item->{'z30-item-status-code'}; // $isc
@@ -378,16 +378,24 @@ class Aleph extends AlephDefault {
 	 * @return boolean					true if the link/button should be displayed, false otherwise
 	 */
 	public function showLoadMore($noOfTotalItems) {
+		// If "partial" XML value was found in getHolding, we receive "1" here, if not, we receive "0"
 		$showLoadMore = false;
-		if (!key_exists('loadAll', $_GET)) {
-			$noOfItemsToLoad = ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
-			if (strcasecmp($noOfItemsToLoad, 'all') != 0) { // If $noOfItemsToLoad is NOT 'all'
-				if ($noOfTotalItems > $noOfItemsToLoad) { // If the record has more records than there are displayed, show the "load more" link/button.
-					$showLoadMore = true;
-				}
-			}
-		}
+		$showLoadMore = ($noOfTotalItems == 1) ? true : false;
 		return $showLoadMore;
+	}
+	
+	public function getNoOfTotalItems() {
+		$holding = array();
+		list ($bib, $sys_no) = $this->parseId($id);
+		$resource = $bib . $sys_no;
+		
+		$xml = $this->doRestDLFRequest(array('record', $resource, 'items'), $params);
+		$moreItemsToLoad = ($xml->{'items'}->{'partial'}) ? true : false;
+		$totalNoOfItems = ($moreItemsToLoad) ? $this->getNoOfTotalItems($id) : null;
+		
+		foreach ($xml->{'items'}->{'item'} as $item) {
+			
+		}
 	}
 	
 	
