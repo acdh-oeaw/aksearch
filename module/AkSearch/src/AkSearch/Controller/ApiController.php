@@ -18,7 +18,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	protected $host;
 	protected $database;
 	protected $configAKsearch;
-	//protected $configAlma;
+	protected $configAlma;
 	private $auth;
 	
 	// Response to external
@@ -37,13 +37,12 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		//parent::__construct($configLoader);
 		$configAleph = $configLoader->get('Aleph');
 		$this->configAKsearch = $configLoader->get('AKsearch');
-		//$this->configAlma = $configLoader->get('Alma');
+		$this->configAlma = $configLoader->get('Alma');
 		
 		date_default_timezone_set('Europe/Vienna');
 		$this->host = rtrim(trim($configAleph->Catalog->host),'/');
 		$this->database = $configAleph->Catalog->useradm;
 		
-		//$this->response = $this->getResponse();
 		$this->httpResponse = new HttpResponse();
 		$this->httpHeaders = $this->httpResponse->getHeaders();
 
@@ -72,12 +71,13 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$requestMethod = $request->getMethod();
 		
 		// Get request body if method is POST and is not empty
-		$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
+		$requestBodyJson = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent()) : null;
+		//$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
 		
 		// Perform user-api action
 		switch ($apiUserAction) {
 			case 'UserChange':
-				return $this->webhookUserChange();
+				return $this->webhookUserChange($requestBodyJson);
 			default:
 				return $this->webhookChallenge();
 				break;
@@ -85,9 +85,30 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	}
 	
 	
-	private function webhookUserChange() {
+	private function webhookUserChange($requestBodyJson) {
+
+		//$host = $this->getRequest()->getHeaders()->get('Host')->getFieldValue(); // Example
+
+		// Get hashed message signature from request header of Alma webhook request
+		$almaSignature = ($this->getRequest()->getHeaders()->get('X-Exl-Signature')) ? $this->getRequest()->getHeaders()->get('X-Exl-Signature')->getFieldValue() : null;
+		
+		// Calculate hmac-sha256 hash from request body
+		$requestBodyString = json_encode($requestBodyJson, JSON_UNESCAPED_UNICODE); // We have to use JSON_UNESCAPED_UNICODE!
+		$hashedHmacMessage = base64_encode(hash_hmac('sha256', $requestBodyString, 'ksjAEKdf83Dde7NEI72t8giDPaEIbbJsshd73', true));
+		
+		// Check for correct signature and return error message if check fails
+		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Unauthorized: Signature value not correct!');
+			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
+			return $this->httpResponse;
+		}
+		
+		// TODO: We can update the user in VuFind as we came this far
+		//       Update these values from Alma json: primary_id, user_identifier (BARCODE)
+		
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setContent('User change webhook is not implemented yet! '.$challenge);
+		$this->httpResponse->setContent(' User change webhook is not implemented yet!');
 		$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
 		return $this->httpResponse;
 	}
