@@ -6,7 +6,7 @@ use \ZfcRbac\Service\AuthorizationServiceAwareInterface;
 use \ZfcRbac\Service\AuthorizationServiceAwareTrait;
 use \Zend\Http\Response as HttpResponse;
 
-// Hide all PHP errors and warnings as this could brake the JSON and XML output
+// Hide all PHP errors and warnings as this could brake the JSON and/or XML output
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(0);
@@ -21,20 +21,21 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	protected $configAlma;
 	private $auth;
 	
+	/**
+	 * User database table
+	 * @var \VuFind\Db\Table\User
+	 */
+	protected $userTable;
+	
 	// Response to external
 	protected $httpResponse;
 	protected $httpHeaders;
 	
-	protected $test;
-
 	
 	/**
 	 * Constructor
 	 */
-	//public function __construct(\Zend\Config\Config $configAleph, \Zend\Config\Config $configAKsearch) {
-	public function __construct(\VuFind\Config\PluginManager $configLoader) {
-	
-		//parent::__construct($configLoader);
+	public function __construct(\VuFind\Config\PluginManager $configLoader, \VuFind\Db\Table\PluginManager $dbTableManager) {
 		$configAleph = $configLoader->get('Aleph');
 		$this->configAKsearch = $configLoader->get('AKsearch');
 		$this->configAlma = $configLoader->get('Alma');
@@ -53,16 +54,16 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		if (!$this->auth) {
 			throw new \Exception('Authorization service missing');
 		}
+		
+		$this->userTable = $dbTableManager->get('user');
 	}
+	
 	
 	public function webhookAction() {
 		// Check if API is activated and permission is granted. If not, return the response that is already set in checkApi();
 		if (!$this->checkApi('webhook', 'webhookPermission')) {
 			return $this->httpResponse;
 		}
-		
-		// Which user-api action should we perform (last part of URL) - configured in module.config.php
-		$apiUserAction = $this->params()->fromRoute('apiWebhookAction');
 		
 		// Request from external
 		$request = $this->getRequest();
@@ -74,10 +75,17 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$requestBodyJson = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent()) : null;
 		//$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
 		
+		// Get webhook action
+		$webhookAction = (isset($requestBodyJson->action)) ? $requestBodyJson->action: null;
+		
 		// Perform user-api action
-		switch ($apiUserAction) {
-			case 'UserChange':
+		switch ($webhookAction) {
+			case 'USER':
 				return $this->webhookUserChange($requestBodyJson);
+			case 'NOTIFICATION':
+				return $this->webhookNotification();
+			case 'JOB_END':
+				return $this->webhookJobEnd();
 			default:
 				return $this->webhookChallenge();
 				break;
@@ -86,30 +94,103 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	
 	private function webhookUserChange($requestBodyJson) {
-
-		//$host = $this->getRequest()->getHeaders()->get('Host')->getFieldValue(); // Example
-
+		// Get webhook secret from Alma.ini. If it is not set, return an error message
+		$almaWebhookSecret = (isset($this->configAlma->Webhook->secret) && !empty($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
+		if ($almaWebhookSecret == null) {
+			$errorText = 'Please provide webhook secret in Alma.ini in section [Webhook]. It must be the same value that is used in Alma in the integration profile for the webhook!';
+			$returnArray['error'] = $errorText;
+			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
+			$this->httpResponse->setContent($returnJson);
+			error_log('[Alma] '.$errorText); // Log the error in our own system
+			return $this->httpResponse;
+		}
+				
+		// Calculate hmac-sha256 hash from request body we get from Alma webhook and sign it with the Alma webhook secret from Alma.ini
+		$requestBodyString = json_encode($requestBodyJson, JSON_UNESCAPED_UNICODE); // We have to use JSON_UNESCAPED_UNICODE!
+		$hashedHmacMessage = base64_encode(hash_hmac('sha256', $requestBodyString, $almaWebhookSecret, true));
+		
 		// Get hashed message signature from request header of Alma webhook request
 		$almaSignature = ($this->getRequest()->getHeaders()->get('X-Exl-Signature')) ? $this->getRequest()->getHeaders()->get('X-Exl-Signature')->getFieldValue() : null;
 		
-		// Calculate hmac-sha256 hash from request body
-		$requestBodyString = json_encode($requestBodyJson, JSON_UNESCAPED_UNICODE); // We have to use JSON_UNESCAPED_UNICODE!
-		$hashedHmacMessage = base64_encode(hash_hmac('sha256', $requestBodyString, 'ksjAEKdf83Dde7NEI72t8giDPaEIbbJsshd73', true));
-		
 		// Check for correct signature and return error message if check fails
 		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
-			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-			$this->httpResponse->setContent('Unauthorized: Signature value not correct!');
+			$returnArray['error'] = 'Unauthorized: Signature value not correct!';
+			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
+			$this->httpResponse->setContent($returnJson);
+			error_log('[Alma] Unauthorized: Signature value not correct!'); // Log the error in our own system
 			return $this->httpResponse;
 		}
 		
-		// TODO: We can update the user in VuFind as we came this far
-		//       Update these values from Alma json: primary_id, user_identifier (BARCODE)
+		// Get primary ID
+		$primaryId = (isset($requestBodyJson->webhook_user->user->primary_id)) ? $requestBodyJson->webhook_user->user->primary_id : null;
 		
+		// Get barcode
+		$barcode = null;
+		$userIdentifiers = (isset($requestBodyJson->webhook_user->user->user_identifier)) ? $requestBodyJson->webhook_user->user->user_identifier : null;
+		foreach ($userIdentifiers as $userIdentifier) {
+			$idType = (isset($userIdentifier->id_type->value)) ? $userIdentifier->id_type->value : null;
+			if ($idType != null && $idType == 'BARCODE' && $barcode == null) {
+				$barcode = (isset($userIdentifier->value)) ? $userIdentifier->value : null;
+			}
+		}
+		
+		// Get first name
+		$firstName = (isset($requestBodyJson->webhook_user->user->first_name)) ? $requestBodyJson->webhook_user->user->first_name : null;
+		
+		// Get last name
+		$lastName = (isset($requestBodyJson->webhook_user->user->last_name)) ? $requestBodyJson->webhook_user->user->last_name : null;
+		
+		// Get preferred eMail
+		$eMail = null;
+		$contactEmails = (isset($requestBodyJson->webhook_user->user->contact_info->email)) ? $requestBodyJson->webhook_user->user->contact_info->email : null;
+		foreach ($contactEmails as $contactEmail) {
+			$preferred = (isset($contactEmail->preferred)) ? $contactEmail->preferred : false;
+			if ($preferred && $eMail == null) {
+				$eMail = (isset($contactEmail->email_address)) ? $contactEmail->email_address : null;
+			}
+		}
+
+		// Update user data if user was found
+		$user = ($barcode != null) ? $this->userTable->getByUsername($barcode, false) : null;
+		if ($user != null && !empty($user)) {
+			$user->username = $barcode;
+			$user->firstname = $firstName;
+			$user->lastname = $lastName;
+			$user->email = $eMail;
+			$user->cat_username = $barcode;
+			$user->save(); // Update user record
+			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+		} else {
+			// Create a return message in case of error
+			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by barcode value '.$barcode;
+			$returnArray['error'] = $errorText;
+			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+			$this->httpResponse->setContent($returnJson);
+			error_log('[Alma] '.$errorText); // Log the error in our own system
+		}
+		
+		return $this->httpResponse;
+	}
+	
+	
+	private function webhookJobEnd() {
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setContent(' User change webhook is not implemented yet!');
-		$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+		$this->httpResponse->setStatusCode(501); // Set HTTP status code to Not Implemented (501)
+		$this->httpResponse->setContent('JOB_END webhook not implemented yet.');
+		return $this->httpResponse;
+	}
+	
+	
+	private function webhookNotification() {
+		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+		$this->httpResponse->setStatusCode(501); // Set HTTP status code to Not Implemented (501)
+		$this->httpResponse->setContent('NOTIFICATION webhook not implemented yet.');
 		return $this->httpResponse;
 	}
 	
@@ -143,6 +224,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		return $this->httpResponse;
 	}
+	
 	
 	public function userAction() {
 		
@@ -382,7 +464,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	}
 	
 	
-	
 	private function checkApi($apiName, $apiPermissionName) {
 		$returnValue = false;
 		// Check activation of user API and it's access permission
@@ -411,6 +492,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	private function isApiActivated($apiName) {
 		return (isset($this->configAKsearch->API->$apiName)) ? filter_var($this->configAKsearch->API->$apiName, FILTER_VALIDATE_BOOLEAN) : false;
 	}
+	
 	
 	private function isApiAccessAllowed($apiPermissionName) {
 		$permission = $this->configAKsearch->API->$apiPermissionName;
