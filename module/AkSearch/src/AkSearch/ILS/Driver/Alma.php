@@ -457,16 +457,15 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$city = null;
 		$zip = null;
 		foreach($details->contact_info->addresses->address as $address) {
-			foreach ($address->attributes() as $name => $value) {
-				if ($name == 'preferred' && $value == true) {
-					$address1 = (isset($address->line1)) ? (string) $address->line1 : null;
-					$address2 = (isset($address->line2)) ? (string) $address->line2 : null;
-					$address3 = (isset($address->line3)) ? (string) $address->line3 : null;
-					$address4 = (isset($address->line4)) ? (string) $address->line4 : null;
-					$address5 = (isset($address->line5)) ? (string) $address->line5 : null;
-					$city = (isset($address->city)) ? (string) $address->city : null;
-					$zip = (isset($address->postal_code)) ? (string) $address->postal_code : null;
-				}
+			$isPreferredAddress = filter_var((string)$address->attributes()->preferred, FILTER_VALIDATE_BOOLEAN);
+			if ($isPreferredAddress) {
+				$address1 = (isset($address->line1)) ? (string) $address->line1 : null;
+				$address2 = (isset($address->line2)) ? (string) $address->line2 : null;
+				$address3 = (isset($address->line3)) ? (string) $address->line3 : null;
+				$address4 = (isset($address->line4)) ? (string) $address->line4 : null;
+				$address5 = (isset($address->line5)) ? (string) $address->line5 : null;
+				$city = (isset($address->city)) ? (string) $address->city : null;
+				$zip = (isset($address->postal_code)) ? (string) $address->postal_code : null;
 			}
 		}
 		$email = null;
@@ -518,9 +517,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$recordList['barcode'] = $barcode;
 		$recordList['expire'] = $this->parseDate($expiry);
 		$recordList['credit'] = $expiry;
-		$recordList['credit_sum'] = $credit_sum;
-		$recordList['credit_sign'] = $credit_sign;
-		$recordList['id'] = $id;
+		//$recordList['credit_sum'] = $credit_sum;
+		//$recordList['credit_sign'] = $credit_sign;
+		//$recordList['id'] = $id;
 		
 		return $recordList;
 	}
@@ -615,7 +614,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		
 		if ($password == null) {
 			$temp = ['id' => $user];
-			$temp['college'] = $this->useradm;
+			//$temp['college'] = $this->useradm;
 			return $this->getMyProfile($temp);
 		}
 		
