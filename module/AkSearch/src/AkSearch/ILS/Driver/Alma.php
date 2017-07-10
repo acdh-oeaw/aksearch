@@ -443,7 +443,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @return array      Array of the patron's profile data on success.
 	 */
 	public function getMyProfile($user) {
-		
+
 		$primaryId = $user['id'];
 		
 		// Get the patrons details
@@ -519,7 +519,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$recordList['credit'] = $expiry;
 		//$recordList['credit_sum'] = $credit_sum;
 		//$recordList['credit_sign'] = $credit_sign;
-		//$recordList['id'] = $id;
+		$recordList['id'] = $primaryId;
 		
 		return $recordList;
 	}
@@ -614,7 +614,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		
 		if ($password == null) {
 			$temp = ['id' => $user];
-			//$temp['college'] = $this->useradm;
+			//$temp['college'] = $this->useradm;			
 			return $this->getMyProfile($temp);
 		}
 		
@@ -1081,7 +1081,6 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		}
 		return null;
 	}
-	
-	
+
 }
 ?>

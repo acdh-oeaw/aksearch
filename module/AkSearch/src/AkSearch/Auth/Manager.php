@@ -92,4 +92,15 @@ class Manager extends DefaultAuthManager {
     	return $result;
     }
     
+    
+    public function setPasswordWithOtp($request) {
+    	// 0. Click button in setpasswordwithotp.phtml
+    	// 1. AkSitesController.php->setPasswordWithOtpAction()
+    	// 2. Manager.php->setPasswordWithOtp()
+    	// 3. Database.php->setPasswordWithOtp()
+    	
+    	$result = $this->getAuth()->setPasswordWithOtp($request);
+    	return $result;
+    }
+    
 }

@@ -10,7 +10,11 @@ class Factory extends \VuFind\Controller\Factory {
     }
     
     public static function getApiController(ServiceManager $sm) {
-    	return new ApiController($sm->getServiceLocator()->get('VuFind\Config'), $sm->getServiceLocator()->get('VuFind\DbTablePluginManager'));
+    	return new ApiController(
+    			$sm->getServiceLocator()->get('VuFind\Config'),
+    			$sm->getServiceLocator()->get('VuFind\DbTablePluginManager'),
+    			$sm->getServiceLocator()->get('VuFind\Http')	
+    	);
     }
 
 }

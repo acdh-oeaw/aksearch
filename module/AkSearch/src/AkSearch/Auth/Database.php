@@ -42,7 +42,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 		
 
     /**
-     * Create a new user account from the request. Exteded version for use with Alma
+     * Create a new user account from the request. Exteded version for use with Alma.
      *
      * @param \Zend\Http\PhpEnvironment\Request $request Request object containing
      * new account details.
@@ -130,6 +130,41 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 
     
     /**
+     * Attempt to authenticate the current user.  Throws exception if login fails. Exteded version for use with Alma.
+     *
+     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing
+     * account credentials.
+     *
+     * @throws AuthException
+     * @return \VuFind\Db\Row\User Object representing logged-in user.
+     */
+    public function authenticate($request) {
+    	// Make sure the credentials are non-blank:
+    	$this->username = trim($request->getPost()->get('username'));
+    	$this->password = trim($request->getPost()->get('password'));
+    	if ($this->username == '' || $this->password == '') {
+    		throw new AuthException('authentication_error_blank');
+    	}
+    	
+    	// Get user data from database
+    	$user = $this->getUserTable()->getByUsername($this->username, false);
+    
+    	// Validate the credentials
+    	if (!is_object($user) || !$this->checkPassword($this->password, $user)) {
+    		throw new AuthException('authentication_error_invalid');
+    	}
+    	
+    	// Check if password is a one-time-password
+    	if (!is_object($user) || $this->isOtp($user)) {
+    		throw new AuthException('authentication_error_otp');
+    	}
+    	
+    	// If we got this far, the login was successful:
+    	return $user;
+    }
+    
+    
+    /**
      * Update a user's password from the request.
      *
      * @param \Zend\Http\PhpEnvironment\Request $request Request object containing
@@ -210,6 +245,95 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	$cipher = new BlockCipher(new Mcrypt(['algorithm' => 'blowfish']));
     	$cipher->setKey($this->encryptionKey);
     	return $encrypt ? $cipher->encrypt($text) : $cipher->decrypt($text);
+    }
+    
+    
+    protected function isOtp($user) {
+    	return (isset($user->is_otp)) ? filter_var($user->is_otp, FILTER_VALIDATE_BOOLEAN) : false;
+    }
+    
+    
+    public function setPasswordWithOtp($request) {
+		// 0. Click button in setpasswordwithotp.phtml
+		// 1. AkSitesController.php->setPasswordWithOtpAction()
+		// 2. Manager.php->setPasswordWithOtp()
+		// 3. Database.php->setPasswordWithOtp()
+		
+    	// Create an array for the values that we need from the post request
+		$params = [];
+		foreach (['username', 'oneTimePassword', 'newPassword', 'newPasswordConfirm'] as $param) {
+			$params[$param] = $request->getPost()->get($param, '');
+		}
+		
+		// Needs a username
+		if (trim($params['username']) == '') {
+			throw new AuthException('required_fields_empty');
+		}
+		// Needs a one-time-password
+		if (trim($params['oneTimePassword']) == '') {
+			throw new AuthException('required_fields_empty');
+		}
+		// Needs new passwords
+		if ($params['newPassword'] == '' || $params['newPasswordConfirm'] == '') {
+			throw new AuthException('required_fields_empty');
+		}
+		// New passwords don't match
+		if ($params['newPassword'] != $params['newPasswordConfirm']) {
+			throw new AuthException('Passwords do not match');
+		}
+		
+		// Get user data from database
+		$user = $this->getUserTable()->getByUsername($params['username'], false);
+		
+		// Check if user was found in database
+		if (!is_object($user)) {
+			return array('success' => false, 'status' => 'authentication_error_invalid');
+		}
+		
+		// Do the OTP validation
+		$result = $this->validateOtp($user, $params);
+		
+		// Set the password on successful otp validation
+		if ($result['success']) {
+			if ($this->passwordHashingEnabled()) {
+				$bcrypt = new Bcrypt();
+				$user->pass_hash = $bcrypt->create($params['newPassword']);
+			} else {
+				$user->password = $params['newPassword'];
+			}
+			$user->is_otp = 0;
+			$user->save();
+		}
+			
+		return $result;
+    }
+    
+    
+    protected function validateOtp($user, $params) {
+    	$isValid = false;
+    	$message = null;
+
+    	// Check if password in user database is a otp
+    	$isOtp = filter_var($user->is_otp, FILTER_VALIDATE_BOOLEAN);
+    	if (!$isOtp) {
+    		return array('success' => $isValid, 'status' => 'authentication_error_not_an_otp');
+    	}
+    	
+    	// Check if password hashing is enabled
+    	if ($this->passwordHashingEnabled()) {
+    		if ($user->password) {
+    			throw new \VuFind\Exception\PasswordSecurity('Unexpected unencrypted password found in database');
+    		}
+    		
+    		// Verify hashed password
+    		$bcrypt = new Bcrypt();
+    		$isValid = $bcrypt->verify($params['oneTimePassword'], $user->pass_hash);
+    	} else {
+    		// Verify clear text password
+    		$isValid = ($params['oneTimePassword'] == $user->password);
+    	}
+    	
+    	return array('success' => $isValid, 'status' => (($isValid) ? 'authentication_otp_success' : 'authentication_otp_error'));
     }
 
 }

@@ -44,5 +44,17 @@ class Auth extends DefaultViewAuth {
         return $this->renderTemplate('changeuserdata.phtml', $context);
     }
     
+    
+    /**
+     * Render the change user data form template.
+     *
+     * @param array $context Context for rendering template
+     *
+     * @return string
+     */
+    public function getSetPasswordWithOtpForm($context = []) {
+    	return $this->renderTemplate('setpasswordwithotp.phtml', $context);
+    }
+    
 
 }

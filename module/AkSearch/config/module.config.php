@@ -159,7 +159,8 @@ $config = [
             'libguides' => 'VuFind\Controller\LibGuidesController',
             'librarycards' => 'VuFind\Controller\LibraryCardsController',
             'missingrecord' => 'VuFind\Controller\MissingrecordController',
-            'my-research' => 'VuFind\Controller\MyResearchController',
+            //'my-research' => 'VuFind\Controller\MyResearchController',
+        	'my-research' => 'AkSearch\Controller\MyResearchController',
             'oai' => 'VuFind\Controller\OaiController',
             'pazpar2' => 'VuFind\Controller\Pazpar2Controller',
             'primo' => 'VuFind\Controller\PrimoController',
@@ -408,7 +409,8 @@ $config = [
                 'abstract_factories' => ['VuFind\Db\Table\PluginFactory'],
                 'factories' => [
                     'resource' => 'VuFind\Db\Table\Factory::getResource',
-                    'user' => 'VuFind\Db\Table\Factory::getUser',
+                    //'user' => 'VuFind\Db\Table\Factory::getUser',
+                	'user' => 'AkSearch\Db\Table\Factory::getUser',
                 ],
                 'invokables' => [
                     'changetracker' => 'VuFind\Db\Table\ChangeTracker',
@@ -836,7 +838,7 @@ $dynamicRoutes = [
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
 	'Akfilter/Home', 'Akfilter/Results', 'Akfilter/Advanced',
-	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData',
+	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',

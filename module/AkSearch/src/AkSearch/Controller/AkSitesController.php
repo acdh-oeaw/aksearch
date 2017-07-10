@@ -137,6 +137,54 @@ class AkSitesController extends AbstractBase {
 		
 		return $view;
 	}
+	
+	
+	/**
+	 * Call action to go to "set password with one-time-password" page.
+	 *
+	 * @return \Zend\View\Model\ViewModel
+	 */
+	public function setPasswordWithOtpAction() {
+		$view = $this->createViewModel();
+		
+		// Password policy - set a variable that we can use in the template file (setpasswordwithotp.phtml)
+		$view->passwordPolicy = $this->getAuthManager()->getPasswordPolicy();
+		
+		// Use re-captcha - set a variable that we can use in the template file (setpasswordwithotp.phtml)
+		$view->useRecaptcha = $this->recaptcha()->active('setPasswordWithOtp');
+		
+		// If cancel button was clicked, return to home page
+		if ($this->formWasSubmitted('cancel')) {
+			return $this->redirect()->toRoute('home');
+		}
+		
+		// If form was submitted
+		if ($this->formWasSubmitted('submit')) {
+			// 0. Click button in setpasswordwithotp.phtml
+			// 1. AkSitesController.php->setPasswordWithOtpAction()
+			// 2. Manager.php->setPasswordWithOtp()
+			// 3. Database.php->setPasswordWithOtp()
+			try {
+				$result = $this->getAuthManager()->setPasswordWithOtp($this->getRequest());
+			} catch (AuthException $e) {
+				$this->flashMessenger()->addMessage($e->getMessage(), 'error');
+				return $view;
+			}
+			
+			if ($result['success']) {
+				// Show message and go to home on success
+				$this->flashMessenger()->addMessage($result['status'], 'success');
+				return $this->redirect()->toRoute('myresearch-home', array(), array('query' => array('clearFollowupUrl' => '1')));
+			} else {
+				$this->flashMessenger()->addMessage($result['status'], 'error');
+				return $view;
+			}
+		}
+		
+		// Return the view to display the page
+		return $view;
+	}
+	
 }
 
 ?>
