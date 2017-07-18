@@ -4,6 +4,7 @@ namespace AkSearch\Controller;
 
 use VuFind\Controller\MyResearchController as DefaultMyResearchController;
 use VuFind\Exception\Auth as AuthException;
+use VuFind\Exception\Mail as MailException;
 use Zend\Mail as Mail;
 use AkSearch\Controller\Plugin\AkSearch;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
@@ -430,7 +431,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		// Send eMail
     		$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
     		$success = true;
-    	} catch (\VuFind\Exception\Mail $mex) {
+    	} catch (MailException $mex) {
     		error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
     	}
     	
@@ -502,11 +503,77 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		// Send eMail
     		$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
     		$success = true;
-    	} catch (\VuFind\Exception\Mail $mex) {
+    	} catch (MailException $mex) {
     		error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
     	}
     	
     	return $success;
+    }
+    
+    
+    /**
+     * Helper function for recoverAction
+     * Overwriting default function for using other "from" eMail-Address.
+     *
+     * @param \VuFind\Db\Row\User $user   User object we're recovering
+     * @param \VuFind\Config      $config Configuration object
+     *
+     * @return void (sends email or adds error message)
+     */
+    protected function sendRecoveryEmail($user, $config) {
+    	// If we can't find a user
+    	if (null == $user) {
+    		$this->flashMessenger()->addMessage('recovery_user_not_found', 'error');
+    	} else {
+    		// Make sure we've waiting long enough
+    		$hashtime = $this->getHashAge($user->verify_hash);
+    		$recoveryInterval = isset($config->Authentication->recover_interval) ? $config->Authentication->recover_interval : 60;
+    		if (time() - $hashtime < $recoveryInterval) {
+    			$this->flashMessenger()->addMessage('recovery_too_soon', 'error');
+    		} else {
+    			// Get Alma.ini
+    			$configAlma = $this->getConfig('Alma');
+    			
+    			// Translator
+    			$translator = $this->getServiceLocator()->get('VuFind\Translator');
+    			$this->setTranslator($translator);
+    			
+    			// Attempt to send the email
+    			try {
+    				// Create a fresh hash
+    				$user->updateHash();
+    				$config = $this->getConfig();
+    				$renderer = $this->getViewRenderer();
+    				$method = $this->getAuthManager()->getAuthMethod();
+    				// Custom template for emails (text-only)
+    				$message = $renderer->render(
+    						'Email/recover-password.phtml',
+    						[
+    								'library' => $config->Site->title,
+    								'url' => $this->getServerUrl('myresearch-verify') . '?hash=' . $user->verify_hash . '&auth_method=' . $method
+    						]
+    				);
+    				
+    				// This sets up the email to be sent
+    				$mail = new Mail\Message();
+    				$headers = $mail->getHeaders();
+    				$headers->removeHeader('Content-Type');
+    				$headers->addHeaderLine('Content-Type', 'text/html;charset=UTF-8');
+    				$mail->addTo($user->email);
+    				$mail->setFrom($configAlma->Users->emailFrom);
+    				$mail->setReplyTo($configAlma->Users->emailReplyTo);
+    				$mail->setSubject($this->translate('recovery_email_subject'));
+    				$mail->setBody($message);
+    				
+    				// Send eMail
+    				$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
+    				
+    				$this->flashMessenger()->addMessage('recovery_email_sent', 'success');
+    			} catch (MailException $e) {
+    				$this->flashMessenger()->addMessage($e->getMessage(), 'error');
+    			}
+    		}
+    	}
     }
 
 }
