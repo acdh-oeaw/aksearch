@@ -459,7 +459,7 @@ a.list-group-item:hover, a.list-group-item:focus {
 
 .akInfoTooltip {
 	position: absolute;
-	z-index: 999;
+	z-index: 5000;
 	background-color: #dedede;
 	padding: 5px;
 	border: 1px solid #fff;
@@ -693,6 +693,79 @@ a.list-group-item:hover, a.list-group-item:focus {
 	margin-bottom: 0px;
 }
 
+
+
+#almaUserRegistration td {
+	vertical-align: middle;
+}
+
+#almaUserRegistration input[type=text], #almaUserRegistration input[type=password], #almaUserRegistration select {
+	width: 95%; 
+}
+
+/*
+#almaUserRegistration td {
+	padding-top: 4px;
+}
+*/
+
+#almaUserRegistration td:FIRST-CHILD {
+	white-space: nowrap;
+	padding-left: 15px;
+	padding-right: 25px;
+}
+
+#almaUserRegistration .akInfoTooltipOpener {
+	float: none;
+}
+
+#almaUserRegistration .form-control {
+	display: inline;
+}
+
+#almaUserRegistration .form-group::BEFORE {
+	content: none;
+}
+
+#almaUserRegistration .fa-refresh {
+	font-size: 19px;
+}
+/*
+#almaUserRegistration input[type="checkbox"] {
+	margin-top: 0px;
+}
+*/
+/*
+#almaUserRegistration td:nth-child(2) {
+	text-align: right;
+}
+*/
+
+/*
+.error {
+	color: red;
+}
+
+.small {
+	font-size: 11px;
+}
+
+#reloadImage {
+	vertical-align: middle;
+	outline: none;
+}
+
+*/
+
+
+
+
+
+
+
+
+/* ############################### MEDIA QUERIES ############################### */
+
 @media ( max-width : 767px) {
 	
 	body {
@@ -850,8 +923,6 @@ a.list-group-item:hover, a.list-group-item:focus {
 	}
 	
 	
-	
-	
 	.akFeatureIntro {
 		position: relative;
 		height: auto;
@@ -886,6 +957,15 @@ a.list-group-item:hover, a.list-group-item:focus {
 	}
 
 }
+
+
+
+@media ( min-width : 768px) {	
+	#almaUserRegistration input[type=text], #almaUserRegistration input[type=password], #almaUserRegistration select {
+		max-width: 95%;
+	}
+}
+
 
 
 /* ###################################################################################################### */

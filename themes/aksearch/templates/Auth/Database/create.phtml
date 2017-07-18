@@ -1,0 +1,166 @@
+<?php
+
+$requiredFields = $this->required;
+
+$salutation = ($this->request->get('salutation')) ? $this->escapeHtmlAttr($this->request->get('salutation')) : null;
+$salutationSelectedNone = ($salutation == null || $salutation == '') ? 'selected="selected"' : '';
+$salutationSelectedMs = ($salutation != null && $salutation == $this->escapeHtmlAttr($this->transEsc('salutationMs'))) ? 'selected="selected"' : '';
+$salutationSelectedMr = ($salutation != null && $salutation == $this->escapeHtmlAttr($this->transEsc('salutationMr'))) ? 'selected="selected"' : '';
+
+$jobs = $this->jobs;
+$jobFromRequest = $this->escapeHtmlAttr($this->request->get('job'));
+$jobSelect = '<select name="job" id="job" required aria-required="true"><option value="" '.(($jobFromRequest == '') ? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc('pleaseChoose')).'</option>';
+foreach ($jobs as $job) {			
+	$jobSelect .= '<option value="'.$this->escapeHtmlAttr($this->transEsc($job)).'" '.($jobFromRequest == $this->escapeHtmlAttr($this->transEsc($job))? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc($job)).'</option>';
+}
+$jobSelect .= '</select>';
+
+$salutationRequired = in_array('salutation', $requiredFields);
+$firstNameRequired = in_array('firstName', $requiredFields);
+$lastNameRequired = in_array('lastName', $requiredFields);
+$streetRequired = in_array('street', $requiredFields);
+$zipRequired = in_array('zip', $requiredFields);
+$cityRequired = in_array('city', $requiredFields);
+$emailRequired = in_array('email', $requiredFields);
+$phoneRequired = in_array('phone', $requiredFields);
+$birthdayRequired = in_array('birthday', $requiredFields);
+$jobRequired = in_array('job', $requiredFields);
+$passwordRequired = in_array('password', $requiredFields);
+$passwordConfirmRequired = in_array('passwordConfirm', $requiredFields);
+$dataProcessingRequired = in_array('dataProcessing', $requiredFields);
+$houseAndUsageRulesRequired = in_array('houseAndUsageRules', $requiredFields);
+$captchaCodeRequired = in_array('captchaCode', $requiredFields);
+?>
+
+<table id="almaUserRegistration" class="table table-striped">
+	<tr>
+		<td><?=$this->transEsc('salutation').(($salutationRequired) ? ' *' : '')?> </td>
+		<td class="form-group" colspan="2">
+			<select name="salutation" id="salutation" <?=(($salutationRequired) ? 'required aria-required="true"' : '')?>>
+				<option value="" <?=$salutationSelectedNone?>><?=$this->escapeHtmlAttr($this->transEsc('pleaseChoose'))?></option>
+				<option value="<?=$this->escapeHtmlAttr($this->transEsc('salutationMs'))?>" <?=$salutationSelectedMs?>><?=$this->escapeHtmlAttr($this->transEsc('salutationMs'))?></option>
+				<option value="<?=$this->escapeHtmlAttr($this->transEsc('salutationMr'))?>" <?=$salutationSelectedMr?>><?=$this->escapeHtmlAttr($this->transEsc('salutationMr'))?></option>
+			</select>
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('firstName').(($firstNameRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="firstName" id="firstName" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('firstName'))?>" <?=(($firstNameRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('lastName').(($lastNameRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="lastName" id="lastName" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('lastName'))?>" <?=(($lastNameRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('street').(($streetRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="street" id="street" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('street'))?>" <?=(($streetRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('zip').(($zipRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="zip" id="zip" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('zip'))?>" <?=(($zipRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('city').(($cityRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="city" id="city" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('city'))?>" <?=(($cityRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('email').(($emailRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="email" id="email" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('email'))?>" <?=(($emailRequired) ? 'required aria-required="true"' : '')?> />&nbsp;
+			<span class="akInfoTooltipOpener" data-aktooltiptitle="<?=$this->transEsc('email')?>" data-aktooltiptext="<?=$this->translate('createAccountEmailTooltipText')?>"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>	
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('phone').(($phoneRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="phone" id="phone" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('phone'))?>" <?=(($phoneRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('birthday').(($birthdayRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="text" name="birthday" id="birthdayDatePicker" class="form-control" data-date-end-date="0d" value="<?=$this->escapeHtmlAttr($this->request->get('birthday'))?>" autocomplete="off" <?=(($birthdayRequired) ? 'required aria-required="true"' : '')?> />
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('job').(($jobRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<?=$jobSelect?>
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>	
+	<tr>
+		<td><?=$this->transEsc('password').(($passwordRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="password" name="password" id="password" class="form-control" <?=(($passwordRequired) ? 'required aria-required="true"' : '')?> <?=isset($this->passwordPolicy['minLength']) ? ' data-minlength="' . $this->passwordPolicy['minLength'] . '" data-minlength-error="' . $this->escapeHtmlAttr($this->translate('password_minimum_length', array('%%minlength%%' => $this->passwordPolicy['minLength']))) . '"' : ''?><?=isset($this->passwordPolicy['maxLength']) ? ' maxlength="' . $this->passwordPolicy['maxLength'] . '"' : ''?> />&nbsp;
+			<span class="akInfoTooltipOpener" data-aktooltiptitle="<?=$this->transEsc('password')?>" data-aktooltiptext="<?php echo $this->translate('createAccountPasswordTooltipText', ['_minLength_' => $this->passwordPolicy['minLength']]); ?>"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('passwordConfirm').(($passwordConfirmRequired) ? ' *' : '')?></td>
+		<td class="form-group" colspan="2">
+			<input type="password" name="passwordConfirm" id="passwordConfirm" class="form-control" <?=(($passwordConfirmRequired) ? 'required aria-required="true"' : '')?> data-match="#password" data-match-error="<?=$this->escapeHtmlAttr($this->translate('Passwords do not match'))?>" />&nbsp;
+			<span class="akInfoTooltipOpener" data-aktooltiptitle="<?=$this->transEsc('passwordConfirm')?>" data-aktooltiptext="<?=$this->translate('createAccountPasswordAgainTooltipText')?>"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>
+			<div class="help-block with-errors"></div>	
+		</td>
+	</tr>
+	<tr class="form-group">
+		<td><?=$this->transEsc('dataProcessing').(($dataProcessingRequired) ? ' *' : '')?></td>
+		<td>
+			<input type="checkbox" name="dataProcessing" id="dataProcessing" <?=(($dataProcessingRequired) ? 'required aria-required="true"' : '')?>></input>
+		</td>
+		<td>
+			<?=$this->translate('createAccountDataProcessingText')?>
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr class="form-group">
+		<td><?=$this->transEsc('houseAndUsageRules').(($houseAndUsageRulesRequired) ? ' *' : '')?></td>
+		<td>
+			<input type="checkbox" name="houseAndUsageRules" id="houseAndUsageRules" <?=(($houseAndUsageRulesRequired) ? 'required aria-required="true"' : '')?>/>
+		</td>
+		<td>
+			<?=$this->translate('createAccountHouseAndUsageRulesText')?>
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	<tr>
+		<td><?=$this->transEsc('captchaCode').(($captchaCodeRequired) ? ' *' : '')?></td>
+		<td colspan="2">
+			<br />
+			<img id="captcha" src="../AkSites/Captcha" alt="CAPTCHA Image" />&nbsp;
+			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = '../AkSites/Captcha?' + Math.random(); return false">
+				<i class="fa fa-refresh"></i>
+			</a>
+			<div class="form-group" style="margin-top: 10px; margin-left: 0px;">
+				<input type="text" name="captchaCode" id="captchaCode" class="form-control" maxlength="6" <?=(($captchaCodeRequired) ? 'required aria-required="true"' : '')?> />
+				<div class="small"><?=$this->translate('createAccountCaptchaText')?></div>
+				<div class="help-block with-errors"></div>
+			</div>
+		</td>
+	</tr>
+	<tr>
+	</tr>
+</table>
+<p>* = <?=$this->translate('This field is required')?></p>
+

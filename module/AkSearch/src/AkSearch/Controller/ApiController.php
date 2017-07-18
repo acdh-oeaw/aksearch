@@ -51,7 +51,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$this->configAKsearch = $configLoader->get('AKsearch');
 		$this->configAlma = $configLoader->get('Alma');
 		
-		date_default_timezone_set('Europe/Vienna');
+		date_default_timezone_set($this->config->Site->timezone);
 		$this->host = rtrim(trim($configAleph->Catalog->host),'/');
 		$this->database = $configAleph->Catalog->useradm;
 		
@@ -184,11 +184,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			
 			// Create new barcode
 			if ($barcode == null) {
-				$barcodePrefix = (isset($this->configAlma->Webhook->barcodePrefix)) ? $this->configAlma->Webhook->barcodePrefix : ''; // Default: No prefix
-				$barcodeLength = (isset($this->configAlma->Webhook->barcodeLength) || $this->configAlma->Webhook->barcodeLength > 32) ? $this->configAlma->Webhook->barcodeLength : 10;
 				$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
-				$hash = substr(md5($stringForHash), 0, $barcodeLength);
-				$barcode = strtoupper($barcodePrefix . $hash);
+				$barcode = $this->akSearch()->generateBarcode($stringForHash);
 				
 				// Write barcode back to Alma
 				$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
@@ -208,10 +205,13 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			
 			// Generate one-time-password
 			$password = $this->generatePassword();
-			if ($this->passwordHashingEnabled()) {
+			/*
+			//if ($this->passwordHashingEnabled()) {
+			if ($this->akSearch()->passwordHashingEnabled()) { // See Controller\Plugin\AkSearch.php
 				$bcrypt = new Bcrypt();
 				$passHash = $bcrypt->create($password);
 			}
+			*/
 			$isOtp = 1;
 			
 			// Send eMail to user with one-time-password and barcode (= username):
@@ -228,6 +228,21 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			}
 		}
 		
+		
+		$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $eMail, $password, $isOtp, $primaryId, $barcode, $createIfNotExist);
+		if ($user != null) {
+			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+		} else {
+			// Create a return message in case of error
+			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
+			$returnArray['error'] = $errorText;
+			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+			$this->httpResponse->setContent($returnJson);
+			error_log('[Alma] '.$errorText); // Log the error in our own system
+		}
+		/*
 		// Update or create user in database table
 		$user = ($primaryId != null) ? $this->userTable->getByCatalogId($primaryId, $barcode, $createIfNotExist) : null;
 		if ($user != null && !empty($user)) {
@@ -255,6 +270,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			$this->httpResponse->setContent($returnJson);
 			error_log('[Alma] '.$errorText); // Log the error in our own system
 		}
+		*/
 		
 		return $this->httpResponse;
 	}
@@ -535,6 +551,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	 *
 	 * @return array	xml => SimpleXMLElement, status => HTTP status code
 	 */
+	/*
 	private function doHTTPRequest($url, $method = 'GET', $rawBody = null, $headers = null) {
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
@@ -587,6 +604,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		return $returnArray;
 	}
+	*/
 	
 	
 	private function fixArrayKeys($array) {
@@ -655,9 +673,11 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	 *
 	 * @return bool
 	 */
+	/*
 	private function passwordHashingEnabled() {
 		return isset($this->config->Authentication->hash_passwords) ? $this->config->Authentication->hash_passwords : false;
 	}
+	*/
 	
 	
 	private function generatePassword() {
@@ -680,7 +700,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$apiKey = $this->configAlma->API->key;
 				
 		// Get the Alma user XML object from the Alma API
-		$almaUserObject = $this->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
+		$almaUserObject = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
 		$almaUserObject = $almaUserObject['xml']; // Get the user XML object from the return-array.
 		
 		// Remove user roles (they are not touched)
@@ -698,7 +718,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$almaUserObjectForUpdate = $almaUserObject->asXML();
 		
 		// Send update via HTTP PUT
-		$updateResult = $this->doHTTPRequest($apiUrl.'users/'.$primaryId.'?user_id_type=all_unique&apikey='.$apiKey, 'PUT', $almaUserObjectForUpdate, ['Content-type' => 'application/xml']);
+		$updateResult = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?user_id_type=all_unique&apikey='.$apiKey, 'PUT', $almaUserObjectForUpdate, ['Content-type' => 'application/xml']);
 		
 		return $updateResult['status']; // Return http status code
 	}
@@ -708,6 +728,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$success = false;
 		
 		$email_subject = 'AK Bibliothek Wien - Ihr Account';
+		$email_message = 'URL: http://aksearch.localhost.at/AkSites/SetPasswordWithOtp' . "\n";
 		$email_message = 'Username: ' . $username. "\n";
 		$email_message .= 'Password: ' . $password. "\n";
 		

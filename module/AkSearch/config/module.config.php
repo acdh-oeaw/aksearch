@@ -28,12 +28,12 @@
  
 namespace AkSearch\Module\Config;
 
-/*
+
 // Show PHP errors:
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(- 1);
-*/
+
 
 $config = [
     'router' => [
@@ -126,6 +126,7 @@ $config = [
     ],
     'controllers' => [
         'factories' => [
+        	'aksites' => 'AkSearch\Controller\Factory::getAkSitesController',
             'api' => 'AkSearch\Controller\Factory::getApiController',
         	//'browse' => 'VuFind\Controller\Factory::getBrowseController',
         	'browse' => 'AkSearch\Controller\Factory::getBrowseController',
@@ -136,7 +137,6 @@ $config = [
         ],
         'invokables' => [
         	'akfilter' => 'AkSearch\Controller\AkfilterController',
-        	'aksites' => 'AkSearch\Controller\AkSitesController',
         	'ajax' => 'AkSearch\Controller\AkAjaxController',
             //'ajax' => 'VuFind\Controller\AjaxController',
             'alphabrowse' => 'VuFind\Controller\AlphabrowseController',
@@ -160,7 +160,7 @@ $config = [
             'librarycards' => 'VuFind\Controller\LibraryCardsController',
             'missingrecord' => 'VuFind\Controller\MissingrecordController',
             //'my-research' => 'VuFind\Controller\MyResearchController',
-        	'my-research' => 'AkSearch\Controller\MyResearchController',
+        	'myresearch' => 'AkSearch\Controller\MyResearchController',
             'oai' => 'VuFind\Controller\OaiController',
             'pazpar2' => 'VuFind\Controller\Pazpar2Controller',
             'primo' => 'VuFind\Controller\PrimoController',
@@ -182,6 +182,7 @@ $config = [
     ],
     'controller_plugins' => [
         'factories' => [
+        	'aksearch' => 'AkSearch\Controller\Plugin\Factory::getAkSearch',
             'holds' => 'VuFind\Controller\Plugin\Factory::getHolds',
             //'newitems' => 'VuFind\Controller\Plugin\Factory::getNewItems',
         	'newitems' => 'AkSearch\Controller\Plugin\Factory::getNewItems',
@@ -838,7 +839,7 @@ $dynamicRoutes = [
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
 	'Akfilter/Home', 'Akfilter/Results', 'Akfilter/Advanced',
-	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 
+	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 'AkSites/Captcha', 
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',

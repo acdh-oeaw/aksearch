@@ -185,6 +185,31 @@ class AkSitesController extends AbstractBase {
 		return $view;
 	}
 	
+	
+	/**
+	 * Generates the captcha image for the "Register as new user" form.
+	 * It executes at URL http[s]://[vufind_url]/AkSites/Captcha
+	 */
+	public function captchaAction() {	
+		require_once 'vendor/securimage/securimage.php';
+		$securImage = new \Securimage();
+		
+		// Setting width and calculating optimal height
+		$securImage->image_width = 200;
+		$securImage->image_height = (int)($securImage->image_width * 0.35);
+		$securImage->perturbation = .5;
+		$securImage->num_lines = 2;
+		$securImage->show();
+	}
+	
+	
+	public function createsuccessAction() {
+		return $this->createViewModel();
+	}
+	
+	
+
+	
 }
 
 ?>

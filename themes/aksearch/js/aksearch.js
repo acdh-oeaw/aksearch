@@ -86,15 +86,18 @@ setupAutocomplete();
 
 
 $(document).ready(function() {
-		
-	$('.akFacetsInfo').click(function(e) {
+	
+	
+	//$('.akFacetsInfo').click(function(e) {
+	$('body').on('click','.akFacetsInfo', function(e) {
 		// Stop default action (toggling of facet group)
 		e.preventDefault();
 		e.stopPropagation();
 		
 		// Show info tooltip
-		console.log('Click facets info');
+		//console.log('Click facets info');
 	});
+	
 	
 	// Set focus to search field and re-add it's value (for putting cursor to the end of the text)
 	var tempSearchValue = $('#searchForm_lookfor[name]').focus().val();
@@ -105,9 +108,11 @@ $(document).ready(function() {
 	var isAkInfoTooltipOpen = false;
 	
 	// Open AK info tooltip
-	$('.akInfoTooltipOpener').click (function(event) {
+	//$('.akInfoTooltipOpener').click (function(event) {
+	$('body').on('click', '.akInfoTooltipOpener', function(event) {		
+				
 		if (!isAkInfoTooltipOpen) {
-
+						
 			isAkInfoTooltipOpen = true;
 			var akTooltipTitle = $(this).data('aktooltiptitle');
 			var akTooltipText = $(this).data('aktooltiptext');
@@ -135,7 +140,7 @@ $(document).ready(function() {
 	});
 	
 	// Remove AK info tooltip on click on "X":
-	$("body").on("click", ".akInfoTooltipClose", function(event) {
+	$('body').on('click', '.akInfoTooltipClose', function(event) {
 		if (isAkInfoTooltipOpen) {
 			$(this).closest('.akInfoTooltip').remove();
 			isAkInfoTooltipOpen = false;
@@ -301,7 +306,7 @@ $(document).ready(function() {
 
 	
 	// Remove entity facts tooltip on click on "X":
-	$("body").on("click", ".akEntityFactsTooltipClose", function(event) {
+	$('body').on('click', '.akEntityFactsTooltipClose', function(event) {
 		if (isAkEntityFactsTooltipOpen) {
 			$(this).closest('.akEntityFactsTooltip').remove();
 			isAkEntityFactsTooltipOpen = false;
@@ -318,6 +323,27 @@ $(document).ready(function() {
 		}
 	});
 	
+	
+	// bootstrap-datepicker for "birthday" field when creating new account:
+	// Code available at https://bootstrap-datepicker.readthedocs.io
+	$('body').on('focus', '#birthdayDatePicker', function() {
+		$(this).datepicker({
+			format: 'dd.mm.yyyy',
+			clearBtn: true,
+			language: 'de',
+			autoclose: true,
+			startDate: '01.01.1900'
+		});
+	});
+	/*
+	$('#birthdayDatePicker').datepicker({
+		format: 'dd.mm.yyyy',
+		clearBtn: true,
+		language: 'de',
+		autoclose: true,
+		startDate: '01.01.1900'
+	});
+	*/
 	
 	// bootstrap-datepicker for "new items" search (Neuerwerbungen):
 	// Code available at https://bootstrap-datepicker.readthedocs.io
@@ -507,5 +533,16 @@ jQuery.fn.putCursorAtEnd = function() {
 	    this.scrollTop = 999999;
 
 	  });
+};
 
-	};
+
+$(function() {
+    $("#almaUserRegistration form input").keypress(function (e) {
+        if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
+            $(".default").click();
+            return false;
+        } else {
+            return true;
+        }
+    });
+});
