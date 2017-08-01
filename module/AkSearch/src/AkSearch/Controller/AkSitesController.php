@@ -64,6 +64,40 @@ class AkSitesController extends AbstractBase {
 	}
 	
 	
+	
+	public function loanHistoryAction() {
+		// This shows the login form if the user is not logged in when in route /AkSites/LoanHistory:
+		if (!$this->getAuthManager()->isLoggedIn()) {
+			return $this->forceLogin();
+		}
+		
+		// If not submitted, are we logged in?
+		if (!$this->getAuthManager()->supportsLoanHistory()) {
+			$this->flashMessenger()->addMessage('loanHistoryDisabled', 'error');
+			return $this->redirect()->toRoute('home');
+		}
+		
+		// Stop now if the user does not have valid catalog credentials available:
+		if (!is_array($patron = $this->catalogLogin())) {
+			return $patron;
+		}
+		
+		// User must be logged in at this point, so we can assume this is non-false:
+		$user = $this->getUser();
+		
+		// Begin building view object
+		$view = $this->createViewModel();
+		
+		// Identification
+		$user->updateHash();
+		$view->hash = $user->verify_hash;
+		$view->setTemplate('aksites/loanhistory');
+		
+		
+		
+		return $view;
+	}
+	
 	/**
 	 * Call action to go to "change user data" page.
 	 *
@@ -77,7 +111,7 @@ class AkSitesController extends AbstractBase {
 		
 		// If not submitted, are we logged in?
 		if (!$this->getAuthManager()->supportsUserDataChange()) {
-			$this->flashMessenger()->addMessage('recovery_new_disabled', 'error');
+			$this->flashMessenger()->addMessage('change_userdata_disabled', 'error');
 			return $this->redirect()->toRoute('home');
 		}
 		

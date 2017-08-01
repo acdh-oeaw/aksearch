@@ -75,6 +75,26 @@ class Manager extends DefaultAuthManager {
     
     
     /**
+     * Is displaying loan history allowed
+     * 
+     * @param string $authMethod	E. g. ILS. This is optional. If set, checks the given auth method rather than the one in config file
+     * @return bool
+     */
+    public function supportsLoanHistory($authMethod = null) {
+    	$methodExists = method_exists($this->getAuth($authMethod),'supportsLoanHistory');
+    	
+    	if ($methodExists) {
+    		if ($this->getAuth($authMethod)->supportsLoanHistory()) {
+    			$loanHistory = isset($this->akConfig->User->loan_history) && $this->akConfig->User->loan_history;
+    			return $loanHistory;
+    		}
+    	}
+    	
+    	return false;
+    }
+    
+    
+    /**
      * Update user data from the request.
      *
      * @param \Zend\Http\PhpEnvironment\Request $request Request object containing user data change details.

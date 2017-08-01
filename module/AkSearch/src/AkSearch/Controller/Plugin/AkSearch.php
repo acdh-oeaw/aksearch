@@ -114,7 +114,7 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 	 * 
 	 * @return \VuFind\Db\Row\User | null
 	 */
-	public function createOrUpdateUserInDb($firstName, $lastName, $eMail, $password = null, $isOtp = true, $primaryId = null, $barcode = null, $createIfNotExist = true) {
+	public function createOrUpdateUserInDb($firstName, $lastName, $eMail, $password = null, $isOtp = true, $primaryId = null, $barcode = null, $loanHistory = false, $createIfNotExist = true) {
 		
 		// Get user from database table if he exists there. If not, this creates and gets a new user object.
 		$user = ($primaryId != null) ? $this->userTable->getByCatalogId($primaryId, $barcode, $createIfNotExist) : null;
@@ -127,6 +127,7 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 			$user->lastname = $lastName;
 			$user->email = $eMail;
 			$user->cat_username = $barcode;
+			$user->save_loans = (($loanHistory) ? 1 : 0);
 			
 			// Do the password hashing if enabled
 			if ($password != null) {
@@ -137,7 +138,7 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 				} else {
 					$user->password = $password;
 				}
-				$user->is_otp = ($isOtp) ? 1 : 0;
+				$user->is_otp = (($isOtp) ? 1 : 0);
 			}
 			
 			$user->save(); // Update user record

@@ -190,6 +190,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		$password = $this->params()->fromPost('password');
     		$passwordConfirm = $this->params()->fromPost('passwordConfirm');
     		$dataProcessing = ($this->params()->fromPost('dataProcessing')) ? true : false;
+    		$loanHistory = ($this->params()->fromPost('loanHistory')) ? true : false;
     		$houseAndUsageRules = ($this->params()->fromPost('houseAndUsageRules')) ? true : false;
     		$dateToday = date("Y-m-d");
     		$dateExpiry = null;
@@ -344,7 +345,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     				// Create user in VuFind 'user' database
     				$isOtp = false;
     				$createIfNotExist = true;
-    				$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $email, $password, $isOtp, $primaryId, $barcode, $createIfNotExist);
+    				$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $email, $password, $isOtp, $primaryId, $barcode, $loanHistory, $createIfNotExist);
     				if ($user != null) {
     					// SUCCESS
     					$userCreateError = false;
@@ -355,7 +356,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     					$replyTo = $configAlma->Users->emailReplyTo;
     					$toLibrary = $configAlma->Users->emailLibrary;
     					$sentEmailToPatron = $this->sendEmailToNewPatron($gender, $job, $jobsSpecialEmailText, $firstName, $lastName, $barcode, $dateExpiryTS, $displayDateFormat, $email, $from, $replyTo);
-    					$sentEmailToLibrary = $this->sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $houseAndUsageRules, $from, $replyTo, $toLibrary);
+    					$sentEmailToLibrary = $this->sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $from, $replyTo, $toLibrary);
     					
     					if ($sentEmailToPatron && $sentEmailToLibrary) {
     						$view->setTemplate('aksites/createsuccess');
@@ -459,7 +460,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
      * 
      * @return boolean true if eMail was sent successfully, false otherwise
      */
-    private function sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $houseAndUsageRules, $from, $replyTo, $toLibrary) {
+    private function sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $from, $replyTo, $toLibrary) {
     	$success = false;
     	$dateExpiryString = date($displayDateFormat, $dateExpiryTS);
     	$tokens = [
@@ -474,6 +475,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     			'_barcode_' => $barcode,
     			'_dateExpiry_' => $dateExpiryString,
     			'_acceptedDataProcessing_' => (($dataProcessing == true) ? $this->translate('yes') : $this->translate('no')),
+    			'_acceptedLoanHistory_' => (($loanHistory == true) ? $this->translate('yes') : $this->translate('no')),
     			'_acceptedHouseAndUsageRules_' => (($houseAndUsageRules == true) ? $this->translate('yes') : $this->translate('no')),
     	];
     	$emailText = $this->translate('eMailToLibraryText', $tokens);

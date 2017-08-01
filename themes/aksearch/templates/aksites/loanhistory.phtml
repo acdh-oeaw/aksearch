@@ -1,0 +1,34 @@
+<?
+// Set up page title:
+$this->headTitle($this->translate('loanHistory'));
+
+// Set up breadcrumbs:
+$this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li>' . '<li class="active">' . $this->transEsc('loanHistory') . '</li>';
+?>
+<? if ($this->auth()->isLoggedIn()): ?>
+  <div class="row">
+    <div class="<?=$this->layoutClass('mainbody')?>">
+<? endif; ?>
+
+<h2><?=$this->transEsc('loanHistory') ?></h2>
+<?=$this->flashmessages() ?>
+
+<? if (!$this->auth()->getManager()->supportsLoanHistory($this->auth_method)): ?>
+  <div class="error"><?=$this->transEsc('loanHistoryDisabled') ?></div>
+<? elseif (!isset($this->hash)): ?>
+  <div class="error"><?=$this->transEsc('recovery_user_not_found') ?></div>
+
+
+<? else: ?>	
+
+<h3>Hier entlehnhistorie anzeigen</h3>
+     
+<? endif; ?>
+
+<? if ($this->auth()->isLoggedIn()): ?>
+    </div>
+    <div class="<?=$this->layoutClass('sidebar')?>">
+      <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'loanhistory'))?>
+    </div>
+  </div>
+<? endif; ?>

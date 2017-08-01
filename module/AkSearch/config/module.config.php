@@ -839,7 +839,7 @@ $dynamicRoutes = [
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
 	'Akfilter/Home', 'Akfilter/Results', 'Akfilter/Advanced',
-	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 'AkSites/Captcha', 
+	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 'AkSites/Captcha', 'AkSites/LoanHistory',
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',

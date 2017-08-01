@@ -28,6 +28,7 @@ $jobRequired = in_array('job', $requiredFields);
 $passwordRequired = in_array('password', $requiredFields);
 $passwordConfirmRequired = in_array('passwordConfirm', $requiredFields);
 $dataProcessingRequired = in_array('dataProcessing', $requiredFields);
+$loanHistoryRequired = in_array('loanHistory', $requiredFields);
 $houseAndUsageRulesRequired = in_array('houseAndUsageRules', $requiredFields);
 $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 ?>
@@ -134,6 +135,20 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 			<div class="help-block with-errors"></div>
 		</td>
 	</tr>
+	
+	
+	<tr class="form-group">
+		<td><?=$this->transEsc('loanHistory').(($loanHistoryRequired) ? ' *' : '')?></td>
+		<td>
+			<input type="checkbox" name="loanHistory" id="loanHistory" <?=(($loanHistoryRequired) ? 'required aria-required="true"' : '')?>/>
+		</td>
+		<td>
+			<?=$this->translate('createAccountLoanHistoryText')?>
+			<div class="help-block with-errors"></div>
+		</td>
+	</tr>
+	
+	
 	<tr class="form-group">
 		<td><?=$this->transEsc('houseAndUsageRules').(($houseAndUsageRulesRequired) ? ' *' : '')?></td>
 		<td>

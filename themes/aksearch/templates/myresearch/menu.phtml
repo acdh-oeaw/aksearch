@@ -19,6 +19,16 @@
         <span class="pull-right flip"><i class="fa fa-fw fa-flag"></i></span>
       </a>
     <? endif; ?>
+
+    <!-- Added by AK Bibliothek Wien - Begin -->
+    <? if ($this->auth()->getManager()->supportsLoanHistory()): ?>
+    <a href="<?=$this->url('aksites-loanhistory') ?>" class="list-group-item<?=$this->active == 'loanhistory' ? ' active' : ''?>">
+      <?=$this->transEsc('loanHistory') ?>
+      <span class="pull-right flip"><i class="fa fa-fw fa-history"></i></span>
+    </a>
+    <? endif; ?>
+    <!-- Added by AK Bibliothek Wien - End -->
+
     <? if ($this->ils()->checkFunction('StorageRetrievalRequests')): ?>
       <a href="<?=$this->url('myresearch-storageretrievalrequests')?>" class="list-group-item<?=$this->active == 'storageRetrievalRequests' ? ' active' : ''?>">
         <?=$this->transEsc('Storage Retrieval Requests')?>
