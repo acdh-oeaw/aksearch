@@ -2,8 +2,12 @@
 
 namespace AkSearch\Controller;
 
-class SearchController extends \VuFind\Controller\SearchController
-{
+use ZfcRbac\Service\AuthorizationServiceAwareInterface;
+use ZfcRbac\Service\AuthorizationServiceAwareTrait;
+
+class SearchController extends \VuFind\Controller\SearchController implements AuthorizationServiceAwareInterface {
+	
+	use AuthorizationServiceAwareTrait;
     
 	protected $akConfig;
 
@@ -16,6 +20,9 @@ class SearchController extends \VuFind\Controller\SearchController
      * @return array               Sorted facets, with selected values flagged.
      */
     protected function processAdvancedFacets($facetList, $searchObject = false) {
+    	
+    	// Get authorization service for checking permissions in permissions.ini
+    	$auth = $this->getAuthorizationService();
     	
         // Process the facets
         $hierarchicalFacets = $this->getHierarchicalFacets();
@@ -56,7 +63,13 @@ class SearchController extends \VuFind\Controller\SearchController
         	$facetList[$key]['label'] = $key;
         	foreach ($value as $value1) {
         		$arrList = preg_split("/\s*,\s*/", $value1);
-        		$facetList[$key]['list'][] = array('value' => $arrList[1], 'displayText' => $arrList[2], 'operator' => 'OR', 'akCustomAdvancedFacetField' => $arrList[0]);
+        		
+        		// Check permissions and add filter only if $permissionIsGranted is true
+        		$permission = (isset($arrList[3]) && !empty(trim($arrList[3]))) ? trim($arrList[3]) : null;
+        		$permissionIsGranted = ($permission != null) ? $auth->isGranted($permission) : true; // If no permission is set, the default is true
+        		if ($permissionIsGranted) {
+        			$facetList[$key]['list'][] = array('value' => $arrList[1], 'displayText' => $arrList[2], 'operator' => 'OR', 'akCustomAdvancedFacetField' => $arrList[0]);
+        		}
         	}
         }
 
