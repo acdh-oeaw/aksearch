@@ -1329,10 +1329,11 @@ class SolrMab extends SolrDefault  {
 			$vol[$key] = $rowToSort['articleVolume'];
 			$iss[$key] = $rowToSort['articleIssue'];
 			$pFrom[$key] = str_replace('[', '', $rowToSort['articlePageFrom']);
-			$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
+			//$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
 		}
 	
-		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
+		//array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
+		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $articleDetails);
 	
 		return $articleDetails;
 	}
