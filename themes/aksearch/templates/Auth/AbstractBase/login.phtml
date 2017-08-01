@@ -1,0 +1,30 @@
+<? $account = $this->auth()->getManager(); ?>
+<? $sessionInitiator = $account->getSessionInitiator($this->serverUrl($this->url('myresearch-home'))); ?>
+<? if (!$sessionInitiator): // display default login form if no login URL provided ?>
+  <form method="post" class="form-horizontal" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm">
+    <?=$this->auth()->getLoginFields()?>
+    <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
+    <div class="form-group">
+      <div class="col-sm-offset-3 col-sm-4">
+        <? if ($account->supportsCreation()): ?>
+          <a class="btn btn-link createAccountLink" href="<?=$this->url('myresearch-account') ?>?auth_method=<?=$account->getAuthMethod()?>"><?=$this->transEsc('Create New Account')?></a>
+        <? endif; ?>
+        <input class="btn btn-primary" type="submit" name="processLogin" value="<?=$this->transEsc('Login')?>">
+        <? if ($account->supportsRecovery()): ?>
+          <br/>
+          <a class="btn btn-link" href="<?=$this->url('myresearch-recover') ?>?auth_method=<?=$account->getAuthMethod()?>"><?=$this->transEsc('Forgot Password')?></a>
+        <? endif; ?>
+      </div>
+      <?php
+      // Add registration link if config "login_form_link[...]" is set in AKsearch.ini. See also loginAction in MyResearchController.
+	  if (isset($this->addLink['text']) && (isset($this->addLink['url']))) {
+		$target = (isset($this->addLink['target'])) ? isset($this->addLink['target']) : '_blank';
+		echo '<div class="col-sm-4"><a class="btn btn-primary" href="'.$this->addLink['url'].'" target="'.$target.'" style="float: right;">'.$this->transEsc($this->addLink['text']).'</a></div>';
+		echo '<div class="col-sm-1"></div>';
+	  }
+	  ?>
+    </div>
+  </form>
+<? else: ?>
+  <a href="<?=$this->escapeHtmlAttr($sessionInitiator)?>"><?=$this->transEsc("Institutional Login")?></a>
+<? endif; ?>

@@ -265,6 +265,14 @@ a.list-group-item:hover, a.list-group-item:focus {
 	background-color: #ececec; /* Better visibility of hover colour */
 }
 
+
+@media ( min-width : 768px) {	
+	#loginForm .form-control {
+   		max-width: none;
+	}
+
+}
+
 /* ################################################################################################################################## */
 /* ###################################### OVERRIDING ORIGINAL CSS WITH SOME MODIFICATIONS - END ##################################### */
 /* ################################################################################################################################## */

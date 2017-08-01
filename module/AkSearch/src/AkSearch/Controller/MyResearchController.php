@@ -14,6 +14,44 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 	use \VuFind\I18n\Translator\TranslatorAwareTrait;
 	
 	
+	/**
+	 * Login Action
+	 *
+	 * Overriding the default function. This is for adding a link to an external registraion form
+	 * if config "login_form_link[...]" is set in AKsearch.ini
+	 *
+	 * @return mixed
+	 */
+	public function loginAction() {
+		$configAkSearch = $this->getConfig('AKsearch');
+		
+		// If this authentication method doesn't use a VuFind-generated login
+		// form, force it through:
+		if ($this->getSessionInitiator()) {
+			// Don't get stuck in an infinite loop -- if processLogin is already
+			// set, it probably means Home action is forwarding back here to
+			// report an error!
+			//
+			// Also don't attempt to process a login that hasn't happened yet;
+			// if we've just been forced here from another page, we need the user
+			// to click the session initiator link before anything can happen.
+			//
+			// Finally, we don't want to auto-forward if we're in a lightbox, since
+			// it may cause weird behavior -- better to display an error there!
+			if (!$this->params()->fromPost('processLogin', false) && !$this->params()->fromPost('forcingLogin', false) && !$this->inLightbox()) {
+				$this->getRequest()->getPost()->set('processLogin', true);
+				return $this->forwardTo('MyResearch', 'Home');
+			}
+		}
+		
+		// Make request available to view for form updating:
+		$view = $this->createViewModel();
+		$view->request = $this->getRequest()->getPost();
+		$view->addLink = (isset($configAkSearch->User->login_form_link)) ? $configAkSearch->User->login_form_link->toArray() : null; // Check if we should add a link to an external registration form
+		return $view;
+	}
+	
+	
     /**
      * Prepare and direct the home page where it needs to go.
      * 
