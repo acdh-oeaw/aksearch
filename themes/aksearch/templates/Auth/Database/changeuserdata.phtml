@@ -1,0 +1,57 @@
+<?php 
+	//$address1 = (isset($this->profile['address1'])) ? $this->profile['address1'] : '';
+	//$address2 = (isset($this->profile['address2'])) ? $this->profile['address2'] : '';
+	//$address3 = (isset($this->profile['address3'])) ? $this->profile['address3'] : '';
+	//$address4 = (isset($this->profile['address4'])) ? $this->profile['address4'] : '';
+	//$zip = (isset($this->profile['zip'])) ? $this->profile['zip'] : '';
+	$email = (isset($this->profile['email'])) ? $this->profile['email'] : '';
+	$phone = (isset($this->profile['phone'])) ? $this->profile['phone'] : '';	
+	$phone2 = '';
+	if (isset($this->profile['phone2'])) {
+		$phone2 = $this->profile['phone2'];
+	} else if (isset($this->profile['phonesAdditional'])) {
+		$phone2 = $this->profile['phonesAdditional'][0];
+	}
+?>
+<div>
+    <table class="table table-striped">
+	    <tbody>
+	    	<?php
+	    	/*
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('address1') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$address1 ?>" id="cudAddress1" name="cudAddress1" class="form-control" required aria-required="true"/><div class="help-block with-errors"></div></td>
+	    	</tr>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('address2') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$address2 ?>" id="cudAddress2" name="cudAddress2" class="form-control" /></td>
+	    	</tr>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('address3') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$address3 ?>" id="cudAddress3" name="cudAddress3" class="form-control" /></td>
+	    	</tr>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('address4') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$address4 ?>" id="cudAddress4" name="cudAddress4" class="form-control" /></td>
+	    	</tr>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('zip') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$zip ?>" id="cudZip" name="cudZip" class="form-control" /></td>
+	    	</tr>
+	    	*/
+	    	?>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('email') ?></th>
+	    		<td class="form-group"><input type="email" value="<?=$email?>" id="cudEmail" name="cudEmail" class="form-control" required aria-required="true" /><div class="help-block with-errors"></div></td>
+	    	</tr>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('phone') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$phone ?>" id="cudPhone" name="cudPhone" class="form-control" /></td>
+	    	</tr>
+	    	<tr>
+	    		<th style="vertical-align: middle;"><?=$this->transEsc('phone2') ?></th>
+	    		<td class="form-group"><input type="text" value="<?=$phone2 ?>" id="cudPhone2" name="cudPhone2" class="form-control" /></td>
+	    	</tr>
+	    </tbody>
+    </table>
+</div>

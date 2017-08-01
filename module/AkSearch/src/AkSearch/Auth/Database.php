@@ -39,6 +39,13 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 	 * @var \Zend\Config\Config
 	 */
 	protected $almaConfig = null;
+	
+	/**
+	 * ILS connection
+	 * 
+	 * @var \VuFind\ILS\Connection
+	 */
+	protected $catalog = null;
 		
 
     /**
@@ -334,6 +341,58 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	}
     	
     	return array('success' => $isValid, 'status' => (($isValid) ? 'authentication_otp_success' : 'authentication_otp_error'));
+    }
+    
+    
+    
+    
+    public function updateUserData($request) {    	
+    	// Ensure that all expected parameters are populated to avoid notices in the code below.
+    	$params = [];
+    	foreach (['username', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
+    		$params[$param] = $request->getPost()->get($param, '');
+    	}
+    	
+    	/*// Get ILS via service locator
+    	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
+    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
+    	$catalog = $parentLocator->get('VuFind\ILSConnection');
+    	*/
+    	$result = $this->catalog->changeUserData([
+    			'username'	=> $params['username'],
+    			'email'		=> $params['cudEmail'],
+    			'phone'		=> $params['cudPhone'],
+    			'phone2'	=> $params['cudPhone2']
+    	]);
+    }
+    
+    
+    /**
+     * Does this authentication method support showing the loan history?
+     * 
+     * @return bool
+     */
+    public function supportsLoanHistory() {
+    	return true;
+    }
+    
+    
+    /**
+     * Does this authentication method support user data changing?
+     * 
+     * IMPORTANT: As user data are normally stored in ILS, you have also to activate an ILS that supports the
+     * change of user data. User data should be updated in the VuFind Database AND in the ILS (e. g. the eMail-Address).
+     *
+     * @return bool
+     */
+    public function supportsUserDataChange() {
+    	// Get ILS via service locator
+    	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
+    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
+    	$this->catalog = $parentLocator->get('VuFind\ILSConnection');
+
+    	$supportsUserDataChange = false !== $this->catalog->checkCapability('changeUserData');
+    	return $supportsUserDataChange;
     }
 
 }

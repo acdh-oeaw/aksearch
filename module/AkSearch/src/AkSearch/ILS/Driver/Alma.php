@@ -525,6 +525,20 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
+	
+	public function changeUserData($details) {
+		// TODO: Implement this method!
+		
+		/*
+		echo '<strong>Alma -> changeUserData()</strong><br />';
+		echo '<pre>';
+		print_r($details);
+		echo '</pre>';
+		*/
+	}
+	
+	
+	
 	/**
 	 * Change password
 	 * If a function with the name "changePassword" exists and option "change_password" in config.ini is set to "true",
