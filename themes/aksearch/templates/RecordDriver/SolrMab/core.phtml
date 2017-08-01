@@ -473,7 +473,7 @@
 	    			$keyword = trim($keyword);
 	    			echo '<a class="akKeywordChainLink" title="'.$this->escapeHtmlAttr($keyword).'" href="'.$this->record($this->driver)->getLink('subject', $keyword).'" rel="nofollow">'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $keyword))).'</a>';
 	    			if ($key != $lastElement) {
-	    				echo ' <i class="fa fa-arrow-left akKeywordChainArrow" aria-hidden="true"></i> ';
+	    				echo ' <i class="fa fa-minus akKeywordChainArrow" aria-hidden="true"></i> ';
 	    			}
 	    		}
 	    	}
