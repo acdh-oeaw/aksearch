@@ -73,14 +73,14 @@
 		
 		echo "<table class = 'table' cellpadding='2' cellspacing='0' border='0'>";
 			echo "<thead>";
-				echo "<th width='100%'>".$tableHeadingCol1."</th>";
+				echo "<th width='70%'>".$tableHeadingCol1."</th>";
 				if ($isParentOfArticles) {
-					if ($hasPublishDate) { echo "<th>".$tableHeadingCol1a."</th>"; }
-					if ($hasVolumeNo) { echo "<th>".$tableHeadingCol1b."</th>"; }
-					if ($hasIssueNo) { echo "<th>".$tableHeadingCol1c."</th>"; }
+					if ($hasPublishDate) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1a."</th>"; }
+					if ($hasVolumeNo) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1b."</th>"; }
+					if ($hasIssueNo) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1c."</th>"; }
 				}
-				echo "<th width='100'>".$tableHeadingCol2."</th>";
-				echo "<th width='145'>".$tableHeadingCol3."</th>";
+				echo "<th>".$tableHeadingCol2."</th>";
+				echo "<th>".$tableHeadingCol3."</th>";
 			echo "</thead>";
 			echo "<tbody>";
 			foreach ($childs as $childID => $childRecord) {
