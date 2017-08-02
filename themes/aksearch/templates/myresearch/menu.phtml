@@ -1,11 +1,18 @@
 <h4><?=$this->transEsc('Your Account')?></h4>
 <div class="list-group">
+  <?php 
+  /*
+  // Removed by AK Bibliothek Wien as this is a double entry in the user account menu (it comes again further down)
+  
   <? if ($this->userlist()->getMode() !== 'disabled'): ?>
     <a href="<?=$this->url('myresearch-favorites')?>" class="list-group-item<?=$this->active == 'favorites' ? ' active' : ''?>">
       <?=$this->transEsc('Favorites')?>
       <span class="pull-right flip"><i class="fa fa-fw fa-star"></i></span>
     </a>
   <? endif; ?>
+  */
+  ?>
+  
   <? if ('ils-none' !== $this->ils()->getOfflineMode()): ?>
     <? if ($this->ils()->checkCapability('getMyTransactions')): ?>
       <a href="<?=$this->url('myresearch-checkedout')?>" class="list-group-item<?=$this->active == 'checkedout' ? ' active' : ''?>">
