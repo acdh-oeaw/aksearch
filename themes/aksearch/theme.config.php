@@ -38,6 +38,7 @@ return array(
             'layoutclass' => 'VuFind\View\Helper\Bootstrap3\Factory::getLayoutClass',
         	'piwikoptout' => 'AkSearch\View\Helper\Root\Factory::getPiwikOptOut',
         	'searchbox' => 'AkSearch\View\Helper\Root\Factory::getSearchBox',
+        	'aksearch' => 'AkSearch\View\Helper\Root\Factory::getAkSearch',
         ),
         'invokables' => array(
             'highlight' => 'VuFind\View\Helper\Bootstrap3\Highlight',

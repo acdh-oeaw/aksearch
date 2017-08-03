@@ -1,6 +1,6 @@
 <?php
 /**
- * Extended factory for root view helpers for Akfilter search.
+ * Extended factory for root view helpers for AkSearch.
  *
  * PHP version 5
  *
@@ -31,6 +31,18 @@ use Zend\ServiceManager\ServiceManager;
 
 class Factory extends \VuFind\View\Helper\Root\Factory {
 
+	
+	/**
+	 * Construct the general AkSearch view helper.
+	 *
+	 * @param ServiceManager $sm
+	 * @return \AkSearch\View\Helper\Root\AkSearch
+	 */
+	public static function getAkSearch(ServiceManager $sm) {
+		$configLoader = $sm->getServiceLocator()->get('VuFind\Config'); // This gets \Zend\Config\Config
+		return new \AkSearch\View\Helper\Root\AkSearch($configLoader);
+	}
+	
 	
     /**
      * Construct the Auth helper.
@@ -64,7 +76,6 @@ class Factory extends \VuFind\View\Helper\Root\Factory {
     	$config = $sm->getServiceLocator()->get('VuFind\Config');
     	$piwikUrl = $config->get('config')->Piwik->url; // Piwik URL from config.ini
     	$piwikOptOut = $config->get('AKsearch')->DataPrivacyStatement->piwikOptOut;
-
     	return new \AkSearch\View\Helper\Root\PiwikOptOut($piwikUrl, $piwikOptOut);
     }
     

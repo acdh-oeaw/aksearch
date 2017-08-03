@@ -1,26 +1,53 @@
 <h4><?=$this->transEsc('Your Account')?></h4>
+
+<?php 
+// Get the config for disabled user menus in AKsearch.ini
+$disableUserMenu = (isset($this->akSearch()->getConfig('AKsearch')->User->disable_user_menu) && !empty($this->akSearch()->getConfig('AKsearch')->User->disable_user_menu)) ? $this->akSearch()->getConfig('AKsearch')->User->disable_user_menu->toArray() : null;
+
+// Initialize variables. Default is "true"
+$showFavorites= true;
+$showTransactions = true;
+$showHolds = true;
+$showLoanHistory = true;
+$showStorageRetrievalRequests = true;
+$showILLRequests = true;
+$showFines = true;
+$showProfile = true;
+$showLibraryCards = true;
+$showHistory = true;
+$showNewPassword = true;
+$showChangeUserdata = true;
+$showUserLists = true;
+
+// Set the variables according to the settings in AKsearch.ini
+if ($disableUserMenu != null) {
+	$possibleValues = ['Favorites', 'Transactions', 'Holds', 'LoanHistory', 'StorageRetrievalRequests', 'ILLRequests', 
+  					   'Fines', 'Profile', 'LibraryCards', 'History', 'NewPassword', 'ChangeUserdata', 'Favorites', 'UserLists'];
+	$menusToHide = array_intersect($possibleValues, $disableUserMenu); // Get all values that are set in AKsearch.ini
+	foreach ($menusToHide as $menuToHide) {
+		${'show'.$menuToHide} = false; // Re-set the variables that were initialized above
+	}
+}
+?>
+
+
 <div class="list-group">
-  <?php 
-  /*
-  // Removed by AK Bibliothek Wien as this is a double entry in the user account menu (it comes again further down)
   
-  <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+  <? if ($this->userlist()->getMode() !== 'disabled' && $showFavorites) : ?>
     <a href="<?=$this->url('myresearch-favorites')?>" class="list-group-item<?=$this->active == 'favorites' ? ' active' : ''?>">
       <?=$this->transEsc('Favorites')?>
       <span class="pull-right flip"><i class="fa fa-fw fa-star"></i></span>
     </a>
   <? endif; ?>
-  */
-  ?>
   
-  <? if ('ils-none' !== $this->ils()->getOfflineMode()): ?>
+  <? if ('ils-none' !== $this->ils()->getOfflineMode() && $showTransactions): ?>
     <? if ($this->ils()->checkCapability('getMyTransactions')): ?>
       <a href="<?=$this->url('myresearch-checkedout')?>" class="list-group-item<?=$this->active == 'checkedout' ? ' active' : ''?>">
         <?=$this->transEsc('Checked Out Items')?>
         <span class="pull-right flip"><i class="fa fa-fw fa-book"></i></span>
       </a>
     <? endif; ?>
-    <? if ($this->ils()->checkCapability('getMyHolds')): ?>
+    <? if ($this->ils()->checkCapability('getMyHolds') && $showHolds): ?>
       <a href="<?=$this->url('myresearch-holds')?>" class="list-group-item<?=$this->active == 'holds' ? ' active' : ''?>">
         <?=$this->transEsc('Holds and Recalls')?>
         <span class="pull-right flip"><i class="fa fa-fw fa-flag"></i></span>
@@ -28,7 +55,7 @@
     <? endif; ?>
 
     <!-- Added by AK Bibliothek Wien - Begin -->
-    <? if ($this->auth()->getManager()->supportsLoanHistory()): ?>
+    <? if ($this->auth()->getManager()->supportsLoanHistory() && $showLoanHistory): ?>
     <a href="<?=$this->url('aksites-loanhistory') ?>" class="list-group-item<?=$this->active == 'loanhistory' ? ' active' : ''?>">
       <?=$this->transEsc('loanHistory') ?>
       <span class="pull-right flip"><i class="fa fa-fw fa-history"></i></span>
@@ -36,41 +63,44 @@
     <? endif; ?>
     <!-- Added by AK Bibliothek Wien - End -->
 
-    <? if ($this->ils()->checkFunction('StorageRetrievalRequests')): ?>
+    <? if ($this->ils()->checkFunction('StorageRetrievalRequests') && $showStorageRetrievalRequests): ?>
       <a href="<?=$this->url('myresearch-storageretrievalrequests')?>" class="list-group-item<?=$this->active == 'storageRetrievalRequests' ? ' active' : ''?>">
         <?=$this->transEsc('Storage Retrieval Requests')?>
         <span class="pull-right flip"><i class="fa fa-fw fa-archive"></i></span>
       </a>
     <? endif; ?>
-    <? if ($this->ils()->checkFunction('ILLRequests')): ?>
+    <? if ($this->ils()->checkFunction('ILLRequests') && $showILLRequests): ?>
     <a href="<?=$this->url('myresearch-illrequests')?>" class="list-group-item<?=$this->active == 'ILLRequests' ? ' active' : ''?>">
       <?=$this->transEsc('Interlibrary Loan Requests')?>
       <span class="pull-right flip"><i class="fa fa-fw fa-exchange"></i></span>
     </a>
     <? endif; ?>
-    <? if ($this->ils()->checkCapability('getMyFines')): ?>
+    <? if ($this->ils()->checkCapability('getMyFines') && $showFines): ?>
       <a href="<?=$this->url('myresearch-fines')?>" class="list-group-item<?=$this->active == 'fines' ? ' active' : ''?>">
         <?=$this->transEsc('Fines')?>
         <span class="pull-right flip"><i class="fa fa-fw fa-usd"></i></span>
       </a>
     <? endif; ?>
-    <? if ($this->ils()->checkCapability('getMyProfile')): ?>
+    <? if ($this->ils()->checkCapability('getMyProfile') && $showProfile): ?>
       <a href="<?=$this->url('myresearch-profile')?>" class="list-group-item<?=$this->active == 'profile' ? ' active' : ''?>">
         <?=$this->transEsc('Profile')?>
         <span class="pull-right flip"><i class="fa fa-fw fa-user"></i></span>
       </a>
     <? endif; ?>
-    <? $user = $this->auth()->isLoggedIn(); if ($user && $user->libraryCardsEnabled()): ?>
+    <? $user = $this->auth()->isLoggedIn();
+       if ($user && $user->libraryCardsEnabled() && $showLibraryCards): ?>
       <a href="<?=$this->url('librarycards-home')?>" class="list-group-item<?=$this->active == 'librarycards' ? ' active' : ''?>">
         <?=$this->transEsc('Library Cards')?>
         <span class="pull-right flip"><i class="fa fa-fw fa-barcode"></i></span>
       </a>
     <? endif; ?>
   <? endif; ?>
+  <? if ($showHistory): ?>
   <a href="<?=$this->url('search-history')?>?require_login" class="list-group-item<?=$this->active == 'history' ? ' active' : ''?>">
     <?=$this->transEsc('history_saved_searches')?>
     <span class="pull-right flip"><i class="fa fa-fw fa-search"></i></span>
   </a>
+  <? endif; ?>
   <? if ($user = $this->auth()->isLoggedIn()): ?>
     <a href="<?=$this->url('myresearch-logout')?>" class="list-group-item">
       <?=$this->transEsc("Log Out")?>
@@ -82,7 +112,7 @@
   <h4><?=$this->transEsc('Preferences')?></h4>
   <div class="list-group">
   
-	<? if ($this->auth()->getManager()->supportsPasswordChange()): ?>
+	<? if ($this->auth()->getManager()->supportsPasswordChange() && $showNewPassword): ?>
     <a href="<?=$this->url('myresearch-changepassword') ?>" class="list-group-item<?=$this->active == 'newpassword' ? ' active' : ''?>">
       <?=$this->transEsc('Change Password') ?>
       <span class="pull-right flip"><i class="fa fa-fw fa-lock"></i></span>
@@ -90,7 +120,7 @@
     <? endif; ?>
     
     <!-- Added by AK Bibliothek Wien - Begin -->
-    <? if ($this->auth()->getManager()->supportsUserDataChange()): ?>
+    <? if ($this->auth()->getManager()->supportsUserDataChange() && $showChangeUserdata): ?>
     <a href="<?=$this->url('aksites-changeuserdata') ?>" class="list-group-item<?=$this->active == 'changeuserdata' ? ' active' : ''?>">
       <?=$this->transEsc('Change UserData') ?>
       <span class="pull-right flip"><i class="fa fa-fw fa-pencil"></i></span>
@@ -100,7 +130,7 @@
     
   </div>
 <? endif; ?>
-<? if ($this->userlist()->getMode() !== 'disabled' && $user = $this->auth()->isLoggedIn()): ?>
+<? if ($showUserLists && $this->userlist()->getMode() !== 'disabled' && $user = $this->auth()->isLoggedIn()): ?>
   <h4><?=$this->transEsc('Your Lists')?></h4>
   <div class="list-group">
     <a href="<?=$this->url('myresearch-favorites')?>" class="list-group-item<?=$this->active == 'favorites' ? ' active' : ''?>">
