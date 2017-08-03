@@ -1976,6 +1976,15 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	/**
+	 * Get AK subjects from subjectAk_txt_mv field
+	 * 
+	 * @return array		Array of all AK subject values or null if none exists
+	 */
+	public function getAkSubjects() {
+		return (isset($this->fields['subjectAk_txt_mv'])) ? $this->fields['subjectAk_txt_mv'] : null;
+	}
+	
+	/**
 	 * Get Formats (electronic, printed, microform ...)
 	 *
 	 * @return array		Array of all formats or null if no format was found

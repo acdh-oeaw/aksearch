@@ -457,6 +457,24 @@
 	    	echo '</tr>';
 	    }
 	    
+	    // AK subjects
+	    $akSubjects = $this->driver->tryMethod('getAkSubjects');
+	    if (isset($akSubjects) && !empty($akSubjects)) {
+	    	echo '<tr>';
+	    	echo '<th>'.$this->transEsc('akSubjects').': </th>';
+	    	echo '<td>';
+	    	$linkArray = [];
+	    	foreach ($akSubjects as $akSubject) {
+	    		$link = '<a title="'.$akSubject.'" href="'.$this->record($this->driver)->getLink('subject', $akSubject).'" rel="nofollow">';
+	    		$link .= trim($this->escapeHtml(str_replace(array('<', '>'), '', $akSubject)));
+	    		$link .= '</a>';
+	    		$linkArray[] = $link;
+	    	}
+	    	echo implode(', ', $linkArray);
+	    	echo '</td>';
+	    	echo '</tr>';
+	    }
+	    
 	    // Keyword chains
 	    $allKeywordChains = $this->driver->tryMethod('getAllKeywordChains');
 	    if (!empty($allKeywordChains)) {
@@ -481,6 +499,8 @@
 	    	echo '</tr>';
 
 	    }
+	    
+	    
 	    ?>
     
     
