@@ -107,10 +107,10 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				$this->setTranslator($translator);
 				
 				// Try to get user operating system
-				$ua = $_SERVER['HTTP_USER_AGENT'];
-				$os = 'win'; // Default
-				$enc = 'UTF-8'; // Default
-				
+				$ua = $_SERVER['HTTP_USER_AGENT']; // Get the user agent
+				$os = 'win'; // Default. Most OS are Windows
+				$enc = 'UTF-8'; // Default. In Excel (Windows) we have to use UTF-16LE
+				$sep = ','; // Default. In Excel (Windows) we have to use semi-colon ;
 				
 				if (stripos($ua, 'linux') !== false || stripos($ua, 'CrOS') !== false || stripos($ua, 'BSD') !== false || stripos($ua, 'SunOS') !== false || stripos($ua, 'UNIX') !== false) {
 					$os = 'linux';
@@ -119,7 +119,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				} else if (stripos($ua, 'windows') !== false) {
 					$os = 'win';
 					$enc = 'UTF-16LE';
-					
+					$sep = ';';
 				}
 				
 				// Translated CSV columns headings
@@ -151,8 +151,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 					$csvBarcode = str_replace('"', '', $csvBarcode);
 					$csvId = str_replace('"', '', $csvId);
 					$csvDuedate = str_replace('"', '', $csvDuedate);
-					
-					/*
+
 					if ($os == 'win') {
 						$csvHeadings['title'] = mb_convert_encoding($this->translate('Title'), 'UTF-16LE', 'UTF-8');
 						$csvHeadings['author'] = mb_convert_encoding($this->translate('Author'), 'UTF-16LE', 'UTF-8');
@@ -169,8 +168,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 						$csvId = mb_convert_encoding($csvId, 'UTF-16LE', 'UTF-8');
 						$csvDuedate = mb_convert_encoding($csvDuedate, 'UTF-16LE', 'UTF-8');
 					}
-					*/
-
+					
 					$csvLoanHistories[$key]['title'] = $csvTitle;
 					$csvLoanHistories[$key]['author'] = $csvAuthor;
 					$csvLoanHistories[$key]['publication_year'] = $csvPublicationYear;
@@ -178,21 +176,21 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 					$csvLoanHistories[$key]['barcode'] = $csvBarcode;
 					$csvLoanHistories[$key]['id'] = $csvId;
 					$csvLoanHistories[$key]['duedate'] = $csvDuedate;
-
 				}
 
 				// Add headings to first place of CSV array
 				array_unshift($csvLoanHistories, $csvHeadings);
 				
 				// Create CSV file and add loan history details
-				$bom = "\xEF\xBB\xBF"; // UTF-8 BOM
+				//$bom = "\xEF\xBB\xBF"; // UTF-8 BOM
 				$filename = 'ak_loan_history_' . date('d.m.Y') . '.csv';
 				header('Content-Disposition: attachment; filename="'.$filename.'"');
 				header('Content-Type: text/csv; charset=UTF-16');
 				$output = fopen('php://output', 'w');
-				fwrite($output, $bom);
+				//fwrite($output, $bom);
+				//fwrite($output, 'sep=,');
 				foreach ($csvLoanHistories as $csvLoanHistory) {
-					fputcsv($output, array_values($csvLoanHistory), ',', '"');
+					fputcsv($output, array_values($csvLoanHistory), $sep, '"');
 				}
 				fclose($output);
 				exit;
