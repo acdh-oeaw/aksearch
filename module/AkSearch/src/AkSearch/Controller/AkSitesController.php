@@ -155,11 +155,11 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 					if ($os == 'win') {
 						$csvTitle = mb_convert_encoding($csvTitle, 'UTF-16LE', 'UTF-8');
 						$csvAuthor = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
-						$csvPublicationYear = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
-						$csvIsbn = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
-						$csvBarcode = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
-						$csvId = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
-						$csvDuedate = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+						$csvPublicationYear = mb_convert_encoding($csvPublicationYear, 'UTF-16LE', 'UTF-8');
+						$csvIsbn = mb_convert_encoding($csvIsbn, 'UTF-16LE', 'UTF-8');
+						$csvBarcode = mb_convert_encoding($csvBarcode, 'UTF-16LE', 'UTF-8');
+						$csvId = mb_convert_encoding($csvId, 'UTF-16LE', 'UTF-8');
+						$csvDuedate = mb_convert_encoding($csvDuedate, 'UTF-16LE', 'UTF-8');
 					}
 
 					
@@ -198,12 +198,12 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				array_unshift($csvLoanHistories, $csvHeadings);
 				
 				// Create CSV file and add loan history details
-				$bom = "\xEF\xBB\xBF"; // UTF-8 BOM
+				//$bom = "\xEF\xBB\xBF"; // UTF-8 BOM
 				$filename = 'ak_loan_history_' . date('d.m.Y') . '.csv';
 				header('Content-Disposition: attachment; filename="'.$filename.'"');
 				header('Content-Type: text/csv; charset=UTF-16');
 				$output = fopen('php://output', 'w');
-				fwrite($output, $bom);
+				//fwrite($output, $bom);
 				foreach ($csvLoanHistories as $csvLoanHistory) {
 					fputcsv($output, array_values($csvLoanHistory), ',', '"');
 				}
