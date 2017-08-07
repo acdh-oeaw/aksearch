@@ -164,6 +164,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 						$csvAuthor = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
 						$csvPublicationYear = mb_convert_encoding($csvPublicationYear, 'UTF-16LE', 'UTF-8');
 						$csvIsbn = mb_convert_encoding($csvIsbn, 'UTF-16LE', 'UTF-8');
+						$csvBarcode = str_replace('+', ' +', $csvBarcode);
 						$csvBarcode = mb_convert_encoding($csvBarcode, 'UTF-16LE', 'UTF-8');
 						$csvId = mb_convert_encoding($csvId, 'UTF-16LE', 'UTF-8');
 						$csvDuedate = mb_convert_encoding($csvDuedate, 'UTF-16LE', 'UTF-8');
