@@ -106,6 +106,22 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				$translator = $this->getServiceLocator()->get('VuFind\Translator');
 				$this->setTranslator($translator);
 				
+				// Try to get user operating system
+				$ua = $_SERVER['HTTP_USER_AGENT'];
+				$os = 'win'; // Default
+				$enc = 'UTF-8'; // Default
+				
+				
+				if (stripos($ua, 'linux') !== false || stripos($ua, 'CrOS') !== false || stripos($ua, 'BSD') !== false || stripos($ua, 'SunOS') !== false || stripos($ua, 'UNIX') !== false) {
+					$os = 'linux';
+				} else if (stripos($ua, 'mac') !== false) {
+					$os = 'mac';
+				} else if (stripos($ua, 'windows') !== false) {
+					$os = 'win';
+					$enc = 'UTF-16LE';
+					
+				}
+				
 				// Translated CSV columns headings
 				$csvHeadings = [];
 				$csvHeadings['title'] = $this->translate('Title');
@@ -119,23 +135,75 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				// Loan history values
 				$csvLoanHistories = [];
 				foreach ($loanHistory as $key => $loanHistoryEntry) {
-					$csvLoanHistories[$key]['title'] = (isset($loanHistoryEntry['title'])) ? $loanHistoryEntry['title'] : null;
-					$csvLoanHistories[$key]['author'] = (isset($loanHistoryEntry['author'])) ? $loanHistoryEntry['author'] : null;
-					$csvLoanHistories[$key]['publication_year'] = (isset($loanHistoryEntry['publication_year'])) ? $loanHistoryEntry['publication_year'] : null;
-					$csvLoanHistories[$key]['isbn'] = (isset($loanHistoryEntry['isbn'][0])) ? $loanHistoryEntry['isbn'][0] : null;
-					$csvLoanHistories[$key]['barcode'] = (isset($loanHistoryEntry['barcode'])) ? $loanHistoryEntry['barcode'] : null;
-					$csvLoanHistories[$key]['id'] = (isset($loanHistoryEntry['id'])) ? $loanHistoryEntry['id'] : null;
-					$csvLoanHistories[$key]['duedate'] = (isset($loanHistoryEntry['duedate'])) ? $loanHistoryEntry['duedate'] : null;
+					
+					$csvTitle = (isset($loanHistoryEntry['title'])) ? $loanHistoryEntry['title'] : '';
+					$csvAuthor = (isset($loanHistoryEntry['author'])) ? $loanHistoryEntry['author'] : '';
+					$csvPublicationYear = (isset($loanHistoryEntry['publication_year'])) ? $loanHistoryEntry['publication_year'] : '';
+					$csvIsbn = (isset($loanHistoryEntry['isbn'][0])) ? $loanHistoryEntry['isbn'][0]: '';
+					$csvBarcode = (isset($loanHistoryEntry['barcode'])) ? $loanHistoryEntry['barcode'] : '';
+					$csvId = (isset($loanHistoryEntry['id'])) ? $loanHistoryEntry['id'] : '';
+					$csvDuedate = (isset($loanHistoryEntry['duedate'])) ? $loanHistoryEntry['duedate'] : '';
+					
+					$csvTitle = str_replace('"', '', $csvTitle);
+					$csvAuthor = str_replace('"', '', $csvAuthor);
+					$csvPublicationYear = str_replace('"', '', $csvPublicationYear);
+					$csvIsbn = str_replace('"', '', $csvIsbn);
+					$csvBarcode = str_replace('"', '', $csvBarcode);
+					$csvId = str_replace('"', '', $csvId);
+					$csvDuedate = str_replace('"', '', $csvDuedate);
+					
+					if ($os == 'win') {
+						$csvTitle = mb_convert_encoding($csvTitle, 'UTF-16LE', 'UTF-8');
+						$csvAuthor = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+						$csvPublicationYear = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+						$csvIsbn = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+						$csvBarcode = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+						$csvId = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+						$csvDuedate = mb_convert_encoding($csvAuthor, 'UTF-16LE', 'UTF-8');
+					}
+
+					
+					$csvLoanHistories[$key]['title'] = $csvTitle;
+					$csvLoanHistories[$key]['author'] = $csvAuthor;
+					$csvLoanHistories[$key]['publication_year'] = $csvPublicationYear;
+					$csvLoanHistories[$key]['isbn'] = $csvIsbn;
+					$csvLoanHistories[$key]['barcode'] = $csvBarcode;
+					$csvLoanHistories[$key]['id'] = $csvId;
+					$csvLoanHistories[$key]['duedate'] = $csvDuedate;
+					
+					
+					
+					/*
+					$csvPublicationYear = (isset($loanHistoryEntry['publication_year'])) ? mb_convert_encoding($loanHistoryEntry['publication_year'], 'UTF-16LE', 'UTF-8') : null;
+					$csvIsbn = (isset($loanHistoryEntry['isbn'][0])) ? mb_convert_encoding($loanHistoryEntry['isbn'][0], 'UTF-16LE', 'UTF-8') : null;
+					$csvBarcode = (isset($loanHistoryEntry['barcode'])) ? mb_convert_encoding($loanHistoryEntry['barcode'], 'UTF-16LE', 'UTF-8') : null;
+					$csvId = (isset($loanHistoryEntry['id'])) ? mb_convert_encoding($loanHistoryEntry['id'], 'UTF-16LE', 'UTF-8') : null;
+					$csvDuedate = (isset($loanHistoryEntry['duedate'])) ? mb_convert_encoding($loanHistoryEntry['duedate'], 'UTF-16LE', 'UTF-8') : null;
+					*/
+					
+					
+					
+					/*
+					$csvLoanHistories[$key]['title'] = (isset($loanHistoryEntry['title'])) ? mb_convert_encoding($loanHistoryEntry['title'], 'UTF-16LE', 'UTF-8') : null;
+					$csvLoanHistories[$key]['author'] = (isset($loanHistoryEntry['author'])) ? mb_convert_encoding($loanHistoryEntry['author'], 'UTF-16LE', 'UTF-8') : null;
+					$csvLoanHistories[$key]['publication_year'] = (isset($loanHistoryEntry['publication_year'])) ? mb_convert_encoding($loanHistoryEntry['publication_year'], 'UTF-16LE', 'UTF-8') : null;
+					$csvLoanHistories[$key]['isbn'] = (isset($loanHistoryEntry['isbn'][0])) ? mb_convert_encoding($loanHistoryEntry['isbn'][0], 'UTF-16LE', 'UTF-8') : null;
+					$csvLoanHistories[$key]['barcode'] = (isset($loanHistoryEntry['barcode'])) ? mb_convert_encoding($loanHistoryEntry['barcode'], 'UTF-16LE', 'UTF-8') : null;
+					$csvLoanHistories[$key]['id'] = (isset($loanHistoryEntry['id'])) ? mb_convert_encoding($loanHistoryEntry['id'], 'UTF-16LE', 'UTF-8') : null;
+					$csvLoanHistories[$key]['duedate'] = (isset($loanHistoryEntry['duedate'])) ? mb_convert_encoding($loanHistoryEntry['duedate'], 'UTF-16LE', 'UTF-8') : null;
+					*/
 				}
 
 				// Add headings to first place of CSV array
 				array_unshift($csvLoanHistories, $csvHeadings);
 				
 				// Create CSV file and add loan history details
+				$bom = "\xEF\xBB\xBF"; // UTF-8 BOM
 				$filename = 'ak_loan_history_' . date('d.m.Y') . '.csv';
 				header('Content-Disposition: attachment; filename="'.$filename.'"');
-				header('Content-Type: text/csv');
+				header('Content-Type: text/csv; charset=UTF-16');
 				$output = fopen('php://output', 'w');
+				fwrite($output, $bom);
 				foreach ($csvLoanHistories as $csvLoanHistory) {
 					fputcsv($output, array_values($csvLoanHistory), ',', '"');
 				}
