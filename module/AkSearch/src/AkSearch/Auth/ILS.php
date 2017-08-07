@@ -31,6 +31,18 @@ use VuFind\Auth\ILS as DefaultAuthILS;
 
 class ILS extends DefaultAuthILS {
    
+	
+	/**
+	 * Does this authentication method support user data changing?
+	 *
+	 * @return bool
+	 */
+	public function supportsLoanHistory() {
+		// Check if the function exists in ILS Driver (e. g. Aleph)
+		$supportsLoanHistory = false !== $this->getCatalog()->checkCapability('getLoanHistory');
+		return $supportsLoanHistory;
+	}
+	
 
     /**
      * Does this authentication method support user data changing?
@@ -59,7 +71,7 @@ class ILS extends DefaultAuthILS {
 
     	// Ensure that all expected parameters are populated to avoid notices in the code below.
     	$params = [];
-    	foreach (['username', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
+    	foreach (['username', 'cudEmail', 'cudPhone', 'cudPhone2', 'address_type'] as $param) {
     		$params[$param] = $request->getPost()->get($param, '');
     	}
     	
@@ -67,25 +79,10 @@ class ILS extends DefaultAuthILS {
     			'username'	=> $params['username'],
     			'email'		=> $params['cudEmail'],
     			'phone'		=> $params['cudPhone'],
-    			'phone2'	=> $params['cudPhone2']
+    			'phone2'	=> $params['cudPhone2'],
+    			'address_type'	=> $params['address_type']
     	]);
-    	/*
-    	foreach (['username', 'cudAddress1', 'cudAddress2', 'cudAddress3', 'cudAddress4', 'cudZip', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
-    		$params[$param] = $request->getPost()->get($param, '');
-    	}
-    
-    	$result = $this->getCatalog()->changeUserData([
-    			'username'	=> $params['username'],
-    			'address1'	=> $params['cudAddress1'],
-    			'address2'	=> $params['cudAddress2'],
-    			'address3'	=> $params['cudAddress3'],
-    			'address4'	=> $params['cudAddress4'],
-    			'zip'		=> $params['cudZip'],
-    			'email'		=> $params['cudEmail'],
-    			'phone'		=> $params['cudPhone'],
-    			'phone2'	=> $params['cudPhone2']
-    	]);
-    	*/
+
     	if (!$result['success']) {
     		throw new \VuFind\Exception\Auth($result['status']);
     	}

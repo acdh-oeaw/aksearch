@@ -7,7 +7,9 @@
 	$email = (isset($this->profile['email'])) ? $this->profile['email'] : '';
 	$phone = (isset($this->profile['phone'])) ? $this->profile['phone'] : '';
 	$phone2 = (isset($this->profile['phone2'])) ? $this->profile['phone2'] : '';
+	$addressType = (isset($this->profile['address_type'])) ? $this->profile['address_type'] : '';
 ?>
+<input type="hidden" value="<?=$addressType?>" name="address_type"/>
 <div>
     <table class="table table-striped">
 	    <tbody>

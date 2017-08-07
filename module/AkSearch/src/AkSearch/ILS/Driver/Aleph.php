@@ -146,7 +146,7 @@ class Aleph extends AlephDefault {
 		if ($auth) {
 			$url = $this->appendQueryString($url, array('user_name' => $this->wwwuser, 'user_password' => $this->wwwpasswd));
 		}
-
+		
 		$result = $this->doHTTPRequest($url);
 		if ($result->error && $result->error != 'empty set' && strpos($result-error, 'Succeeded to REWRITE table z303', 0) !== false) { // Excluding "empty set" prevents error message for empty "getNewItems" result
 			if ($this->debug_enabled) {
@@ -411,8 +411,7 @@ class Aleph extends AlephDefault {
 	 * Original by: UB/FU Berlin (see VuFind\ILS\Driver\Aleph)
 	 * Modified by AK Bibliothek Wien (Michael Birkner): Changed date format for german Aleph
 	 *
-	 * @param string $date
-	 *        	Date to parse
+	 * @param string $date Date to parse
 	 *        	
 	 * @return string
 	 */
@@ -432,6 +431,24 @@ class Aleph extends AlephDefault {
 			return $this->dateConverter->convertToDisplayDate('d/m/y', $date);
 		} else {
 			throw new \Exception("Invalid date: $date");
+		}
+	}
+	
+	
+	/**
+	 * Parse a time.
+	 *
+	 * @param string $time Time to parse
+	 *
+	 * @return string
+	 */
+	public function parseTime($time) {
+		if ($time == null || $time == '') {
+			return '';
+		} else if (preg_match('/^[0-9]{4}$/', $time) === 1) { // 2359
+			return $this->dateConverter->convertToDisplayTime('Hi', $time);
+		} else {
+			throw new \Exception('Invalid time: '.$time);
 		}
 	}
 	
@@ -523,6 +540,7 @@ class Aleph extends AlephDefault {
 		
 		$id = (string) $xml->z303->{'z303-id'};
 		// z304-address-0 is the patrons name field!
+		$addressType = (string) $xml->z304->{'z304-address-type'};
 		$address1 = (string) $xml->z304->{'z304-address-1'};
 		$address2 = (string) $xml->z304->{'z304-address-2'};
 		$address3 = (string) $xml->z304->{'z304-address-3'};
@@ -556,6 +574,7 @@ class Aleph extends AlephDefault {
 		} else {
 			$recordList['email'] = null;
 		}
+		$recordList['address_type'] = $addressType;
 		$recordList['address1'] = $address1;
 		$recordList['address2'] = $address2;
 		$recordList['address3'] = $address3;
@@ -570,8 +589,133 @@ class Aleph extends AlephDefault {
 		$recordList['credit_sum'] = $credit_sum;
 		$recordList['credit_sign'] = $credit_sign;
 		$recordList['id'] = $id;
+		
 		return $recordList;
 	}
+	
+	
+	/**
+	 * Get historical loans from Aleph API
+	 * 
+	 * @param array $user From getMyProfile()
+	 * 
+	 * @return array
+	 */
+	public function getLoanHistory($user) {	
+		$result = $this->getMyTransactions($user, true);
+		return $result;
+	}
+	
+	
+	/**
+	 * Get Patron Transactions
+	 *
+	 * This is responsible for retrieving all transactions (i.e. checked out items)
+	 * by a specific patron.
+	 * 
+	 * Overwriting original for getting more information on loans and loan history.
+	 *
+	 * @param array $user    The patron array from patronLogin
+	 * @param bool  $history Include history of transactions (true) or just get
+	 * current ones (false).
+	 *
+	 * @throws \VuFind\Exception\Date
+	 * @throws ILSException
+	 * @return array        Array of the patron's transactions on success.
+	 */
+	public function getMyTransactions($user, $history = false) {
+		$userId = $user['id'];
+		$transList = [];
+		$params = ["view" => "full"];
+		if ($history) {
+			$params["type"] = "history";
+		}
+		$xml = $this->doRestDLFRequest(['patron', $userId, 'circulationActions', 'loans'], $params);
+		foreach ($xml->xpath('//loan') as $item) {
+			$z36 = $item->z36;
+			$z13 = $item->z13;
+			$z30 = $item->z30;
+			//$group = $item->xpath('@href');
+			//$group = substr(strrchr($group[0], "/"), 1);
+			$id = (string)$z13->{'z13-doc-number'};
+			$renewable = ((string)$item['renew'] == 'Y') ? true : false;
+			
+			//$renew = $item->xpath('@renew');
+			//$docno = (string) $z36->{'z36-doc-number'};
+			//$itemseq = (string) $z36->{'z36-item-sequence'};
+			//$seq = (string) $z36->{'z36-sequence'};
+			$location = (string) $z36->{'z36_pickup_location'};
+			$reqnum = (string) $z36->{'z36-doc-number'}.(string) $z36->{'z36-item-sequence'}.(string) $z36->{'z36-sequence'};
+			$dueDate = $returned = null;
+			$dueTime = null;
+			if ($history) {
+				$dueDate = (isset($item->z36h->{'z36h-due-date'})) ? (string) $item->z36h->{'z36h-due-date'} : null;
+				$dueTime = (isset($item->z36h->{'z36h-due-hour'})) ? (string) $item->z36h->{'z36h-due-hour'} : null;
+				$institution = (isset($item->z36h->{'translate-change-active-library'})) ? (string) $item->z36h->{'translate-change-active-library'} : '';
+				$loanId = $institution.(string) $item->z36h->{'z36h-number'};
+				$returned = (string) $item->z36h->{'z36h-returned-date'};
+			} else {
+				$dueDate = (isset($z36->{'z36-due-date'})) ? (string) $z36->{'z36-due-date'} : null;
+				$dueTime = (isset($z36->{'z36-due-hour'})) ? (string) $z36->{'z36-due-hour'} : null;
+				$institution = (isset($z36->{'translate-change-active-library'})) ? (string) $z36->{'translate-change-active-library'} : '';
+				$loanId = $institution.(string)$z36->{'z36-number'};
+			}
+			//$loaned = (string) $z36->{'z36-loan-date'};
+			$title = (string) $z13->{'z13-title'};
+			$author = (string) $z13->{'z13-author'};
+			$isbn = (string) $z13->{'z13-isbn-issn'};
+			$barcode = (string) $z30->{'z30-barcode'};
+			
+			// Calculate due status
+			$dueStatus = null;
+			if (!$history) {
+				$nowTS = mktime(); // Timestamp respecting the timezone. Use time() for timezone UTC
+				$dueDateTS = strtotime($dueDate.' '.$dueTime);
+				if ($nowTS > $dueDateTS) { // Loan is overdue
+					$dueStatus = 'overdue';
+				} else if (($dueDateTS - $nowTS) < 86400) { // Due date within one day
+					$dueStatus = 'due';
+				}
+			}
+			
+			$publicationYear = (isset($z13->{'z13-year'})) ? (string) $z13->{'z13-year'} : null;
+			$message = (isset($z30->{'z30-note-opac'})) ? (string) $z30->{'z30-note-opac'} : null;
+			
+			$transList[] = [
+					'duedate' => (($dueDate != null) ? $this->parseDate($dueDate) : null),
+					'dueTime' => (($dueTime!= null) ? $this->parseTime($dueTime) : null),
+					'dueStatus' => $dueStatus,
+					'id' => $id,
+					//'source' => '',
+					'barcode' => $barcode,
+					//'renew' => '',
+					//'renewLimit' => '',
+					//'request' => '',
+					//'volume' => '',
+					'publication_year' => $publicationYear,
+					'renewable' => $renewable,
+					'message' => $message,
+					'title' => $title,
+					'item_id' => $loanId, // We have to set the loan ID instead the item ID because Aleph renews with the loan ID.
+					//'institution_name' => '',
+					'isbn' => [$isbn],
+					//'issn' => ,
+					//'oclc' => '',
+					//'upc' => '',
+					//'borrowingLocation' => '',
+					
+					// Other values that are not defined in the VuFind default return array for getMyTransactions()
+					'author' => $author,
+					'location' => $location,
+					'reqnum' => $reqnum,
+					'returned' => $this->parseDate($returned),
+					//'type' => $type,
+			];
+		}
+		
+		return $transList;
+	}
+	
 
 	
 	/**
@@ -943,21 +1087,12 @@ class Aleph extends AlephDefault {
     	$statusMessage = 'Could not change user data.';
     	$dateToday = date("Ymd");
     	$barcode = $details['username'];
+    	$addressType = $details['address_type'];
     	
-    	//$address1 = (isset($details['address1'])) ? trim($details['address1']) : '';
-    	//$address2 = (isset($details['address2'])) ? trim($details['address2']) : '';
-    	//$address3 = (isset($details['address3'])) ? trim($details['address3']) : '';
-    	//$address4 = (isset($details['address4'])) ? trim($details['address4']) : '';
-    	//$zip = (isset($details['zip'])) ? trim($details['zip']) : '';
     	$email = (isset($details['email'])) ? trim($details['email']) : '';
     	$phone = (isset($details['phone'])) ? trim($details['phone']) : '';
     	$phone2 = (isset($details['phone2'])) ? trim($details['phone2']) : '';
-    	
-    	/*
-    	if (empty($address1) || empty($email)) {
-    		throw new AuthException('required_fields_empty');
-    	}
-    	*/
+
     	if (empty($email)) {
     		throw new AuthException('required_fields_empty');
     	}
@@ -976,45 +1111,16 @@ class Aleph extends AlephDefault {
 				</z303>
 				<z304>
 					<record-action>U</record-action>
-					<z304-address-type>01</z304-address-type>
+					<z304-address-type>' . $addressType . '</z304-address-type>
 					<email-address>' . $email . '</email-address>
 					<z304-email-address>' . $email . '</z304-email-address>
 					<z304-telephone>' . $phone . '</z304-telephone>
 					<z304-telephone-2>' . $phone2 . '</z304-telephone-2>
+					<z304-update-date>' . $dateToday . '</z304-update-date>
 				</z304>
 			</patron-record>
 		</p-file-20>
 		';
-    	
-    	/*
-    	$xml_string = '<?xml version="1.0"?>
-		<p-file-20>
-			<patron-record>
-				<z303>
-					<match-id-type>01</match-id-type>
-					<match-id>' . $barcode . '</match-id>
-					<record-action>U</record-action>
-					<z303-user-library>AKW50</z303-user-library>
-					<z303-update-date>' . $dateToday . '</z303-update-date>
-					<z303-home-library>XAW1</z303-home-library>
-				</z303>
-				<z304>
-					<record-action>U</record-action>
-					<z304-address-type>01</z304-address-type>
-					<email-address>' . $email . '</email-address>
-					<z304-address-1>' . $address1 . '</z304-address-1>
-					<z304-address-2>' . $address2 . '</z304-address-2>
-					<z304-address-3>' . $address3 . '</z304-address-3>
-					<z304-address-4>' . $address4 . '</z304-address-4>
-					<z304-zip>' . $zip . '</z304-zip>
-					<z304-email-address>' . $email . '</z304-email-address>
-					<z304-telephone>' . $phone . '</z304-telephone>
-					<z304-telephone-2>' . $phone2 . '</z304-telephone-2>
-				</z304>
-			</patron-record>
-		</p-file-20>
-		';
-		*/
     	
 		// Remove whitespaces from XML string:
 		$xml_string = preg_replace("/\n/i", "", $xml_string);
@@ -1035,7 +1141,7 @@ class Aleph extends AlephDefault {
     	
 		// Create return array
     	$returnArray = array('success' => $success, 'status' => $statusMessage);
-    	 
+    	
     	return $returnArray;
     }
     

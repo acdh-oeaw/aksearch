@@ -31,7 +31,11 @@
 namespace AkSearch\Controller;
 use VuFind\Controller\AbstractBase;
 
-class AkSitesController extends AbstractBase {
+class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\TranslatorAwareInterface {
+	
+	use \VuFind\I18n\Translator\TranslatorAwareTrait;
+	
+	
 	/**
 	 * Call action to go to "about" page.
 	 * 
@@ -63,10 +67,9 @@ class AkSitesController extends AbstractBase {
 		return $view;
 	}
 	
-	
-	
+		
 	public function loanHistoryAction() {
-		// This shows the login form if the user is not logged in when in route /AkSites/LoanHistory:
+		// This shows the login form if the user is not logged in when in route /AkSites/LoanHistory
 		if (!$this->getAuthManager()->isLoggedIn()) {
 			return $this->forceLogin();
 		}
@@ -77,26 +80,107 @@ class AkSitesController extends AbstractBase {
 			return $this->redirect()->toRoute('home');
 		}
 		
-		// Stop now if the user does not have valid catalog credentials available:
+		// Stop now if the user does not have valid catalog credentials available
 		if (!is_array($patron = $this->catalogLogin())) {
 			return $patron;
 		}
 		
-		// User must be logged in at this point, so we can assume this is non-false:
+		// User must be logged in at this point, so we can assume this is non-false
 		$user = $this->getUser();
 		
 		// Begin building view object
 		$view = $this->createViewModel();
+
+		// Obtain user information from ILS
+		$catalog = $this->getILS();
+		$profile = $catalog->getMyProfile($patron);
+		
+		// Get loan history from ILS
+		$loanHistory = $catalog->getLoanHistory($profile);
+		
+		// If form was submitted, export loan history to CSV
+		if ($this->formWasSubmitted('submit')) {
+			
+			if (isset($loanHistory) && !empty($loanHistory)) {
+				// Translator
+				$translator = $this->getServiceLocator()->get('VuFind\Translator');
+				$this->setTranslator($translator);
+				
+				// Translated CSV columns headings
+				$csvHeadings = [];
+				$csvHeadings['title'] = $this->translate('Title');
+				$csvHeadings['author'] = $this->translate('Author');
+				$csvHeadings['publication_year'] = $this->translate('Year of Publication');
+				$csvHeadings['isbn'] = $this->translate('ISBN');
+				$csvHeadings['barcode'] = $this->translate('Barcode');
+				$csvHeadings['id'] = $this->translate('Identifier');
+				$csvHeadings['duedate'] = $this->translate('Due Date');
+
+				// Loan history values
+				$csvLoanHistories = [];
+				foreach ($loanHistory as $key => $loanHistoryEntry) {
+					$csvLoanHistories[$key]['title'] = (isset($loanHistoryEntry['title'])) ? $loanHistoryEntry['title'] : null;
+					$csvLoanHistories[$key]['author'] = (isset($loanHistoryEntry['author'])) ? $loanHistoryEntry['author'] : null;
+					$csvLoanHistories[$key]['publication_year'] = (isset($loanHistoryEntry['publication_year'])) ? $loanHistoryEntry['publication_year'] : null;
+					$csvLoanHistories[$key]['isbn'] = (isset($loanHistoryEntry['isbn'][0])) ? $loanHistoryEntry['isbn'][0] : null;
+					$csvLoanHistories[$key]['barcode'] = (isset($loanHistoryEntry['barcode'])) ? $loanHistoryEntry['barcode'] : null;
+					$csvLoanHistories[$key]['id'] = (isset($loanHistoryEntry['id'])) ? $loanHistoryEntry['id'] : null;
+					$csvLoanHistories[$key]['duedate'] = (isset($loanHistoryEntry['duedate'])) ? $loanHistoryEntry['duedate'] : null;
+				}
+
+				// Add headings to first place of CSV array
+				array_unshift($csvLoanHistories, $csvHeadings);
+				
+				// Create CSV file and add loan history details
+				$filename = 'ak_loan_history_' . date('d.m.Y') . '.csv';
+				header('Content-Disposition: attachment; filename="'.$filename.'"');
+				header('Content-Type: text/csv');
+				$output = fopen('php://output', 'w');
+				foreach ($csvLoanHistories as $csvLoanHistory) {
+					fputcsv($output, array_values($csvLoanHistory), ',', '"');
+				}
+				fclose($output);
+				exit;
+			}
+			
+		}
+		
+		// Build paginator if needed
+		$config = $this->getConfig();
+		$limit = isset($config->Catalog->checked_out_page_size) ? $config->Catalog->checked_out_page_size : 50;
+		if ($limit > 0 && $limit < count($loanHistory)) {
+			$adapter = new \Zend\Paginator\Adapter\ArrayAdapter($loanHistory);
+			$paginator = new \Zend\Paginator\Paginator($adapter);
+			$paginator->setItemCountPerPage($limit);
+			$paginator->setCurrentPageNumber($this->params()->fromQuery('page', 1));
+			$pageStart = $paginator->getAbsoluteItemNumber(1) - 1;
+			$pageEnd = $paginator->getAbsoluteItemNumber($limit) - 1;
+		} else {
+			$paginator = false;
+			$pageStart = 0;
+			$pageEnd = count($loanHistory);
+		}
+		
+		$view->paginator = $paginator;
+
+		foreach ($loanHistory as $i => $current) {					
+			// Build record driver (only for the current visible page):
+			if ($i >= $pageStart && $i <= $pageEnd) {
+				$transactionHistory[] = $this->getDriverForILSRecord($current);
+			}
+		}
+		
+		// Set loan history to view
+		$view->loanHistory = $transactionHistory;	
 		
 		// Identification
 		$user->updateHash();
 		$view->hash = $user->verify_hash;
 		$view->setTemplate('aksites/loanhistory');
-		
-		
-		
+
 		return $view;
 	}
+	
 	
 	/**
 	 * Call action to go to "change user data" page.
@@ -133,6 +217,7 @@ class AkSitesController extends AbstractBase {
 		// Set user information to view object. We can use it in our changeuserdata.phtml file.
 		$view->profile = $profile;
 		$view->username = $user->username;
+		$view->auth_method = $this->getAuthManager()->getAuthMethod();
 		
 		// Identification
 		$user->updateHash();
@@ -162,7 +247,7 @@ class AkSitesController extends AbstractBase {
 			if ($result['success']) {
 				// Show message and go to home on success
 				$this->flashMessenger()->addMessage('changed_userdata_success', 'success');
-				return $this->redirect()->toRoute('myresearch-home');
+				return $this->redirect()->toRoute('aksites-changeuserdata');
 			} else {
 				$this->flashMessenger()->addMessage($result['status'], 'error');
 				return $view;
@@ -242,8 +327,24 @@ class AkSitesController extends AbstractBase {
 	}
 	
 	
+	/**
+	 * Get a record driver object corresponding to an array returned by an ILS
+	 * driver's getMyHolds / getMyTransactions / loanHistory method.
+	 * 
+	 * This was taken from MyResearchController
+	 *
+	 * @param array $current Record information
+	 *
+	 * @return \VuFind\RecordDriver\AbstractBase
+	 */
+	protected function getDriverForILSRecord($current) {
+		$id = isset($current['id']) ? $current['id'] : null;
+		$source = isset($current['source']) ? $current['source'] : 'VuFind';
+		$record = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($id, $source, true);
+		$record->setExtraDetail('ils_details', $current);
+		return $record;
+	}
 
 	
 }
-
 ?>
