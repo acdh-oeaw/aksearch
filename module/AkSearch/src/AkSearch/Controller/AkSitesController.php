@@ -91,12 +91,33 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		// Begin building view object
 		$view = $this->createViewModel();
 
+		
+		
+		/*
 		// Obtain user information from ILS
 		$catalog = $this->getILS();
 		$profile = $catalog->getMyProfile($patron);
 		
 		// Get loan history from ILS
 		$loanHistory = $catalog->getLoanHistory($profile);
+		*/
+		
+		// PROFILE ONLY FOR TESTING
+		$profile['firstname'] = 'PUBLIC';
+		$profile['lastname'] = 'AK';
+		$profile['address1'] = 'Prinz-Eugen-Straße 20-22';
+		$profile['address2'] = '1040';
+		$profile['zip'] = '1040';
+		$profile['city'] = 'Wien';
+		$profile['email'] = 'michael.birkner@akwien.at';
+		$profile['group'] = 'AKW1';//??
+		$profile['AKW Lesesaal-Leser'] = $groupDesc;
+		$profile['barcode'] = '$XAWA03CAF1';
+		$profile['expire'] = '2099-07-13';
+		$profile['id'] = '2013-73';
+		$this->getAuthManager()->getLoanHistory($profile);
+		
+		
 		
 		// If form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {

@@ -366,17 +366,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	]);
     }
     
-    
-    /**
-     * Does this authentication method support showing the loan history?
-     * 
-     * @return bool
-     */
-    public function supportsLoanHistory() {
-    	return true;
-    }
-    
-    
+
     /**
      * Does this authentication method support user data changing?
      * 
@@ -393,6 +383,24 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 
     	$supportsUserDataChange = false !== $this->catalog->checkCapability('changeUserData');
     	return $supportsUserDataChange;
+    }
+    
+
+    public function getLoanHistory($profile) {
+    	// TODO: Get loan history from Database table
+    	echo '<pre>';
+    	print_r($profile);
+    	echo '</pre>';
+    }
+    
+    
+    /**
+     * Does this authentication method support showing the loan history?
+     *
+     * @return bool
+     */
+    public function supportsLoanHistory() {
+    	return true;
     }
 
 }

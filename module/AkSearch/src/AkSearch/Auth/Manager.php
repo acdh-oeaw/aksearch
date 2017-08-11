@@ -93,6 +93,10 @@ class Manager extends DefaultAuthManager {
     	return false;
     }
     
+    public function getLoanHistory($profile) {    	
+    	$this->getAuth()->getLoanHistory($profile);
+    }
+    
     
     /**
      * Update user data from the request.

@@ -410,8 +410,14 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		}
 		
 		if ($result->isServerError()) {
-			throw new ILSException('HTTP error: '.$statusCode);
+			throw new ILSException('HTTP server error: '.$statusCode);
 		}
+		
+		/*
+		if ($result->isClientError()) {
+			throw new ILSException('HTTP client error: '.$statusCode);
+		}
+		*/
 		
 		$answer = $result->getBody();
 		if ($this->debug_enabled) {
@@ -516,7 +522,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$recordList['groupDesc'] = $groupDesc;
 		$recordList['barcode'] = $barcode;
 		$recordList['expire'] = $this->parseDate($expiry);
-		$recordList['credit'] = $expiry;
+		$recordList['credit'] = $expiry; // FIXME: Get the real credit!
 		//$recordList['credit_sum'] = $credit_sum;
 		//$recordList['credit_sign'] = $credit_sign;
 		$recordList['id'] = $primaryId;

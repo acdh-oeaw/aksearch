@@ -43,6 +43,12 @@ class ILS extends DefaultAuthILS {
 		return $supportsLoanHistory;
 	}
 	
+	
+	public function getLoanHistory($profile) {
+		$result = $this->getCatalog()->getLoanHistory($profile);
+		return $result;
+	}
+	
 
     /**
      * Does this authentication method support user data changing?
