@@ -357,6 +357,7 @@
    <dynamicField name="*_txtP_mv" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <dynamicField name="*_random" type="random" />
    <dynamicField name="*_boolean" type="boolean" indexed="true" stored="true"/>
+   <dynamicField name="*_int_sort" type="int_sort" indexed="true" stored="true"/> <!-- ADDED BY AK BIBLIOTHEK WIEN -->
  </fields>
  <uniqueKey>id</uniqueKey>
  <defaultSearchField>allfields</defaultSearchField>
