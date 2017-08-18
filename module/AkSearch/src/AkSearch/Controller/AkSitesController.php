@@ -88,6 +88,18 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		// User must be logged in at this point, so we can assume this is non-false
 		$user = $this->getUser();
 		
+		/*
+		echo '<h3>$patron</h3>';
+		echo '<pre>';
+		print_r($patron);
+		echo '</pre>';
+		
+		echo '<h3>$user</h3>';
+		echo '<pre>';
+		print_r($user->toArray());
+		echo '</pre>';
+		*/
+		
 		// Begin building view object
 		$view = $this->createViewModel();
 
@@ -102,6 +114,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		$loanHistory = $catalog->getLoanHistory($profile);
 		*/
 		
+		/*
 		// PROFILE ONLY FOR TESTING
 		$profile['firstname'] = 'PUBLIC';
 		$profile['lastname'] = 'AK';
@@ -111,13 +124,15 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		$profile['city'] = 'Wien';
 		$profile['email'] = 'michael.birkner@akwien.at';
 		$profile['group'] = 'AKW1';//??
-		$profile['AKW Lesesaal-Leser'] = $groupDesc;
+		$profile['AKW Lesesaal-Leser'] = 'AKW-01';
 		$profile['barcode'] = '$XAWA03CAF1';
 		$profile['expire'] = '2099-07-13';
 		$profile['id'] = '2013-73';
-		$this->getAuthManager()->getLoanHistory($profile);
+		*/
 		
-		
+		$catalog = $this->getILS();
+		$profile = $catalog->getMyProfile($patron);
+		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);		
 		
 		// If form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {

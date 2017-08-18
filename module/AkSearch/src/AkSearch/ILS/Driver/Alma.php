@@ -450,12 +450,13 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function getMyProfile($user) {
 
-		$primaryId = $user['id'];
+		$primaryId = $user['id']; // $user['id'] is the username the user used for logging in (normaly this is the barcode). We use it temporarily as user ID to query the user by API.
 		
 		// Get the patrons details
 		$details = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?&apikey='.$this->apiKey, 'GET');
 		$details = $details['xml']; // Get the XML with the patron details of the return-array.
 		
+		$primaryId = (isset($details->primary_id)) ? (string) $details->primary_id : $user['id']; // Set the user id to the real primary user ID from Alma here
 		$address1 = null;
 		$address2 = null;
 		$address3 = null;
@@ -496,7 +497,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				}
 			}
 		}
-		$barcode = (isset($user['barcode'])) ? (string) $user['barcode'] : null;
+		$barcode = (isset($user['barcode'])) ? (string) $user['barcode'] : (string) $user['id'];
 		$groupDesc = (isset($details->user_group)) ? (string) $details->user_group->attributes()->desc : null;
 		$groupCode = (isset($details->user_group)) ? (string) $details->user_group : null;
 		$expiry = (isset($details->expiry_date)) ? (string) $details->expiry_date : null;

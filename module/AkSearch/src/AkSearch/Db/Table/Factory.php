@@ -19,4 +19,15 @@ class Factory extends \VuFind\Db\Table\Factory {
         );
     }
     
+    /**
+     * Construct the Loans table.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return Loans
+     */
+    public static function getLoans() {
+    	return new Loans ();
+    }
+    
 }

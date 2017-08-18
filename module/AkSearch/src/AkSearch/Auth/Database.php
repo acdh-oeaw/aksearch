@@ -387,10 +387,69 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     
 
     public function getLoanHistory($profile) {
-    	// TODO: Get loan history from Database table
-    	echo '<pre>';
-    	print_r($profile);
-    	echo '</pre>';
+    	$loanHistoryArray = [];
+    	$table = $this->getLoansTable();
+    	$loans = $table->getByIlsUserId($profile['id']);
+    	
+    	if ($loans) {
+    		foreach ($loans as $loan) {
+    			
+    			$dueDate = (isset($loan['due_date'])) ? $loan['due_date'] : null;
+    			$dueTime = (isset($loan['due_date'])) ? $loan['due_date'] : null;
+    			$id = (isset($loan['item_id'])) ? $loan['item_id'] : null; // For Alma, this is the MMS ID!
+    			$barcode = (isset($loan['barcode'])) ? $loan['barcode'] : null;
+    			$publicationYear = (isset($loan['publication_year'])) ? $loan['publication_year'] : null;
+    			$title = (isset($loan['title'])) ? $loan['title'] : null;
+    			//$loanId = (isset($loan['ils_loan_id'])) ? $loan['ils_loan_id'] : null;
+    			$author = (isset($loan['author'])) ? $loan['author'] : null;
+    			$location = (isset($loan['location_code'])) ? $loan['location_code'] : null;
+    			$loanDate = (isset($loan['loan_date'])) ? $loan['loan_date'] : null;
+
+    			$loanHistoryArray[] = [
+    					'duedate' => (($dueDate != null) ? $this->parseDate($dueDate, true) : null),
+    					//'dueTime' => (($dueTime!= null) ? $this->parseTime($dueTime) : null),
+    					'loan_date' => (($loanDate != null) ? $this->parseDate($loanDate, true) : null),
+    					'id' => $id,
+    					//'source' => '',
+    					'barcode' => $barcode,
+    					//'renew' => '',
+    					//'renewLimit' => '',
+    					//'request' => '',
+    					//'volume' => '',
+    					'publication_year' => $publicationYear,
+    					//'renewable' => $renewable,
+    					//'message' => $message,
+    					'title' => $title,
+    					//'item_id' => $loanId,
+    					//'institution_name' => '',
+    					//'isbn' => [$isbn],
+    					//'issn' => ,
+    					//'oclc' => '',
+    					//'upc' => '',
+    					//'borrowingLocation' => '',
+    					
+    					// Other values that are not defined in the VuFind default return array for getMyTransactions()
+    					'author' => $author,
+    					'location' => $location,
+    					
+    					//'reqnum' => $reqnum,
+    					//'returned' => $this->parseDate($returned),
+    					//'type' => $type,
+    			];
+    		}
+    	}
+    	
+    	return $loanHistoryArray;
+    }
+    
+    
+    /**
+     * Get access to the loans table.
+     *
+     * @return \AkSearch\Db\Table\Loans
+     */
+    public function getLoansTable() {
+    	return $this->getDbTableManager()->get('Loans');
     }
     
     
@@ -402,5 +461,54 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     public function supportsLoanHistory() {
     	return true;
     }
+    
+    
+    /**
+     * Parse a date.
+     *
+     * @param string $date Date to parse
+     *
+     * @return string
+     */
+    public function parseDate($date, $withTime = false) {
+    	// Get the date converter
+    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
+    	$dateConverter = $parentLocator->get('VuFind\DateConverter');
+    	
+    	
+    	// Remove trailing Z from end of date (e. g. from Alma we get dates like 2012-07-13Z - without a time, this is wrong):
+    	if (strpos($date, 'Z', (strlen($date)-1))) {
+    		$date = preg_replace('/Z{1}$/', '', $date);
+    	}
+    	
+    	if ($date == null || $date == '') {
+    		return '';
+    	} else if (preg_match("/^[0-9]{8}$/", $date) === 1) { // 20120725
+    		return $dateConverter->convertToDisplayDate('Ynd', $date);
+    	} else if (preg_match("/^[0-9]+\/[A-Za-z]{3}\/[0-9]{4}$/", $date) === 1) {
+    		// 13/jan/2012
+    		return $dateConverter->convertToDisplayDate('d/M/Y', $date);
+    	} else if (preg_match("/^[0-9]+\/[0-9]+\/[0-9]{4}$/", $date) === 1) {
+    		// 13/7/2012
+    		return $dateConverter->convertToDisplayDate('d/m/Y', $date);
+    	} else if (preg_match("/^[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2,4}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALEPH DATES
+    		// 13/07/2012
+    		return $dateConverter->convertToDisplayDate('d/m/y', $date);
+    	} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/", $date) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITHOUT TIME - Trailing Z is removed above
+    		// 2012-07-13[Z] - Trailing Z is removed above
+    		return $dateConverter->convertToDisplayDate('Y-m-d', $date);
+    	} else if (preg_match("/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/", substr($date, 0, 19)) === 1) { // added by AK Bibliothek Wien - FOR GERMAN ALMA DATES WITH TIME - Trailing Z is removed above
+    		// 2017-07-09T18:00:00[Z] - Trailing Z is removed above
+    		if ($withTime) {
+    			//2017-06-19T21:59:00[Z] - Trailing Z is removed above
+    			return $dateConverter->convertToDisplayDateAndTime('Y-m-d\TH:i:s', substr($date, 0, 19));
+    		} else {
+    			return $dateConverter->convertToDisplayDate('Y-m-d', substr($date, 0, 10));
+    		}
+    	} else {
+    		throw new \Exception("Invalid date: $date");
+    	}
+    }
+    
 
 }

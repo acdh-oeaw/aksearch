@@ -412,6 +412,7 @@ $config = [
                     'resource' => 'VuFind\Db\Table\Factory::getResource',
                     //'user' => 'VuFind\Db\Table\Factory::getUser',
                 	'user' => 'AkSearch\Db\Table\Factory::getUser',
+                	'loans' => 'AkSearch\Db\Table\Factory::getLoans'
                 ],
                 'invokables' => [
                     'changetracker' => 'VuFind\Db\Table\ChangeTracker',
