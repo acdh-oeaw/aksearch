@@ -1,10 +1,12 @@
 <?php
-    // Set page title (for HTML head-tag):
-    $this->headTitle($this->translate('volumes') . ': ' . $this->driver->getBreadcrumb());
     
 	$isMultiVolumeWork = $this->driver->tryMethod('isMultiVolumeWork');
 	$isSeries = $this->driver->tryMethod('isSeries');
 	$isParentOfArticles = $this->driver->tryMethod('isParentOfArticles');
+	
+	// Set page title (for HTML head-tag):
+	$pageTitlePrefix = ($isParentOfArticles) ? $this->translate('contains') : $this->translate('volumes');
+	$this->headTitle($pageTitlePrefix . ': ' . $this->driver->getBreadcrumb());
 	
 	$tableHeadingCol1 = $this->transEsc('Title');
 	$tableHeadingCol2 = $this->transEsc('volumeNo');
