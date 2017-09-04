@@ -1,10 +1,12 @@
 <?php
-    // Set page title (for HTML head-tag):
-    $this->headTitle($this->translate('volumes') . ': ' . $this->driver->getBreadcrumb());
     
 	$isMultiVolumeWork = $this->driver->tryMethod('isMultiVolumeWork');
 	$isSeries = $this->driver->tryMethod('isSeries');
 	$isParentOfArticles = $this->driver->tryMethod('isParentOfArticles');
+	
+	// Set page title (for HTML head-tag):
+	$pageTitlePrefix = ($isParentOfArticles) ? $this->translate('contains') : $this->translate('volumes');
+	$this->headTitle($pageTitlePrefix . ': ' . $this->driver->getBreadcrumb());
 	
 	$tableHeadingCol1 = $this->transEsc('Title');
 	$tableHeadingCol2 = $this->transEsc('volumeNo');
@@ -83,8 +85,7 @@
 				echo "<th>".$tableHeadingCol3."</th>";
 			echo "</thead>";
 			echo "<tbody>";
-			foreach ($childs as $childID => $childRecord) {
-				
+			foreach ($childs as $childID => $childRecord) {				
 				// Translation:
 				$col1 = ($childRecord[$tableContentArrFieldCol1] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml(str_replace(array('<', '>'), '', $childRecord[$tableContentArrFieldCol1]));
 				
@@ -95,12 +96,15 @@
 					$col1a = ($hasPublishDate && $childRecord['articlePublishDate'] != null && $childRecord['articlePublishDate'] != '0') ? $childRecord['articlePublishDate'] : $this->transEsc('n. A.');
 					$col1b = ($hasVolumeNo && $childRecord['articleVolume'] != null && $childRecord['articleVolume'] != '0') ? $childRecord['articleVolume'] : $this->transEsc('n. A.');
 					$col1c = ($hasIssueNo && $childRecord['articleIssue'] != null && $childRecord['articleIssue'] != '0') ? $childRecord['articleIssue'] : $this->transEsc('n. A.');
+					$articleLevel = ($childRecord['articleLevel'] != null) ? $childRecord['articleLevel'] : 0;
+					//$levelPadding = ($articleLevel > 0) ? 'padding-left: '.($articleLevel*20).'px;' : '';
+					$levelPadding = ''; // TODO: Level padding only for elements that have parents displayed before them in the tab.
 				}
 				$col2 = ($childRecord[$tableContentArrFieldCol2] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml($childRecord[$tableContentArrFieldCol2]);
 				$col3 = ($childRecord[$tableContentArrFieldCol3] == null || $childRecord[$tableContentArrFieldCol3] == '0')	? 'n. A.'	: $this->escapeHtml($childRecord[$tableContentArrFieldCol3]);
 				
 				echo "<tr>";
-					echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1."</a></td>";
+				echo "<td style='".$levelPadding."'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1."</a></td>";
 					if ($isParentOfArticles) {
 						if ($hasPublishDate) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1a."</a></td>"; }
 						if ($hasVolumeNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1b."</a></td>"; }

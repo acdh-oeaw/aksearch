@@ -1278,6 +1278,9 @@ class SolrMab extends SolrDefault  {
 		$articlePagesFrom = isset($this->fields['childPageFrom_str_mv']) ? $this->fields['childPageFrom_str_mv'] : null;
 		$articlePagesTo = isset($this->fields['childPageTo_str_mv']) ? $this->fields['childPageTo_str_mv'] : null;
 		$articleUrls = isset($this->fields['childUrl_str_mv']) ? $this->fields['childUrl_str_mv'] : null;
+		$articleLevels = isset($this->fields['childLevel_str_mv']) ? $this->fields['childLevel_str_mv'] : null;
+		$minArticleLevel = ($articleLevels != null) ? min($articleLevels) : '0';
+		$articleSortLogIds = isset($this->fields['childLogId_str_mv']) ? $this->fields['childLogId_str_mv'] : null;
 	
 		foreach($articleSYSs as $key => $articleSYS) {
 			$articleTitle = $articleTitles[$key];
@@ -1296,6 +1299,8 @@ class SolrMab extends SolrDefault  {
 				}
 			}
 			$articleUrl = ($articleUrls[$key] == null) ? null : $articleUrls[$key];
+			$articleLevel = ($articleLevels[$key] == null) ? '0' : ($articleLevels[$key]-$minArticleLevel);
+			$articleSortLogId= ($articleSortLogIds[$key] == null) ? null : $articleSortLogIds[$key];
 			
 			// Get year out from a date like 24.12.2017
 			if (strlen($articlePublishDate) > 4) {
@@ -1319,7 +1324,9 @@ class SolrMab extends SolrDefault  {
 					'articlePageFrom' => $articlePageFrom,
 					'articlePageTo' => $articlePageTo,
 					'articlePageFromTo' => $articlePageFromTo,
-					'articleUrl' => $articleUrl
+					'articleUrl' => $articleUrl,
+					'articleLevel' => $articleLevel,
+					'articleSortLogId' => $articleSortLogId
 			);
 		}
 	
@@ -1329,11 +1336,12 @@ class SolrMab extends SolrDefault  {
 			$vol[$key] = $rowToSort['articleVolume'];
 			$iss[$key] = $rowToSort['articleIssue'];
 			$pFrom[$key] = str_replace('[', '', $rowToSort['articlePageFrom']);
+			$logId[$key] = $rowToSort['articleSortLogId'];
 			//$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
 		}
 	
 		//array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
-		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $articleDetails);
+		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $logId, SORT_ASC, $pFrom, SORT_ASC, $articleDetails);
 	
 		return $articleDetails;
 	}
