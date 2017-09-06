@@ -187,6 +187,9 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
 				$barcode = $this->akSearch()->generateBarcode($stringForHash);
 				
+				error_log('[Alma] ApiController -> webhookUser. 1. Primary ID: '.$primaryId);
+				error_log('[Alma] ApiController -> webhookUser. 2. Barcode: '.$barcode);
+				
 				// Write barcode back to Alma
 				$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
 				
