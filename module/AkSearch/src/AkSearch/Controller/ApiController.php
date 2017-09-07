@@ -221,11 +221,20 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				$returnArray['error'] = $errorText;
 				$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
 				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-				$this->httpResponse->setStatusCode(500); // Set HTTP status code to Internal Server Error (500)
+				$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
 				$this->httpResponse->setContent($returnJson);
 				error_log('[Alma] '.$errorText); // Log the error in our own system
 				return $this->httpResponse;
 			}
+		} else {
+			$errorText = 'Only the user webhook action "CREATE" is allowed at the moment!';
+			$returnArray['error'] = $errorText;
+			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
+			$this->httpResponse->setContent($returnJson);
+			error_log('[Alma] '.$errorText); // Log the error in our own system
+			return $this->httpResponse;
 		}
 		
 		
@@ -278,7 +287,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	private function webhookJobEnd() {
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setStatusCode(501); // Set HTTP status code to Not Implemented (501)
+		$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 		$this->httpResponse->setContent('JOB_END webhook not implemented yet.');
 		return $this->httpResponse;
 	}
@@ -286,7 +295,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	private function webhookNotification() {
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setStatusCode(501); // Set HTTP status code to Not Implemented (501)
+		$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 		$this->httpResponse->setContent('NOTIFICATION webhook not implemented yet.');
 		return $this->httpResponse;
 	}
