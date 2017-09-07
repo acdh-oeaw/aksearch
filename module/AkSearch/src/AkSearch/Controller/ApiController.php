@@ -698,7 +698,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	private function barcodeToAlma($primaryId, $barcodeValue) {
 		$apiUrl = $this->configAlma->API->url;
 		$apiKey = $this->configAlma->API->key;
-		$barcodeIdType = $this->configAlma->Webhook->barcodeIdType;
+		$barcodeIdType = $this->configAlma->Webhook->barcodeIdTypeCode;
+		$barcodeIdDesc = $this->configAlma->Webhook->barcodeIdTypeDesc;
 				
 		// Get the Alma user XML object from the Alma API
 		$almaUserObject = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
@@ -711,7 +712,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$userIds = $almaUserObject->user_identifiers;
 		$newBarcode = $userIds->addChild('user_identifier');
 		$newBarcode->addAttribute('segment_type', 'Internal');
-		$newBarcode->addChild('id_type', 'BARCODE')->addAttribute('desc', 'Barcode');
+		$newBarcode->addChild('id_type', $barcodeIdType)->addAttribute('desc', $barcodeIdDesc);
 		$newBarcode->addChild('value', $barcodeValue);
 		$newBarcode->addChild('status', 'ACTIVE');
 
