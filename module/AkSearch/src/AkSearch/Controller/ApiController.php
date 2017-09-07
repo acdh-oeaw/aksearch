@@ -736,8 +736,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$success = false;
 		
 		$email_subject = 'AK Bibliothek Wien - Ihr Account';
-		$email_message = 'URL: http://aksearch.localhost.at/AkSites/SetPasswordWithOtp' . "\n";
-		$email_message = 'Username: ' . $username. "\n";
+		$email_message = '';
+		$email_message .= 'Besuchen Sie folgende Website und geben Sie die untenstehenden Daten ein.' . "\n\n";
+		$email_message .= 'URL: https://biapps.arbeiterkammer.at/aksearch/AkSites/SetPasswordWithOtp' . "\n";
+		$email_message .= 'Username: ' . $username. "\n";
 		$email_message .= 'Password: ' . $password. "\n";
 		
 		$from = (isset($this->configAlma->Webhook->emailFrom)) ? $this->configAlma->Webhook->emailFrom : null;
