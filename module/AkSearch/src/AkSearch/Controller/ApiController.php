@@ -187,9 +187,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
 				$barcode = $this->akSearch()->generateBarcode($stringForHash);
 				
-				error_log('[Alma] ApiController -> webhookUser. 1. Primary ID: '.$primaryId);
-				error_log('[Alma] ApiController -> webhookUser. 2. Barcode: '.$barcode);
-				
 				// Write barcode back to Alma
 				$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
 				
@@ -701,13 +698,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	private function barcodeToAlma($primaryId, $barcodeValue) {
 		$apiUrl = $this->configAlma->API->url;
 		$apiKey = $this->configAlma->API->key;
-		
-		error_log('[Alma] ApiController -> barcodeToAlma. 1. API URL: '.$apiUrl);
-		error_log('[Alma] ApiController -> barcodeToAlma. 2. API Key: '.$apiKey);
+		$barcodeIdType = $this->configAlma->Webhook->barcodeIdType;
 				
 		// Get the Alma user XML object from the Alma API
 		$almaUserObject = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
-		error_log('[Alma] ApiController -> barcodeToAlma. 3. Answer from getting User: '.print_r($almaUserObject));
 		$almaUserObject = $almaUserObject['xml']; // Get the user XML object from the return-array.
 		
 		// Remove user roles (they are not touched)
@@ -720,20 +714,18 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$newBarcode->addChild('id_type', 'BARCODE')->addAttribute('desc', 'Barcode');
 		$newBarcode->addChild('value', $barcodeValue);
 		$newBarcode->addChild('status', 'ACTIVE');
-		
-		error_log('[Alma] ApiController -> barcodeToAlma. 4. New barcode object: '.print_r($newBarcode));
-		
-		
+
 		// Get XML for update process via API
 		$almaUserObjectForUpdate = $almaUserObject->asXML();
-		
-		error_log('[Alma] ApiController -> barcodeToAlma. 5. User object for update: '.print_r($almaUserObjectForUpdate));
-		
+				
 		// Send update via HTTP PUT
 		$updateResult = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?user_id_type=all_unique&apikey='.$apiKey, 'PUT', $almaUserObjectForUpdate, ['Content-type' => 'application/xml']);
 		
-		error_log('[Alma] ApiController -> barcodeToAlma. 5. User update to Alma result: '.print_r($updateResult));
-		
+		// Check for errors
+		if ($updateResult['status'] != '200') {
+			$errorMessage = $updateResult['xml']->errorList->error->errorMessage;
+			error_log('[Alma] ApiController -> barcodeToAlma(). Error (HTTP code '.$updateResult['status'].') when updating user in Alma via API: '.$errorMessage);
+		}
 		
 		return $updateResult['status']; // Return http status code
 	}
