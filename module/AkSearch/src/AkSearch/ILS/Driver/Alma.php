@@ -228,7 +228,8 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$itemFulfillmentUnit = $this->getFulfillmentUnitByLocation($locationCode, $fulfillementUnits);
 			
 			// Check if item is holdable
-			$patronGroupCode = $patron['group_code'];
+			$patronGroupCode = $patron['group'];
+
 			if (($itemFulfillmentUnit != null && !empty($itemFulfillmentUnit)) && ($patronGroupCode!= null && !empty($patronGroupCode))) {
 				$is_holdable = ($requestableConfig[$itemFulfillmentUnit][$patronGroupCode] == 'Y') ? true : false;
 				$holdtype = ($is_holdable) ? 'hold' : '';
@@ -691,7 +692,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$patron['email'] = (string) $email_addr;
 			$patron['college'] = (string) $college;
 			$patron['major'] = null;
-			$patron['group_code'] = $groupCode;
+			$patron['group'] = $groupCode;
 			
 			return $patron;
 		}
@@ -813,6 +814,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				return ['success' => true];
 			} else {
 				$almaErrorCode = $result['xml']->errorList->error->errorCode;
+				$almaErrorMessage = $result['xml']->errorList->error->errorMessage;
+				error_log('[Alma] Alma.php -> placeHold(). Error (HTTP code '.$almaReturn['status'].') when placing a Hold in Alma via API: '.$almaErrorMessage);
+				
 				// TODO: Alma error code 401136 are also user blocks, not only "similar item" error!
 				return [
 						'success' => false,
