@@ -406,6 +406,8 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     				}
     			} else {
     				$this->flashMessenger()->addMessage($this->translate('newUserIlsError'), 'error');
+    				$errorMessage = $almaReturn['xml']->errorList->error->errorMessage;
+    				error_log('[Alma] MyResearchController -> accountAction(). Error (HTTP code '.$almaReturn['status'].') when adding new user account in Alma via API: '.$errorMessage);
     			}
     		}
     	}
