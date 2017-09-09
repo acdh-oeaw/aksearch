@@ -56,7 +56,7 @@ class Holds extends DefaultHolds {
     
     
     /**
-     * Extended for paging.
+     * Extended for paging and getting location name.
      * Support method to rearrange the holdings array for displaying convenience.
      *
      * @param array $holdings An associative array of location => item array
@@ -78,6 +78,7 @@ class Holds extends DefaultHolds {
     		$retVal[$groupKey] = [
     				'items' => $items,
     				'location' => isset($items[0]['location']) ? $items[0]['location'] : '',
+    		        'locationName' => isset($items[0]['locationName']) ? $items[0]['locationName'] : '',
     				'locationhref' => isset($items[0]['locationhref']) ? $items[0]['locationhref'] : '',
     				'totalNoOfItems' => isset($items[0]['totalNoOfItems']) ? $items[0]['totalNoOfItems'] : ''
     		];

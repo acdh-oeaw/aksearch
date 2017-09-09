@@ -128,7 +128,14 @@ if (! empty($holdings)) {
 	$showLoadMore = false;
 	$noOfItemsToLoad = ($this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad) ? $this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad : 10;
 	foreach ($holdings as $location => $holdingsOfLocation) {
-		
+	    
+	    $locationName = null;
+	    if (isset($holdingsOfLocation['locationName']) && !empty(trim($holdingsOfLocation['locationName']))) {
+	        $locationName = $holdingsOfLocation['locationName'];
+	    } else {
+	        $locationName = $this->transEsc($location);
+	    }
+	    	
 		// Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
 		// of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
 		// we will display a "show more" button.
@@ -138,7 +145,7 @@ if (! empty($holdings)) {
 			$showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
 		}
 		
-		echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $this->transEsc($location) . '</h3><br />';
+		echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $locationName . '</h3><br />';
 		
 		// Check for second call number (for label in table heading) and some other values
 		$hasSecondCallNo = false;
@@ -156,7 +163,7 @@ if (! empty($holdings)) {
 			}
 		}
 		
-		echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $this->transEsc($location) . '">';
+		echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $locationName . '">';
 		
 		echo '<tr>';
 		echo '<th>' . $this->transEsc('Call Number') . '</th>';
@@ -173,16 +180,37 @@ if (! empty($holdings)) {
 			$check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 			
 			// Call Numbers (first and second)
-			$callNoFirst = (isset($holdingOfLocation['callnumber']) && ! empty(trim($holdingOfLocation['callnumber']))) ? $holdingOfLocation['callnumber'] : $this->transEsc('n. A.');
-			$callNoSecond = (isset($holdingOfLocation['callnumber_second']) && ! empty(trim($holdingOfLocation['callnumber_second']))) ? $holdingOfLocation['callnumber_second'] : $this->transEsc('n. A.');
+			$callNoFirst = (isset($holdingOfLocation['callnumber']) && !empty(trim($holdingOfLocation['callnumber']))) ? $holdingOfLocation['callnumber'] : $this->transEsc('n. A.');
+			$callNoSecond = (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) ? $holdingOfLocation['callnumber_second'] : $this->transEsc('n. A.');
 			
-			if (isset($holdingOfLocation['barcode']) && ! empty(trim($holdingOfLocation['barcode']))) {
-				echo '<tr>';
+			if (isset($holdingOfLocation['barcode']) && !empty(trim($holdingOfLocation['barcode']))) {
+			    
+			    $collection = null;
+			    if (isset($holdingOfLocation['collection_desc']) && !empty(trim($holdingOfLocation['collection_desc']))) {
+			        $collection = $holdingOfLocation['collection_desc'];
+			    } else if (isset($holdingOfLocation['collection']) && !empty(trim($holdingOfLocation['collection']))) {
+			        $collection = $holdingOfLocation['collection'];
+			    } else {
+			        $collection = $this->transEsc('n. A.');
+			    }
+			    
+			    $status = null;
+			    if (isset($holdingOfLocation['policyName']) && !empty(trim($holdingOfLocation['policyName']))) {
+			        $status = $holdingOfLocation['policyName'];
+			    } else if (isset($holdingOfLocation['status']) && !empty(trim($holdingOfLocation['status']))) {
+			        $status = $holdingOfLocation['status'];
+			    } else if (isset($holdingOfLocation['policyCode']) && !empty(trim($holdingOfLocation['policyCode']))) {
+			        $status = $holdingOfLocation['policyCode'];
+			    } else {
+			        $status = $this->transEsc('n. A.');
+			    }
+			    
+			    echo '<tr>';
 				echo '<td>' . $callNoFirst . '</td>';
 				echo ($hasSecondCallNo) ? '<td>' . $callNoSecond . '</td>' : ''; // If there is a second call no, show an additional table column
-				echo '<td>' . ((isset($holdingOfLocation['collection'])) ? $holdingOfLocation['collection'] : $this->transEsc('n. A.')) . '</td>';
+				echo '<td>' . $collection . '</td>';
 				echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
-				echo '<td>' . ((isset($holdingOfLocation['status'])) ? $holdingOfLocation['status'] : $this->transEsc('n. A.')) . '</td>';
+				echo '<td>' . $status . '</td>';
 				
 				// Show status of item
 				echo '<td>';
