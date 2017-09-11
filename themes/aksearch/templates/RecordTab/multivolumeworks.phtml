@@ -12,16 +12,19 @@
 	$tableHeadingCol2 = $this->transEsc('volumeNo');
 	$tableHeadingCol3 = $this->transEsc('Year of Publication');
 	
+	$sysNoArrField = null;
 	$tableContentArrFieldCol1 = null;
 	$tableContentArrFieldCol2 = null;
 	$tableContentArrFieldCol3 = null;
 	
+	$sysNoArrField = 'default';
 	$tableContentUrlCol1 = 'default';
 	$tableContentUrlCol2 = 'default';
 	$tableContentUrlCol3 = 'default';
 
 	if ($isMultiVolumeWork) {
 		$childs = $this->driver->tryMethod('getChildRecords');
+		$sysNoArrField = 'volumeSYS';
 		$tableContentArrFieldCol1 = 'volumeTitle';
 		$tableContentArrFieldCol2 = 'volumeNo';
 		$tableContentArrFieldCol3 = 'volumePublishDate';
@@ -29,6 +32,7 @@
 	
 	if ($isSeries) {
 		$childs = $this->driver->tryMethod('getSerialVolumes');
+		$sysNoArrField = 'volumeSYS';
 		$tableContentArrFieldCol1 = 'volumeTitle';
 		$tableContentArrFieldCol2 = 'volumeNo';
 		$tableContentArrFieldCol3 = 'volumePublishDate';
@@ -36,6 +40,7 @@
 	
 	if ($isParentOfArticles) {
 		$childs = $this->driver->tryMethod('getArticleDetails');
+		$sysNoArrField = 'articleSYS';
 		$tableHeadingCol1a = $this->transEsc('year');
 		$tableHeadingCol1b = $this->transEsc('volume');
 		$tableHeadingCol1c = $this->transEsc('Issue');
@@ -85,7 +90,10 @@
 				echo "<th>".$tableHeadingCol3."</th>";
 			echo "</thead>";
 			echo "<tbody>";
-			foreach ($childs as $childID => $childRecord) {				
+			foreach ($childs as $childID => $childRecord) {
+				// Child ID for linking:
+				$childIdNo = $childRecord[$sysNoArrField];
+				
 				// Translation:
 				$col1 = ($childRecord[$tableContentArrFieldCol1] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml(str_replace(array('<', '>'), '', $childRecord[$tableContentArrFieldCol1]));
 				
@@ -104,16 +112,16 @@
 				$col3 = ($childRecord[$tableContentArrFieldCol3] == null || $childRecord[$tableContentArrFieldCol3] == '0')	? 'n. A.'	: $this->escapeHtml($childRecord[$tableContentArrFieldCol3]);
 				
 				echo "<tr>";
-				echo "<td style='".$levelPadding."'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1."</a></td>";
+				echo "<td style='".$levelPadding."'><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$col1."</a></td>";
 					if ($isParentOfArticles) {
-						if ($hasPublishDate) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1a."</a></td>"; }
-						if ($hasVolumeNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1b."</a></td>"; }
-						if ($hasIssueNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1c."</a></td>"; }
+						if ($hasPublishDate) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$col1a."</a></td>"; }
+						if ($hasVolumeNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$col1b."</a></td>"; }
+						if ($hasIssueNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$col1c."</a></td>"; }
 					}	
-					echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col2."</a></td>";
+					echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$col2."</a></td>";
 					if ($isParentOfArticles) {
 						if ($col3 == 'n. A.') {
-							echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$this->transEsc($col3)."</a></td>";
+							echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$this->transEsc($col3)."</a></td>";
 						} else {
 							if (strpos($col3, 'emedien.arbeiterkammer.at') !== false) {
 								$urlText = $this->transEsc('go_to_fulltext');
@@ -126,7 +134,7 @@
 						if ($col3 == 'n. A.') {
 							echo "<td>".$this->transEsc($col3)."</td>";
 						} else {
-							echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col3."</a></td>";
+							echo "<td><a href='".$this->recordLink()->getUrl(null).$childIdNo."'>".$col3."</a></td>";
 						}
 						
 					}

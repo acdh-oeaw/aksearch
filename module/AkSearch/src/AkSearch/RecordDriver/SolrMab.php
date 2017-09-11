@@ -794,25 +794,27 @@ class SolrMab extends SolrDefault  {
 		$childVolumeNos = $this->getChildVolumeNo();
 		$childPublishDates = $this->getChildPublishDate();
 		$childEditions = $this->getChildEdition();
-		
+
 		$childRecords = null;
 		
 		foreach($childRecordSYSs as $key => $childRecordSYS) {
+
 			$childVolumeNo = ($childVolumeNos[$key] == null || $childVolumeNos[$key] == '0') ? null : $childVolumeNos[$key];
 			$childTitle = ($childRecordTitles[$key] == null || $childRecordTitles[$key] == '0') ? null : $childRecordTitles[$key];
 			$childPublishDate = ($childPublishDates[$key] == null || $childPublishDates[$key] == '0') ? null : $childPublishDates[$key];
 			$childEdition = ($childEditions[$key] == null || $childEditions[$key] == '0') ? null : $childEditions[$key];
 
 			$childRecords[$childRecordSYS] = array(
+					'volumeSYS' => $childRecordSYS,
 					'volumeNo' => $childVolumeNo,
 					'volumeTitle' => $childTitle,
 					'volumePublishDate' => $childPublishDate,
 					'volumeEdition' => $childEdition); 
 		}
-		
+
 		// Create array for sorting
 		foreach ($childRecords as $key => $rowToSort) {
-			
+
 			// Volume No.
 			$volumeNoSort = 0;
 			$volumeNoRaw = $rowToSort['volumeNo'];
@@ -833,7 +835,7 @@ class SolrMab extends SolrDefault  {
 			}
 			$publishDate[$key] = $publishDateSort;
 		}
-		
+
 		array_multisort($publishDate, SORT_DESC, $volumeNo, SORT_DESC, $childRecords);
 		
 		return $childRecords;
@@ -1062,16 +1064,17 @@ class SolrMab extends SolrDefault  {
 		$serialVolumes = null;
 	
 		foreach($serialVolumeSYSs as $key => $serialVolumeSYS) {
-			$serialVolumeNo = ($serialVolumeNos[$key] == "0") ? null : $serialVolumeNos[$key];
-			$serialVolumeTitle = ($serialVolumeTitles[$key] == "0") ? null : $serialVolumeTitles[$key];
-			$serialVolumePublishDate = ($serialVolumePublishDates[$key] == "0") ? null : $serialVolumePublishDates[$key];
-			$serialVolumeEdition = ($serialVolumeEditions[$key] == "0") ? null : $serialVolumeEditions[$key];
+			$serialVolumeNo = ($serialVolumeNos[$key] == '0') ? null : $serialVolumeNos[$key];
+			$serialVolumeTitle = ($serialVolumeTitles[$key] == '0') ? null : $serialVolumeTitles[$key];
+			$serialVolumePublishDate = ($serialVolumePublishDates[$key] == '0') ? null : $serialVolumePublishDates[$key];
+			$serialVolumeEdition = ($serialVolumeEditions[$key] == '0') ? null : $serialVolumeEditions[$key];
 				
 			$serialVolumes[$serialVolumeSYS] = array(
-					"volumeNo" => $serialVolumeNo,
-					"volumeTitle" => $serialVolumeTitle,
-					"volumePublishDate" => $serialVolumePublishDate,
-					"volumeEdition" => $serialVolumeEdition);
+					'volumeSYS' => $serialVolumeSYS,
+					'volumeNo' => $serialVolumeNo,
+					'volumeTitle' => $serialVolumeTitle,
+					'volumePublishDate' => $serialVolumePublishDate,
+					'volumeEdition' => $serialVolumeEdition);
 		}
 	
 		// Create array for sorting
@@ -1317,6 +1320,7 @@ class SolrMab extends SolrDefault  {
 			}
 			
 			$articleDetails[$articleSYS] = array(
+					'articleSYS' => $articleSYS,
 					'articleTitle' => $articleTitle,
 					'articlePublishDate' => $articlePublishDate,
 					'articleVolume' => $articleVolume,
@@ -1340,7 +1344,6 @@ class SolrMab extends SolrDefault  {
 			//$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
 		}
 	
-		//array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
 		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $logId, SORT_ASC, $pFrom, SORT_ASC, $articleDetails);
 	
 		return $articleDetails;
