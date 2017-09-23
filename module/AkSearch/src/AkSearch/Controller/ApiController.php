@@ -227,7 +227,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				return $this->httpResponse;
 			}
 		} else {
-			$errorText = 'Only the user webhook action "CREATE" is allowed at the moment!';
+		    $errorText = 'Only the user webhook action "CREATE" is allowed at the moment! Method used was: '.(($method != null) ? $method : "null");
 			$returnArray['error'] = $errorText;
 			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
