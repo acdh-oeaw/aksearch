@@ -420,7 +420,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	                    'Email/recover-password.phtml',
 	                    [
 	                        'library' => $config->Site->title,
-	                        'url' => $this->getServerUrl('myresearch-verify') . '?hash=' . $user->verify_hash . '&auth_method=' . $method
+	                        'url' => $this->getServerUrl('aksites-setpassword') . '?hash=' . $user->verify_hash . '&auth_method=' . $method
 	                    ]
 	                    );
 	                $this->getServiceLocator()->get('VuFind\Mailer')->send(
