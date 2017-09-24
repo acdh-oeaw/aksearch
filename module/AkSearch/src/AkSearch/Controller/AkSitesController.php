@@ -449,6 +449,12 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	    // Password policy - set a variable that we can use in the template file (setpasswordwithotp.phtml)
 	    $view->passwordPolicy = $this->getAuthManager()->getPasswordPolicy();
 	    
+	    // TODO:
+	    // - Get the Username by verify_hash (GET-Parameter)
+	    // - Show the username
+	    // - If form submitted: set password and force_pw_change in DB
+	    // - Show success or error message
+	    
 	    // If form was submitted
 	    if ($this->formWasSubmitted('submit')) {
 	        // 0. Click button in setpassword.phtml
