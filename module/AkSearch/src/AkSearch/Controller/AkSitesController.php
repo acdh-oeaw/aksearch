@@ -349,6 +349,55 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	
 	
 	/**
+	 * Action for "request to set new password" page.
+	 *
+	 * @return \Zend\View\Model\ViewModel
+	 */
+	public function requestSetPasswordAction() {
+	    // Get the username
+	    $username = $this->getEvent()->getRouteMatch()->getParam('username');
+	    $view = $this->createViewModel();
+	    
+	    // Pass the username to the view so we can show it there
+	    $view->username = $username;
+	    
+	    // Pass request to view so we can repopulate form fields:
+	    $view->request = $this->getRequest()->getPost();
+	    
+	    // Password policy - set a variable that we can use in the template file (setpasswordwithotp.phtml)
+	    //$view->passwordPolicy = $this->getAuthManager()->getPasswordPolicy();
+	    
+	    // If cancel button was clicked, return to home page
+	    if ($this->formWasSubmitted('cancel')) {
+	        return $this->redirect()->toRoute('home');
+	    }
+	    
+	    // If form was submitted
+	    if ($this->formWasSubmitted('submit')) {
+	        // 0. Click button in requestsetpassword.phtml
+	        // 1. AkSitesController.php->requestSetPasswordAction()
+	        // 2. Auth\Manager.php->requestSetPassword()
+	        // 3. Auth\Database.php->requestSetPassword()
+	        
+	        $result = $this->getAuthManager()->requestSetPassword($this->getRequest());
+	        
+	        if ($result['success']) {
+	            echo '<pre>';
+	            print_r('Sucessfully requested "set new password" eMail.');
+	            echo '</pre>';
+	            $this->flashMessenger()->addMessage($result['status'], 'success');
+	        } else {
+	            $this->flashMessenger()->addMessage($result['status'], 'error');
+	            return $view;
+	        }
+	    }
+	    
+	    return $view;
+	    
+	}
+	
+		
+	/**
 	 * Call action to go to "set password with one-time-password" page.
 	 *
 	 * @return \Zend\View\Model\ViewModel

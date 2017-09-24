@@ -137,7 +137,8 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 
     
     /**
-     * Attempt to authenticate the current user.  Throws exception if login fails. Exteded version for use with Alma.
+     * Attempt to authenticate the current user. Throws exception if login fails.
+     * Exteded version for use with Alma.
      *
      * @param \Zend\Http\PhpEnvironment\Request $request Request object containing
      * account credentials.
@@ -156,6 +157,12 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	// Get user data from database
     	$user = $this->getUserTable()->getByUsername($this->username, false);
     
+    	// Check if the user should be forced to change his password
+    	if (is_object($user) && $this->isForcePwChange($user)) {
+    	    // Return user object with "$user->force_pw_change" set to "1"
+    	    return $user;
+    	}
+    	
     	// Validate the credentials
     	if (!is_object($user) || !$this->checkPassword($this->password, $user)) {
     		throw new AuthException('authentication_error_invalid');
@@ -165,7 +172,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	if (!is_object($user) || $this->isOtp($user)) {
     		throw new AuthException('authentication_error_otp');
     	}
-    	
+    	    	
     	// If we got this far, the login was successful:
     	return $user;
     }
@@ -257,6 +264,46 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     
     protected function isOtp($user) {
     	return (isset($user->is_otp)) ? filter_var($user->is_otp, FILTER_VALIDATE_BOOLEAN) : false;
+    }
+    
+    
+    protected function isForcePwChange($user) {
+        return (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+    }
+    
+    
+    public function requestSetPassword($request) {
+        // 0. Click button in requestsetpassword.phtml
+        // 1. AkSitesController.php->requestSetPasswordAction()
+        // 2. Auth\Manager.php->requestSetPassword()
+        // 3. Auth\Database.php->requestSetPassword()        
+        
+        // Create an array for the values that we need from the post request
+        $params = [];
+        foreach (['username', 'email'] as $param) {
+            $params[$param] = $request->getPost()->get($param, '');
+        }
+        
+        // Needs a username
+        if (trim($params['username']) == '') {
+            throw new AuthException('required_fields_empty');
+        }
+        
+        // Needs an email address
+        if (trim($params['email']) == '') {
+            throw new AuthException('required_fields_empty');
+        }
+        
+        $user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($params['username'], $params['email']);
+        
+        // Check if user was found in database
+        if (!is_object($user)) {
+            // User was not found, so return an error message
+            return array('success' => false, 'status' => 'error_request_set_password');
+        }
+        
+        // User was found, so return a success message
+        return array('success' => true, 'status' => 'success_request_set_password');
     }
     
     

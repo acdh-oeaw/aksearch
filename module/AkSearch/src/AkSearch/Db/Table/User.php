@@ -35,5 +35,20 @@ class User extends DefaultUserTable {
 		return $row;
 	}
 	
+	
+	/**
+	 * Retrieve a user object from the database based on username and eMail address.
+	 *
+	 * @param string	$username 	Username in VuFind database
+	 * @param bool		$email		eMail address in VuFind database
+	 *
+	 * @return UserRow or null if user was not found
+	 */
+	public function getByUsernameAndEmail($username, $email) {
+	    $row = $this->select(['username' => $username])->current();
+	    $emailInDb = (!empty($row) && isset($row->email)) ? $row->email : null;	    
+	    return ($emailInDb != null && $emailInDb === $email) ? $row : null;
+	}
+	
     
 }

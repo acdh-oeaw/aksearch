@@ -427,6 +427,11 @@ function ajaxLogin(form) {
                   Lightbox.changeContent
                 );
               }
+            } else if (response.status == 'FPWC') {
+            	// Close lightbox and redirect to "Request to change password" site
+            	Lightbox.close();
+                var url = path+'/AkSites/RequestSetPassword';
+                document.location.href = url;
             } else {
               Lightbox.displayError(response.data);
             }

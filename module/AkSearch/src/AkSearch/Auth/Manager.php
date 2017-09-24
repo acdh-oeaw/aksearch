@@ -31,7 +31,9 @@ use VuFind\Cookie\CookieManager,
 VuFind\Db\Table\User as UserTable,
 Zend\Config\Config,
 Zend\Session\SessionManager,
-VuFind\Auth\Manager as DefaultAuthManager;
+VuFind\Auth\Manager as DefaultAuthManager,
+VuFind\Exception\Auth as AuthException,
+VuFind\Db\Row\User as UserRow;
 
 
 class Manager extends DefaultAuthManager {
@@ -51,7 +53,7 @@ class Manager extends DefaultAuthManager {
 		// Call parent constructor
 		parent::__construct($config, $userTable, $sessionManager, $pm, $cookieManager);	
 	}
-	
+		
 	
     /**
      * Is changing user data allowed?
@@ -75,6 +77,25 @@ class Manager extends DefaultAuthManager {
     
     
     /**
+     * Update user data from the request.
+     *
+     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing user data change details.
+     * @throws AuthException
+     * @return array Result array containing 'success' (true or false) and 'status' (status message)
+     */
+    public function updateUserData($request) {
+        // 0. Click button in changeuserdata.phtml
+        // 1. AkSitesController.php->changeUserDataAction()
+        // 2. Manager.php->updateUserData()
+        // 3. ILS.php->updateUserData()
+        // 4. Aleph.php->changeUserData();
+        
+        $result = $this->getAuth()->updateUserData($request);
+        return $result;
+    }
+    
+    
+    /**
      * Is displaying loan history allowed
      * 
      * @param string $authMethod	E. g. ILS. This is optional. If set, checks the given auth method rather than the one in config file
@@ -93,28 +114,21 @@ class Manager extends DefaultAuthManager {
     	return false;
     }
     
+    
     public function getLoanHistory($profile) {    	
     	$loanHistory = $this->getAuth()->getLoanHistory($profile);
     	return $loanHistory;
     }
+
     
-    
-    /**
-     * Update user data from the request.
-     *
-     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing user data change details.
-     * @throws AuthException
-     * @return array Result array containing 'success' (true or false) and 'status' (status message)
-     */
-    public function updateUserData($request) {
-    	// 0. Click button in changeuserdata.phtml
-		// 1. AkSitesController.php->changeUserDataAction()
-		// 2. Manager.php->updateUserData()
-		// 3. ILS.php->updateUserData()
-		// 4. Aleph.php->changeUserData();
-    	
-    	$result = $this->getAuth()->updateUserData($request);
-    	return $result;
+    public function requestSetPassword($username, $request) {
+        // 0. Click button in requestsetpassword.phtml
+        // 1. AkSitesController.php->requestSetPasswordAction()
+        // 2. Auth\Manager.php->requestSetPassword()
+        // 3. Auth\Database.php->requestSetPassword()
+        
+        $result = $this->getAuth()->requestSetPassword($username, $request);
+        return $result;
     }
     
     

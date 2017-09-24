@@ -46,7 +46,7 @@ class Auth extends DefaultViewAuth {
     
     
     /**
-     * Render the change user data form template.
+     * Render the "set password with one time password" form template.
      *
      * @param array $context Context for rendering template
      *
@@ -56,5 +56,16 @@ class Auth extends DefaultViewAuth {
     	return $this->renderTemplate('setpasswordwithotp.phtml', $context);
     }
     
+    
+    /**
+     * Render the "request to set a new password" form template.
+     *
+     * @param array $context Context for rendering template
+     *
+     * @return string
+     */
+    public function getRequestSetPasswordForm($context = []) {
+        return $this->renderTemplate('requestsetpassword.phtml', $context);
+    }
 
 }

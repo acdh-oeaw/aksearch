@@ -24,7 +24,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 	 */
 	public function loginAction() {
 		$configAkSearch = $this->getConfig('AKsearch');
-		
+        
 		// If this authentication method doesn't use a VuFind-generated login
 		// form, force it through:
 		if ($this->getSessionInitiator()) {
@@ -67,7 +67,21 @@ class MyResearchController extends DefaultMyResearchController implements Transl
         if ($this->params()->fromPost('processLogin') || $this->getSessionInitiator() || $this->params()->fromPost('auth_method') || $this->params()->fromQuery('auth_method')) {
             try {
                 if (!$this->getAuthManager()->isLoggedIn()) {
-                    $this->getAuthManager()->login($this->getRequest());
+                    $user = $this->getAuthManager()->login($this->getRequest());
+                    
+                    // Check if user should be forced to change his password
+                    // ATTENTION: If login comes from a LIGHTBOX, we do the check in Controller/AkAjaxController.php which is
+                    // called by themes/aksearch/js/commons.js (function "ajaxLogin" - see line "if (response.status == 'FPWC') ..." there)
+                    $forcePwChange = (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+                    if ($forcePwChange) {
+                        // Log out the user and destroy the user session
+                        $this->getAuthManager()->logout(null, true);
+                        
+                        // Send the user to a site where he will be able to change his password. Pass also 
+                        // the username to the site we forward the user to. We then catch and display it there
+                        // (see Controller\AkSitesController->requestSetPasswordAction())
+                        return $this->forwardTo('AkSites', 'RequestSetPassword', array('username' => $user->username));
+                    }
                 }
             } catch (AuthException $e) {
                 $this->processAuthenticationException($e);
@@ -78,7 +92,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
         if (!$this->getAuthManager()->isLoggedIn()) {
             $this->setFollowupUrlToReferer();
             
-            // Clear followup url so that we got to the default page after login. This is important for OTP password action.
+            // Clear followup url so that we get to the default page after login. This is important for OTP password action.
             $clearFollowupUrl = filter_var($this->params()->fromQuery('clearFollowupUrl', false), FILTER_VALIDATE_BOOLEAN);
             if ($clearFollowupUrl) {
             	$this->clearFollowupUrl();

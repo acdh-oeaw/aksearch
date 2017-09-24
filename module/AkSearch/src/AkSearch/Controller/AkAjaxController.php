@@ -27,11 +27,61 @@
  * @link     http://wien.arbeiterkammer.at/service/bibliothek/
  */
 namespace AkSearch\Controller;
+use VuFind\Exception\Auth as AuthException;
 
 class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuFindHttp\HttpServiceAwareInterface {
 	
 	use \VuFindHttp\HttpServiceAwareTrait;
+	
+	// Additional status constants
+	const STATUS_FORCE_PW_CHANGE = 'FPWC';                  // force password change
 
+	
+	/**
+	 * Login with post'ed username and encrypted password.
+	 * Updated for use with Alma.
+	 *
+	 * @return \Zend\Http\Response
+	 */
+	protected function loginAjax() {
+	    
+	    // Fetch Salt
+	    $salt = $this->generateSalt();
+	    
+	    // HexDecode Password
+	    $password = pack('H*', $this->params()->fromPost('password'));
+	    
+	    // Decrypt Password
+	    $password = base64_decode(\VuFind\Crypt\RC4::encrypt($salt, $password));
+	    
+	    // Update the request with the decrypted password:
+	    $this->getRequest()->getPost()->set('password', $password);
+	    
+	    
+	    // Authenticate the user:
+	    try {
+	        $user = $this->getAuthManager()->login($this->getRequest());
+	        
+	        // Check if user should be forced to change his password
+	        $forcePwChange = (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+	        if ($forcePwChange) {
+	            // Log out the user and destroy the user session
+	            $this->getAuthManager()->logout(null, true);
+	            
+	            // Send the user to a site where he will be able to change his password
+	            return $this->output('Please change password', self::STATUS_FORCE_PW_CHANGE);
+	        }
+	    } catch (AuthException $e) {
+	        return $this->output(
+	            $this->translate($e->getMessage()),
+	            self::STATUS_ERROR
+	            );
+	    }
+	    
+	    return $this->output(true, self::STATUS_OK);
+	}
+	
+	
 	/**
 	 * Call entity facts API
 	 * Example: http://hub.culturegraph.org/entityfacts/118540238
@@ -54,6 +104,7 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 		return $this->output($json, self::STATUS_OK);
 	}
 
+	
 	/**
 	 * Check Request is Valid
 	 *
