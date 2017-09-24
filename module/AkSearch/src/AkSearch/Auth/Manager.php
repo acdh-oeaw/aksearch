@@ -132,6 +132,17 @@ class Manager extends DefaultAuthManager {
     }
     
     
+    public function setPassword($request) {
+        // 0. Click button in setpassword.phtml
+        // 1. Controller\AkSitesController.php->setPasswordAction()
+        // 2. Auth\Manager.php->setPassword()
+        // 3. Auth\Database.php->setPassword()
+        
+        $result = $this->getAuth()->setPassword($request);
+        return $result;
+    }
+    
+    
     public function setPasswordWithOtp($request) {
     	// 0. Click button in setpasswordwithotp.phtml
     	// 1. AkSitesController.php->setPasswordWithOtpAction()

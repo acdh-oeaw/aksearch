@@ -67,5 +67,17 @@ class Auth extends DefaultViewAuth {
     public function getRequestSetPasswordForm($context = []) {
         return $this->renderTemplate('requestsetpassword.phtml', $context);
     }
+    
+    
+    /**
+     * Render the "set a new password" form template.
+     *
+     * @param array $context Context for rendering template
+     *
+     * @return string
+     */
+    public function getSetPasswordForm($context = []) {
+        return $this->renderTemplate('setpassword.phtml', $context);
+    }
 
 }

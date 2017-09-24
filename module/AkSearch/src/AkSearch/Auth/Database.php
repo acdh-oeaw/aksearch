@@ -299,11 +299,42 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
         // Check if user was found in database
         if (!is_object($user)) {
             // User was not found, so return an error message
-            return array('success' => false, 'status' => 'error_request_set_password');
+            return array('success' => false, 'status' => 'error_request_set_password', 'user' => null);
         }
         
         // User was found, so return a success message
-        return array('success' => true, 'status' => 'success_request_set_password');
+        return array('success' => true, 'status' => 'success_request_set_password', 'user' => $user);
+    }
+    
+    
+    public function setPassword($request) {
+        // 0. Click button in setpassword.phtml
+        // 1. Controller\AkSitesController.php->setPasswordAction()
+        // 2. Auth\Manager.php->setPassword()
+        // 3. Auth\Database.php->setPassword()
+        
+        // Create an array for the values that we need from the post request
+        $params = [];
+        foreach (['newPassword', 'newPasswordConfirm'] as $param) {
+            $params[$param] = $request->getPost()->get($param, '');
+        }
+        
+        // Needs new passwords
+        if ($params['newPassword'] == '' || $params['newPasswordConfirm'] == '') {
+            throw new AuthException('required_fields_empty');
+        }
+        
+        // New passwords don't match
+        if ($params['newPassword'] != $params['newPasswordConfirm']) {
+            throw new AuthException('Passwords do not match');
+        }
+        
+        // TODO: Get user data from database
+        //$user = $this->getUserTable()->getByVerifyHash($hash);
+        //$user = $this->getUserTable()->getByUsername($params['username'], false);
+        //$user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($params['username'], $params['email']);
+        
+        return $result;
     }
     
     
