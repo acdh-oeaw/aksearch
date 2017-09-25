@@ -354,6 +354,10 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	 * @return \Zend\View\Model\ViewModel
 	 */
 	public function requestSetPasswordAction() {
+	    // Translator
+	    $translator = $this->getServiceLocator()->get('VuFind\Translator');
+	    $this->setTranslator($translator);
+	    
 	    // Get the username
 	    $username = $this->getEvent()->getRouteMatch()->getParam('username');
 	    $view = $this->createViewModel();
@@ -382,10 +386,13 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	        $result = $this->getAuthManager()->requestSetPassword($this->getRequest());
 	        
 	        if ($result['success']) {
-	            // Get config.ini
-	            $config = $this->getServiceLocator()->get('VuFind\Config')->get('config');
-	            $this->sendRequestSetPasswordEmail($result['user'], $config);
-	            $this->flashMessenger()->addMessage($result['status'], 'success');
+	            $config = $this->getServiceLocator()->get('VuFind\Config')->get('config'); // Get config.ini
+	            $sendEmailResult = $this->sendRequestSetPasswordEmail($result['user'], $config);
+	            if ($sendEmailResult['success']) {
+	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'success');
+	            } else {
+	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'success');
+	            }
 	        } else {
 	            $this->flashMessenger()->addMessage($result['status'], 'error');
 	            return $view;
@@ -398,15 +405,19 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	
 	
 	protected function sendRequestSetPasswordEmail($user, $config) {
+	    $sendEmailResult = [];
+	    
 	    // If we can't find a user
 	    if (null == $user) {
-	        $this->flashMessenger()->addMessage('recovery_user_not_found', 'error');
+	        $sendEmailResult = array('success' => false, 'status' => 'recovery_user_not_found');
+	        //$this->flashMessenger()->addMessage('recovery_user_not_found', 'error');
 	    } else {
 	        // Make sure we've waiting long enough
 	        $hashtime = $this->getHashAge($user->verify_hash);
 	        $recoveryInterval = isset($config->Authentication->recover_interval) ? $config->Authentication->recover_interval : 60;
 	        if (time() - $hashtime < $recoveryInterval) {
-	            $this->flashMessenger()->addMessage('recovery_too_soon', 'error');
+	            //$this->flashMessenger()->addMessage('recovery_too_soon', 'error');
+	            $sendEmailResult = array('success' => false, 'status' => 'recovery_too_soon');
 	        } else {
 	            // Attempt to send the email
 	            try {
@@ -426,15 +437,19 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	                $this->getServiceLocator()->get('VuFind\Mailer')->send(
 	                    $user->email,
 	                    $config->Site->email,
-	                    $this->translate('recovery_email_subject'),
+	                    $this->translate('request_set_password_email_subject'),
 	                    $message
 	                    );
-	                $this->flashMessenger()->addMessage('recovery_email_sent', 'success');
+	                //$this->flashMessenger()->addMessage('recovery_email_sent', 'success');
+	                $sendEmailResult = array('success' => true, 'status' => 'success_request_set_password_email');
 	            } catch (\Vufind\Exception\Mail $e) {
-	                $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+	                //$this->flashMessenger()->addMessage($e->getMessage(), 'error');
+	                $sendEmailResult = array('success' => false, 'status' => $e->getMessage());
 	            }
 	        }
 	    }
+	    
+	    return $sendEmailResult;
 	}
 	
 	
@@ -449,11 +464,26 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	    // Password policy - set a variable that we can use in the template file (setpasswordwithotp.phtml)
 	    $view->passwordPolicy = $this->getAuthManager()->getPasswordPolicy();
 	    
-	    // TODO:
-	    // - Get the Username by verify_hash (GET-Parameter)
+	    // TODO - see function "verifyAction" in \VuFind\Controller\MyResearchController->verifyAction()
+	    // - DONE: Get the Username by verify_hash (GET-Parameter)
 	    // - Show the username
 	    // - If form submitted: set password and force_pw_change in DB
 	    // - Show success or error message
+	    
+	    if ($hash = $this->params()->fromQuery('hash')) {
+	        $hashtime = $this->getHashAge($hash);
+	        $config = $this->getServiceLocator()->get('VuFind\Config')->get('config'); // Get config.ini
+	        // Check if hash is expired
+	        $hashLifetime = isset($config->Authentication->recover_hash_lifetime) ? $config->Authentication->recover_hash_lifetime : 1209600; // Two weeks
+	        if (time() - $hashtime > $hashLifetime) {
+	            $this->flashMessenger()->addMessage('recovery_expired_hash', 'error');
+	            return $this->forwardTo('AkSites', 'RequestSetPassword');
+	        } else {
+	            $table = $this->getTable('User');
+	            $user = $table->getByVerifyHash($hash);
+	            $username = $user->username;
+	        }
+	    }
 	    
 	    // If form was submitted
 	    if ($this->formWasSubmitted('submit')) {
