@@ -405,6 +405,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			$isValid = 'N'; // N = No. User is not valid			
 			$hasError = 'Y'; // Y = Yes. There is an error
 			$this->httpResponse->setStatusCode(500); // Default HTTP return status code: Internal Server Error (500)
+			$this->httpResponse->setContent($errorMsg);
 			
 			// Check if user exists or not and set HTTP status code for return headers
 			if ($errorMsg == 'Error in Verification') {
