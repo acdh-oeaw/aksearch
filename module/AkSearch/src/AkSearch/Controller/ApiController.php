@@ -399,13 +399,14 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Errors from API call
 		$errorMsg = trim((string) $userXml->{'error'});
 		$errorMsg = ($errorMsg != null && !empty($errorMsg)) ? $errorMsg : null;
-		
+				
 		// Check for error
 		if ($errorMsg) {
 			$isValid = 'N'; // N = No. User is not valid			
 			$hasError = 'Y'; // Y = Yes. There is an error
 			$this->httpResponse->setStatusCode(500); // Default HTTP return status code: Internal Server Error (500)
 			$this->httpResponse->setContent($errorMsg);
+			error_log('[API] ApiController -> userAuth(): '.$errorMsg);
 			
 			// Check if user exists or not and set HTTP status code for return headers
 			if ($errorMsg == 'Error in Verification') {
@@ -512,6 +513,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$paramList = (!empty($params) && $params != null) ? http_build_query($params) : [];
 		$baseXUrl = ($https) ? 'https://'.$host.'/X' : 'http://'.$host.'/X';
 		$url = sprintf('%s?%s', $baseXUrl, $paramList);
+		
+		error_log('[API] ApiController -> callX(). Calling URL '.$url.' with method '.$method);
 		
 		// Initialize curl
 		$curl = curl_init();
