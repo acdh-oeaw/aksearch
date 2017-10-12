@@ -2,31 +2,55 @@
 
 namespace AkSearch\Search\Factory;
 
-use VuFindSearch\Backend\Solr\Response\Json\RecordCollectionFactory;
 use VuFindSearch\Backend\Solr\Connector;
 use VuFindSearch\Backend\Solr\Backend;
 
 
-class SolrDefaultBackendFactory extends \VuFind\Search\Factory\SolrDefaultBackendFactory implements \Zend\ServiceManager\ServiceLocatorAwareInterface {
-    
-    use \Zend\ServiceManager\ServiceLocatorAwareTrait;
-    
-    protected $akConfig;
+class SolrDefaultBackendFactory extends \VuFind\Search\Factory\SolrDefaultBackendFactory {
+
     
     /**
-     * Constructor
+     * Create the SOLR connector.
+     * Updated for use with other ID fields (defined in AKsearch.ini) of Solr index.
+     *
+     * @return Connector
      */
-    public function __construct() {
-        parent::__construct();
-        
-        $this->searchConfig = 'searches';
-        $this->searchYaml = 'searchspecs.yaml';
-        $this->facetConfig = 'facets';
+    protected function createConnector() {
 
-        // TODO: Set $this->uniqueKey to a list of possible ID fields ???and create a custom method "retrieve" for VuFindSearch\Backend\Solr\Connector???
-        //       that queries these ID fields connected with OR.
-        //       ATTENTION: We cannot get AKsearch.ini here. We probably have to create a custom AbstractSolrBackendFactory
-        //$this->uniqueKey = 'acNo_txt'; // WORX
+    	$config = $this->config->get('config');
+    	
+    	// Get AK config and check if ID fields are set. If yes, we will query all the given fields for record IDs.
+    	$akConfig = $this->config->get('AKsearch');
+    	$idFields = (isset($akConfig->Record->idFields) && !empty($akConfig->Record->idFields)) ? $akConfig->Record->idFields : 'id'; // Default is "id" Solr field
+    	$this->uniqueKey = $idFields;
+    	
+    	$handlers = [
+    			'select' => [
+    					'fallback' => true,
+    					'defaults' => ['fl' => '*,score'],
+    					'appends'  => ['fq' => []],
+    			],
+    			'term' => [
+    					'functions' => ['terms'],
+    			],
+    	];
+    	
+    	foreach ($this->getHiddenFilters() as $filter) {
+    		array_push($handlers['select']['appends']['fq'], $filter);
+    	}
+    	
+    	$connector = new \AkSearch\Backend\Solr\Connector($this->getSolrUrl(), new \VuFindSearch\Backend\Solr\HandlerMap($handlers), $this->uniqueKey);
+    	$connector->setTimeout(isset($config->Index->timeout) ? $config->Index->timeout : 30);
+    	
+    	if ($this->logger) {
+    		$connector->setLogger($this->logger);
+    	}
+    	
+    	if ($this->serviceLocator->has('VuFind\Http')) {
+    		$connector->setProxy($this->serviceLocator->get('VuFind\Http'));
+    	}
+    	
+    	return $connector;
     }
 
 }
