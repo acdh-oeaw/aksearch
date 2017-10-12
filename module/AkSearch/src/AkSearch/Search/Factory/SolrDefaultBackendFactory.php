@@ -7,31 +7,26 @@ use VuFindSearch\Backend\Solr\Connector;
 use VuFindSearch\Backend\Solr\Backend;
 
 
-class SolrDefaultBackendFactory extends \VuFind\Search\Factory\SolrDefaultBackendFactory
-{
+class SolrDefaultBackendFactory extends \VuFind\Search\Factory\SolrDefaultBackendFactory implements \Zend\ServiceManager\ServiceLocatorAwareInterface {
+    
+    use \Zend\ServiceManager\ServiceLocatorAwareTrait;
+    
+    protected $akConfig;
+    
     /**
      * Constructor
      */
     public function __construct() {
         parent::__construct();
+        
         $this->searchConfig = 'searches';
         $this->searchYaml = 'searchspecs.yaml';
         $this->facetConfig = 'facets';
-        
-        /*
-        echo '<pre>';
-        print_r($this->test());
-        echo '</pre>';
-        */
-        
-        // TODO: Set $this->uniqueKey to a list of possible ID fields and create a custom method "retrieve" for VuFindSearch\Backend\Solr\Connector
+
+        // TODO: Set $this->uniqueKey to a list of possible ID fields ???and create a custom method "retrieve" for VuFindSearch\Backend\Solr\Connector???
         //       that queries these ID fields connected with OR.
-        //$this->uniqueKey = 'acNo_txt';
+        //       ATTENTION: We cannot get AKsearch.ini here. We probably have to create a custom AbstractSolrBackendFactory
+        //$this->uniqueKey = 'acNo_txt'; // WORX
     }
-    
-    public function test() {
-        // Get AKsearch.ini
-        $akConfig = $this->config->get('VuFind\Config')->get('AKsearch');
-        return $akConfig;        
-    }
+
 }
