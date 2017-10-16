@@ -307,7 +307,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    public function setPassword($request) {
+    public function setPassword($username, $request) {
         // 0. Click button in setpassword.phtml
         // 1. Controller\AkSitesController.php->setPasswordAction()
         // 2. Auth\Manager.php->setPassword()
@@ -329,10 +329,26 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
             throw new AuthException('Passwords do not match');
         }
         
-        // TODO: Get user data from database
+        // Get user data from database
+        $user = $this->getUserTable()->getByUsername($username, false);
+        //$user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($username, $email);
         //$user = $this->getUserTable()->getByVerifyHash($hash);
-        //$user = $this->getUserTable()->getByUsername($params['username'], false);
-        //$user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($params['username'], $params['email']);
+        
+        // Check if user was found in database
+        if (!is_object($user)) {
+        	$result = array('success' => false, 'status' => 'authentication_error_invalid');
+        } else { // Set the password
+        	if ($this->passwordHashingEnabled()) {
+        		$bcrypt = new Bcrypt();
+        		$user->pass_hash = $bcrypt->create($params['newPassword']);
+        	} else {
+        		$user->password = $params['newPassword'];
+        	}
+        	$user->force_pw_change= 0;
+        	$user->save();
+        	
+        	$result = array('success' => true, 'status' => 'setPasswordSuccess');
+        }
         
         return $result;
     }

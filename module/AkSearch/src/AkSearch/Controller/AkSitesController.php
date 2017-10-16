@@ -87,24 +87,10 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		
 		// User must be logged in at this point, so we can assume this is non-false
 		$user = $this->getUser();
-		
-		/*
-		echo '<h3>$patron</h3>';
-		echo '<pre>';
-		print_r($patron);
-		echo '</pre>';
-		
-		echo '<h3>$user</h3>';
-		echo '<pre>';
-		print_r($user->toArray());
-		echo '</pre>';
-		*/
-		
+				
 		// Begin building view object
 		$view = $this->createViewModel();
 
-		
-		
 		/*
 		// Obtain user information from ILS
 		$catalog = $this->getILS();
@@ -113,23 +99,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		// Get loan history from ILS
 		$loanHistory = $catalog->getLoanHistory($profile);
 		*/
-		
-		/*
-		// PROFILE ONLY FOR TESTING
-		$profile['firstname'] = 'PUBLIC';
-		$profile['lastname'] = 'AK';
-		$profile['address1'] = 'Prinz-Eugen-Straße 20-22';
-		$profile['address2'] = '1040';
-		$profile['zip'] = '1040';
-		$profile['city'] = 'Wien';
-		$profile['email'] = 'michael.birkner@akwien.at';
-		$profile['group'] = 'AKW1';//??
-		$profile['AKW Lesesaal-Leser'] = 'AKW-01';
-		$profile['barcode'] = '$XAWA03CAF1';
-		$profile['expire'] = '2099-07-13';
-		$profile['id'] = '2013-73';
-		*/
-		
+
 		$catalog = $this->getILS();
 		$profile = $catalog->getMyProfile($patron);
 		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);		
@@ -387,7 +357,8 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	        
 	        if ($result['success']) {
 	            $config = $this->getServiceLocator()->get('VuFind\Config')->get('config'); // Get config.ini
-	            $sendEmailResult = $this->sendRequestSetPasswordEmail($result['user'], $config);
+	            $almaConfig = $this->getServiceLocator()->get('VuFind\Config')->get('Alma'); // Get Alma.ini
+	            $sendEmailResult = $this->sendRequestSetPasswordEmail($result['user'], $config, $almaConfig);
 	            if ($sendEmailResult['success']) {
 	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'success');
 	            } else {
@@ -404,7 +375,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	}
 	
 	
-	protected function sendRequestSetPasswordEmail($user, $config) {
+	protected function sendRequestSetPasswordEmail($user, $config, $almaConfig) {
 	    $sendEmailResult = [];
 	    
 	    // If we can't find a user
@@ -433,10 +404,12 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	                        'library' => $config->Site->title,
 	                        'url' => $this->getServerUrl('aksites-setpassword') . '?hash=' . $user->verify_hash . '&auth_method=' . $method
 	                    ]
-	                    );
+	                );
+	                
+	                $fromEmail = (isset($almaConfig->Webhook->emailFrom) && !empty($almaConfig->Webhook->emailFrom)) ? $almaConfig->Webhook->emailFrom : $config->Site->email;
 	                $this->getServiceLocator()->get('VuFind\Mailer')->send(
 	                    $user->email,
-	                    $config->Site->email,
+	                	$fromEmail,
 	                    $this->translate('request_set_password_email_subject'),
 	                    $message
 	                    );
@@ -485,6 +458,10 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	        }
 	    }
 	    
+	    $view->username = $username;
+	    $view->hash = $hash;
+	    $view->authMethod = $this->params()->fromQuery('auth_method');
+	    
 	    // If form was submitted
 	    if ($this->formWasSubmitted('submit')) {
 	        // 0. Click button in setpassword.phtml
@@ -492,7 +469,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	        // 2. Auth\Manager.php->setPassword()
 	        // 3. Auth\Database.php->setPassword()
 	        try {
-	            $result = $this->getAuthManager()->setPassword($this->getRequest());
+	        	$result = $this->getAuthManager()->setPassword($view->username, $this->getRequest());
 	        } catch (\VuFind\Exception\Auth $e) {
 	            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
 	            return $view;
@@ -501,16 +478,21 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	        if ($result['success']) {
 	            // Show message and go to home on success
 	            $this->flashMessenger()->addMessage($result['status'], 'success');
+	            $view->setTemplate('aksites/setpasswordsuccess');
 	            return $view;
 	            //return $this->redirect()->toRoute('myresearch-home', array(), array('query' => array('clearFollowupUrl' => '1')));
 	        } else {
-	            $this->flashMessenger()->addMessage($result['status'], 'error');
+	        	$this->flashMessenger()->addMessage($result['status'], 'error');
 	            return $view;
 	        }
 	    }
 	    
 	    
 	    return $view;
+	}
+	
+	public function setpasswordsuccessAction() {
+		return $this->createViewModel();
 	}
 	
 	
