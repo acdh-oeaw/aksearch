@@ -57,6 +57,8 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 	    // Update the request with the decrypted password:
 	    $this->getRequest()->getPost()->set('password', $password);
 	    
+	    // Get username
+	    $username = $this->params()->fromPost('username');
 	    
 	    // Authenticate the user:
 	    try {
@@ -69,7 +71,7 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 	            $this->getAuthManager()->logout(null, true);
 	            
 	            // Send the user to a site where he will be able to change his password
-	            return $this->output('Please change password', self::STATUS_FORCE_PW_CHANGE);
+	            return $this->output($username, self::STATUS_FORCE_PW_CHANGE);
 	        }
 	    } catch (AuthException $e) {
 	        return $this->output(

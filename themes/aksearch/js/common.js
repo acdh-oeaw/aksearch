@@ -406,6 +406,8 @@ function ajaxLogin(form) {
             params[form.elements[i].name] = form.elements[i].value;
           }
         }
+        
+        
 
         // login via ajax
         Lightbox.ajax({
@@ -430,8 +432,15 @@ function ajaxLogin(form) {
             } else if (response.status == 'FPWC') {
             	// Close lightbox and redirect to "Request to change password" site
             	Lightbox.close();
-                var url = path+'/AkSites/RequestSetPassword';
-                document.location.href = url;
+            	
+            	// Redirect via GET
+                //var url = path+'/AkSites/RequestSetPassword';
+                //document.location.href = url;
+            	
+            	// Redirect via POST - send the username with POST
+            	var redirect = path+'/AkSites/RequestSetPassword';
+            	$.redirectPost(redirect, {username: response.data});
+
             } else {
               Lightbox.displayError(response.data);
             }
@@ -612,4 +621,24 @@ $(document).ready(function commonDocReady() {
     var parts = this.href.split('/');
     return Lightbox.get(parts[parts.length-3],'Save',{id:$(this).attr('id')});
   });
+});
+
+// Following code is taken from https://stackoverflow.com/a/23347795/792962:
+$.extend({
+    redirectPost: function(location, args) {
+        var form = $('<form></form>');
+        form.attr('method', 'post');
+        form.attr('action', location);
+
+        $.each( args, function( key, value ) {
+            var field = $('<input></input>');
+
+            field.attr('type', 'hidden');
+            field.attr('name', key);
+            field.attr('value', value);
+
+            form.append(field);
+        });
+        $(form).appendTo('body').submit();
+    }
 });
