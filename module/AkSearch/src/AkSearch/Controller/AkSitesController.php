@@ -469,7 +469,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	        // 2. Auth\Manager.php->setPassword()
 	        // 3. Auth\Database.php->setPassword()
 	        try {
-	        	$result = $this->getAuthManager()->setPassword($view->username, $this->getRequest());
+	        	$result = $this->getAuthManager()->setPassword($view->username, $view->hash, $this->getRequest());
 	        } catch (\VuFind\Exception\Auth $e) {
 	            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
 	            return $view;

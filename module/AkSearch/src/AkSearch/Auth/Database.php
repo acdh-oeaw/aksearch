@@ -307,7 +307,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    public function setPassword($username, $request) {
+    public function setPassword($username, $hash, $request) {
         // 0. Click button in setpassword.phtml
         // 1. Controller\AkSitesController.php->setPasswordAction()
         // 2. Auth\Manager.php->setPassword()
@@ -332,19 +332,25 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
         // Get user data from database
         $user = $this->getUserTable()->getByUsername($username, false);
         //$user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($username, $email);
-        //$user = $this->getUserTable()->getByVerifyHash($hash);
+        
+        // Control the user by verify hash as a security measure
+        $controlUser = $this->getUserTable()->getByVerifyHash($hash);        
         
         // Check if user was found in database
-        if (!is_object($user)) {
+        if (!is_object($user) || !is_object($controlUser)) {
+        	$result = array('success' => false, 'status' => 'authentication_error_invalid');
+        } else if ($user->verify_hash != $controlUser->verify_hash && $user->username != $controlUser->username) {
         	$result = array('success' => false, 'status' => 'authentication_error_invalid');
         } else { // Set the password
+
         	if ($this->passwordHashingEnabled()) {
         		$bcrypt = new Bcrypt();
         		$user->pass_hash = $bcrypt->create($params['newPassword']);
         	} else {
         		$user->password = $params['newPassword'];
         	}
-        	$user->force_pw_change= 0;
+        	$user->force_pw_change = 0;
+        	$user->verify_hash = '';
         	$user->save();
         	
         	$result = array('success' => true, 'status' => 'setPasswordSuccess');
