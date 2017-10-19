@@ -47,7 +47,7 @@ class User extends DefaultUserTable {
 	public function getByUsernameAndEmail($username, $email) {
 	    $row = $this->select(['username' => $username])->current();
 	    $emailInDb = (!empty($row) && isset($row->email)) ? $row->email : null;	    
-	    return ($emailInDb != null && $emailInDb === $email) ? $row : null;
+	    return ($emailInDb != null && strtolower($emailInDb) === strtolower($email)) ? $row : null;
 	}
 	
     
