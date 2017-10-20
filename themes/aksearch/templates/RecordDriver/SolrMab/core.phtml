@@ -45,7 +45,7 @@
   <? endif; ?>
 
 	<?php
-	$mainTitle = $this->escapeHtml(str_replace(array('<', '>'), '', $this->driver->getShortTitle()));
+	$mainTitle = $this->escapeHtml(str_replace(array('<', '>'), '', $this->driver->getTitle()));
 	$subseriesTitle = ($this->driver->tryMethod('getSubseries')) ? $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries')))) : null;
 	$subTitle = $this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array('<', '>'), '', $this->driver->getTitleSection()));
 	$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));

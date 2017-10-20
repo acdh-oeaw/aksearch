@@ -280,7 +280,8 @@ class SolrMab extends SolrDefault  {
      * @return string: Breadcrumb text to represent this record.
      */
     public function getBreadcrumb() {
-    	return str_replace(array('<', '>'), '', $this->getShortTitle());
+    	//return str_replace(array('<', '>'), '', $this->getShortTitle());
+    	return str_replace(array('<', '>'), '', $this->getTitle());
     	
     }
     
