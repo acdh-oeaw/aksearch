@@ -64,6 +64,11 @@ class SolrMab extends SolrDefault  {
     protected $akConfig;
     
     /**
+     * config.ini configuration
+     */
+    protected $mainConfig;
+    
+    /**
      * DateConverter from VuFind
      */
     protected $dateConverter;
@@ -79,6 +84,8 @@ class SolrMab extends SolrDefault  {
     	// Get AKsearch.ini config
     	// See 4th parameter for "new SolrMab(...)" in method "getSolrMab()" of class "AkSearch\RecordDriver\Factory"
     	$this->akConfig = (isset($akConfig)) ? $akConfig : null;
+    	
+    	$this->mainConfig = $mainConfig;
     	
     	$this->dateConverter = $dateConverter;
     	
@@ -329,22 +336,191 @@ class SolrMab extends SolrDefault  {
 	 * @see \VuFind\RecordDriver\SolrDefault::getThumbnail()
 	 */
 	public function getThumbnail($size = 'small') {
-		
 		if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
 			return $this->fields['thumbnail'];
 		}
 		
-		// Get publication type as string:
-		$publicationTypeCode = $this->getPublicationTypeCode();
-		
-		// Get formats as array:
-		$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
-		$format = null;
-		if (isset($formats)) {
-			if (in_array('printed', $formats)) {
-				// Default for "printed" format. Overwrite below if other format is available.
+		// Get driver (Aleph or Alma)
+		$ilsName = $this->mainConfig->Catalog->driver;
+
+		if (strtolower($ilsName) == 'alma') {
+			
+			// Get publication type as string:
+			$publicationType = (array_key_exists('erscheinungsform_str', $this->fields)) ? $this->fields['erscheinungsform_str'] : null;
+
+			// Get formats as array:
+			$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
+			
+			// Get 008 field as string
+			$marc008 = (array_key_exists('marc008_str', $this->fields)) ? $this->fields['marc008_str'] : null;			
+			
+			if (isset($formats)) {
+				if (in_array('electronic', $formats)) {
+					if (isset($publicationType)) {
+						if ($publicationType == 'Unselbständig') {
+							$format = 'earticle';
+						} else {
+							$format = 'electronic';
+						}
+					} else {
+						$format = 'electronic';
+					}
+				} else if (in_array('printed', $formats)) {
+					// Default for "printed" format. Overwrite below if other format is available.
+					$format = 'book';
+					
+					if (isset($publicationType)) {
+						if ($publicationType == 'Monographisch') {
+							$format = 'book';
+						} else if ($publicationType == 'Mehrbändig') {
+							$format = 'books';
+						} else if ($publicationType == 'Unselbständig') {
+							$format = 'article';
+						} else if ($publicationType == 'Fortsetzung' || $publicationType == 'Zeitschriftenartig') {
+							$format = 'journal'; // Default in case $marc008 is null
+							if ($marc008 != null) {
+								$typOfContinuingResource = (substr($marc008, 21, 1));
+								if ($typOfContinuingResource == 'n') {
+									$format = 'newspaper';
+								} else if ($typOfContinuingResource == 'm') {
+									$format = 'book';
+								} else if ($typOfContinuingResource == 'p' || $typOfContinuingResource == 'l') {
+									$format = 'journal';
+								} else if ($typOfContinuingResource == 'd' || $typOfContinuingResource == 'w') {
+									$format = 'electronic';
+								}
+							}
+						}
+					}
+				} else if (in_array('manuscript', $formats)) {
+					$format = 'manuscript';
+				} else if (in_array('mixedmedia', $formats)) {
+					$format = 'mixedmedia';
+				} else if (in_array('microform', $formats)) {
+					$format = 'microform';
+				} else if (in_array('soundcarrier', $formats)) {
+					$format = 'music';
+				} else if (in_array('avunknown', $formats)) {
+					$format = 'avunknown';
+				} else if (in_array('filmforprojection', $formats)) {
+					$format = 'filmforprojection';
+				} else if (in_array('videorecording', $formats)) {
+					$format = 'video';
+				} else if (in_array('dvd', $formats)) {
+					$format = 'dvd';
+				} else if (in_array('compactdisc', $formats)) {
+					$format = 'compactdisc';
+				} else if (in_array('figurative', $formats)) {
+					$format = 'figurative';
+				} else if (in_array('poster', $formats)) {
+					$format = 'poster';
+				} else if (in_array('file', $formats)) {
+					$format = 'file';
+				} else if (in_array('game', $formats)) {
+					$format = 'game';
+				} else if (in_array('map', $formats)) {
+					$format = 'map';
+				} else {
+					$format = 'unknown';
+				}
+			} else {
+				// Default format. Overwrite below if other format is available.
 				$format = 'book';
-				
+				if (isset($publicationType)) {					
+					if ($publicationType == 'Monographisch') {
+						$format = 'book';
+					} else if ($publicationType == 'Mehrbändig') {
+						$format = 'books';
+					} else if ($publicationType == 'Unselbständig') {
+						$format = 'article';
+					} else if ($publicationType == 'Fortsetzung' || $publicationType == 'Zeitschriftenartig') {
+						$format = 'journal'; // Default in case $marc008 is null
+						if ($marc008 != null) {
+							$typOfContinuingResource = (substr($marc008, 21, 1));
+							if ($typOfContinuingResource == 'n') {
+								$format = 'newspaper';
+							} else if ($typOfContinuingResource == 'm') {
+								$format = 'book';
+							} else if ($typOfContinuingResource == 'p' || $typOfContinuingResource == 'l') {
+								$format = 'journal';
+							} else if ($typOfContinuingResource == 'd' || $typOfContinuingResource == 'w') {
+								$format = 'electronic';
+							}
+						}
+					}
+				}
+			}
+			
+		} else if (strtolower($ilsName) == 'aleph') {
+			
+			// Get publication type as string:
+			$publicationTypeCode = $this->getPublicationTypeCode();
+			
+			// Get formats as array:
+			$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
+			$format = null;
+			if (isset($formats)) {
+				if (in_array('printed', $formats)) {
+					// Default for "printed" format. Overwrite below if other format is available.
+					$format = 'book';
+					
+					if (isset($publicationTypeCode)) {
+						if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
+							$format = 'book';
+						} else if ($publicationTypeCode == 'n' || $publicationTypeCode == 't' || $publicationTypeCode == 'r') {
+							$format = 'books';
+						} else if ($publicationTypeCode == 'a') {
+							$format = 'article';
+						} else if ($publicationTypeCode == 'j' || $publicationTypeCode == 'p' || $publicationTypeCode == 'f') {
+							$format = 'journal';
+						} else if ($publicationTypeCode == 'z') {
+							$format = 'newspaper';
+						}
+					}
+				} else if (in_array('manuscript', $formats)) {
+					$format = 'manuscript';
+				} else if (in_array('mixedmedia', $formats)) {
+					$format = 'mixedmedia';
+				} else if (in_array('microform', $formats)) {
+					$format = 'microform';
+				} else if (in_array('soundcarrier', $formats)) {
+					$format = 'music';
+				} else if (in_array('avunknown', $formats)) {
+					$format = 'avunknown';
+				} else if (in_array('filmforprojection', $formats)) {
+					$format = 'filmforprojection';
+				} else if (in_array('videorecording', $formats)) {
+					$format = 'video';
+				} else if (in_array('dvd', $formats)) {
+					$format = 'dvd';
+				} else if (in_array('compactdisc', $formats)) {
+					$format = 'compactdisc';
+				} else if (in_array('figurative', $formats)) {
+					$format = 'figurative';
+				} else if (in_array('poster', $formats)) {
+					$format = 'poster';
+				} else if (in_array('file', $formats)) {
+					$format = 'file';
+				} else if (in_array('electronic', $formats)) {
+					if (isset($publicationTypeCode)) {
+						if ($publicationTypeCode == 'a') {
+							$format = 'earticle';
+						} else {
+							$format = 'electronic';
+						}
+					} else {
+						$format = 'electronic';
+					}
+				} else if (in_array('game', $formats)) {
+					$format = 'game';
+				} else if (in_array('map', $formats)) {
+					$format = 'map';
+				} else {
+					$format = 'unknown';
+				}
+			} else {
+				// Default format. Overwrite below if other format is available.
+				$format = 'book';
 				if (isset($publicationTypeCode)) {
 					if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
 						$format = 'book';
@@ -357,62 +533,6 @@ class SolrMab extends SolrDefault  {
 					} else if ($publicationTypeCode == 'z') {
 						$format = 'newspaper';
 					}
-				}
-			} else if (in_array('manuscript', $formats)) {
-				$format = 'manuscript';
-			} else if (in_array('mixedmedia', $formats)) {
-				$format = 'mixedmedia';
-			} else if (in_array('microform', $formats)) {
-				$format = 'microform';
-			} else if (in_array('soundcarrier', $formats)) {
-				$format = 'music';
-			} else if (in_array('avunknown', $formats)) {
-				$format = 'avunknown';
-			} else if (in_array('filmforprojection', $formats)) {
-				$format = 'filmforprojection';
-			} else if (in_array('videorecording', $formats)) {
-				$format = 'video';
-			} else if (in_array('dvd', $formats)) {
-				$format = 'dvd';
-			} else if (in_array('compactdisc', $formats)) {
-				$format = 'compactdisc';
-			} else if (in_array('figurative', $formats)) {
-				$format = 'figurative';
-			} else if (in_array('poster', $formats)) {
-				$format = 'poster';
-			} else if (in_array('file', $formats)) {
-				$format = 'file';
-			} else if (in_array('electronic', $formats)) {
-				if (isset($publicationTypeCode)) {
-					if ($publicationTypeCode == 'a') {
-						$format = 'earticle';
-					} else {
-						$format = 'electronic';
-					}
-				} else {
-					$format = 'electronic';
-				}
-			} else if (in_array('game', $formats)) {
-				$format = 'game';
-			} else if (in_array('map', $formats)) {
-				$format = 'map';
-			} else {
-				$format = 'unknown';
-			}
-		} else {
-			// Default format. Overwrite below if other format is available.
-			$format = 'book';
-			if (isset($publicationTypeCode)) {
-				if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
-					$format = 'book';
-				} else if ($publicationTypeCode == 'n' || $publicationTypeCode == 't' || $publicationTypeCode == 'r') {
-					$format = 'books';
-				} else if ($publicationTypeCode == 'a') {
-					$format = 'article';
-				} else if ($publicationTypeCode == 'j' || $publicationTypeCode == 'p' || $publicationTypeCode == 'f') {
-					$format = 'journal';
-				} else if ($publicationTypeCode == 'z') {
-					$format = 'newspaper';
 				}
 			}
 		}
