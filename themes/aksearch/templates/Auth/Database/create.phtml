@@ -35,7 +35,7 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 
 <!-- Check for "aksearch" in URL. We use the result for the captcha path further down. This is mainly necessary for test installations. -->
 <script type="text/javascript">
-	var hasAkSearchPath = (path.toLowerCase() == 'aksearch') ? true : false;
+	var hasAkSearchPath = (path.toLowerCase() == '/aksearch') ? true : false;
 	var captchaPath = (hasAkSearchPath) ? '../aksearch/AkSites/Captcha' : '../AkSites/Captcha';
 </script>
 			
