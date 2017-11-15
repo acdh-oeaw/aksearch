@@ -31,17 +31,11 @@ $dataProcessingRequired = in_array('dataProcessing', $requiredFields);
 $loanHistoryRequired = in_array('loanHistory', $requiredFields);
 $houseAndUsageRulesRequired = in_array('houseAndUsageRules', $requiredFields);
 $captchaCodeRequired = in_array('captchaCode', $requiredFields);
-?>
 
-<!-- Check for "aksearch" in URL. We use the result for the captcha path further down. This is mainly necessary for test installations. -->
-<script type="text/javascript">
-	var hasAkSearchPath = (path.toLowerCase() == '/aksearch') ? true : false;
-	var captchaPath = (hasAkSearchPath) ? '../aksearch/AkSites/Captcha' : '../AkSites/Captcha';
-</script>
-<?php
+//Check for "aksearch" in URL. We use the result for the captcha path further down. This is mainly necessary for test installations.
 $requestUri = preg_replace('/^\//','', $_SERVER['REQUEST_URI']);
 $splittedUri = explode('/', $requestUri);
-$captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '../aksearch/AkSites/Captcha' : '../AkSites/Captcha';
+$captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '/aksearch' : '';
 ?>
 
 <table id="almaUserRegistration" class="table table-striped">
@@ -174,15 +168,10 @@ $captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '../aksearch/AkSite
 		<td><?=$this->transEsc('captchaCode').(($captchaCodeRequired) ? ' *' : '')?></td>
 		<td colspan="2">
 			<br />
-			<img id="captcha" src="<?php echo $captchaPath; ?>" alt="CAPTCHA Image" />&nbsp;
-			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = captchaPath + '?' + Math.random(); return false">
+			<img id="captcha" src="<?php echo $captchaPath; ?>/AkSites/Captcha" alt="CAPTCHA Image" />&nbsp;
+			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = path + '/AkSites/Captcha?' + Math.random(); return false">
 				<i class="fa fa-refresh"></i>
 			</a>
-			<!-- 
-			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = '../AkSites/Captcha?' + Math.random(); return false">
-				<i class="fa fa-refresh"></i>
-			</a>
-			-->
 			<div class="form-group" style="margin-top: 10px; margin-left: 0px;">
 				<input type="text" name="captchaCode" id="captchaCode" class="form-control" maxlength="6" <?=(($captchaCodeRequired) ? 'required aria-required="true"' : '')?> />
 				<div class="small"><?=$this->translate('createAccountCaptchaText')?></div>
