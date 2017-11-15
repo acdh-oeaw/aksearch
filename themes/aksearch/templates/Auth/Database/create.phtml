@@ -33,6 +33,12 @@ $houseAndUsageRulesRequired = in_array('houseAndUsageRules', $requiredFields);
 $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 ?>
 
+<!-- Check for "aksearch" in URL. We use the result for the captcha path further down. This is mainly necessary for test installations. -->
+<script type="text/javascript">
+	var hasAkSearchPath = (path.toLowerCase() == 'aksearch') ? true : false;
+	var captchaPath = (hasAkSearchPath) ? '../aksearch/AkSites/Captcha' : '../AkSites/Captcha';
+</script>
+			
 <table id="almaUserRegistration" class="table table-striped">
 	<tr>
 		<td><?=$this->transEsc('salutation').(($salutationRequired) ? ' *' : '')?> </td>
@@ -164,9 +170,14 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 		<td colspan="2">
 			<br />
 			<img id="captcha" src="../AkSites/Captcha" alt="CAPTCHA Image" />&nbsp;
+			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = captchaPath + '?' + Math.random(); return false">
+				<i class="fa fa-refresh"></i>
+			</a>
+			<!-- 
 			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = '../AkSites/Captcha?' + Math.random(); return false">
 				<i class="fa fa-refresh"></i>
 			</a>
+			-->
 			<div class="form-group" style="margin-top: 10px; margin-left: 0px;">
 				<input type="text" name="captchaCode" id="captchaCode" class="form-control" maxlength="6" <?=(($captchaCodeRequired) ? 'required aria-required="true"' : '')?> />
 				<div class="small"><?=$this->translate('createAccountCaptchaText')?></div>
