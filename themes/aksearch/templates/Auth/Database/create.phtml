@@ -38,7 +38,12 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 	var hasAkSearchPath = (path.toLowerCase() == '/aksearch') ? true : false;
 	var captchaPath = (hasAkSearchPath) ? '../aksearch/AkSites/Captcha' : '../AkSites/Captcha';
 </script>
-			
+<?php
+$requestUri = preg_replace('/^\//','', $_SERVER['REQUEST_URI']);
+$splittedUri = explode('/', $requestUri);
+$captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '../aksearch/AkSites/Captcha' : '../AkSites/Captcha';
+?>
+
 <table id="almaUserRegistration" class="table table-striped">
 	<tr>
 		<td><?=$this->transEsc('salutation').(($salutationRequired) ? ' *' : '')?> </td>
@@ -169,7 +174,7 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 		<td><?=$this->transEsc('captchaCode').(($captchaCodeRequired) ? ' *' : '')?></td>
 		<td colspan="2">
 			<br />
-			<img id="captcha" src="../AkSites/Captcha" alt="CAPTCHA Image" />&nbsp;
+			<img id="captcha" src="<?php echo $captchaPath; ?>" alt="CAPTCHA Image" />&nbsp;
 			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = captchaPath + '?' + Math.random(); return false">
 				<i class="fa fa-refresh"></i>
 			</a>
