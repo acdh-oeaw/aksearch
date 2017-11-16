@@ -145,7 +145,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Check for correct signature and return error message if check fails
 		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
-			$returnArray['error'] = 'Unauthorized: Signature value not correct!';
+			$returnArray['error'] = 'Unauthorized: Signature value not correct! '.$hashedHmacMessage;
 			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
@@ -226,7 +226,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			// Send eMail to user with one-time-password and barcode (= username):
 			$isMailSent = $this->sendMail($barcode, $password, $eMail);
 			if (!$isMailSent) {
-				$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added to VuFind!';
+				$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added from Alma to VuFind!';
 				$returnArray['error'] = $errorText;
 				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
@@ -235,8 +235,20 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				error_log('[Alma] '.$errorText); // Log the error in our own system
 				return $this->httpResponse;
 			}
+		} else if ($method == 'UPDATE') {
+			if ($primaryId == null || $barcode == null) {
+				$errorText = 'Primary ID or barcode not available. User was not updated from Alma to VuFind!';
+				$returnArray['error'] = $errorText;
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+				$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+				$this->httpResponse->setContent($returnJson);
+				error_log('[Alma] '.$errorText); // Log the error in our own system
+				return $this->httpResponse;
+			}
+			// If everything is there, pass on. All variables we need were already set above.
 		} else {
-		    $errorText = 'Only the user webhook action "CREATE" is allowed at the moment! Method used was: '.(($method != null) ? $method : "null");
+		    $errorText = 'Only the user webhook action "CREATE" and "UPDATE" are allowed at the moment! Method used was: '.(($method != null) ? $method : "null");
 			$returnArray['error'] = $errorText;
 			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
@@ -245,8 +257,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			error_log('[Alma] '.$errorText); // Log the error in our own system
 			return $this->httpResponse;
 		}
-		
-		
+
 		$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $eMail, $password, $isOtp, $primaryId, $barcode, $createIfNotExist);
 		if ($user != null) {
 			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
