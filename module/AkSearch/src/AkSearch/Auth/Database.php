@@ -61,7 +61,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	// Get Alma.ini via service locator (getServiceLocator()).
     	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
     	$parentLocator = $this->getServiceLocator()->getServiceLocator();
-    	$this->almaConfig= $parentLocator->get('VuFind\Config')->get('Alma');
+    	$this->almaConfig = $parentLocator->get('VuFind\Config')->get('Alma');
     	
     	// Check if we should use the VuFind database to store user credentials.
     	$useVuFindDatabase = (isset($this->almaConfig->Authentication->useVuFindDatabase)) ? filter_var($this->almaConfig->Authentication->useVuFindDatabase, FILTER_VALIDATE_BOOLEAN) : false;
@@ -444,26 +444,62 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    
-    
-    public function updateUserData($request) {    	
+    /**
+     * Update eMail address in VuFind database and multiple other userdata (phone 1, phone 2) in Alma if applicable.
+     * 
+     * @param array $request	An array of POSTed user data from the "changeuserdata" form.
+	 * @return array			An array of data on the request including whether or not it was successful and a system message (if available)
+     */
+    public function updateUserData($request) {
+    	// 0. Click button in changeuserdata.phtml
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php/Database.php->updateUserData()
+		// 4. Aleph.php/Alma.php->changeUserData();
+		
+    	// Get Alma.ini via service locator (getServiceLocator()).
+    	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
+    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
+    	$this->almaConfig = $parentLocator->get('VuFind\Config')->get('Alma');
+    	
     	// Ensure that all expected parameters are populated to avoid notices in the code below.
     	$params = [];
     	foreach (['username', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
     		$params[$param] = $request->getPost()->get($param, '');
     	}
+
+    	if ((!isset($params['cudEmail']) || empty(trim($params['cudEmail']))) || (!isset($params['username']) || empty($params['username']))) {
+    		$statusMessage = 'required_fields_empty';
+    		return array('success' => $success, 'status' => $statusMessage);
+    	}
     	
-    	/*// Get ILS via service locator
-    	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
-    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
-    	$catalog = $parentLocator->get('VuFind\ILSConnection');
-    	*/
-    	$result = $this->catalog->changeUserData([
-    			'username'	=> $params['username'],
-    			'email'		=> $params['cudEmail'],
-    			'phone'		=> $params['cudPhone'],
-    			'phone2'	=> $params['cudPhone2']
-    	]);
+    	$isAlma = (isset($this->config->Catalog->driver) && strtolower($this->config->Catalog->driver) == 'alma') ? true : false;
+    	$useVuFindDatabase = (isset($this->almaConfig->Authentication->useVuFindDatabase)) ? filter_var($this->almaConfig->Authentication->useVuFindDatabase, FILTER_VALIDATE_BOOLEAN) : false;
+    	
+    	// Get user from VuFind database
+    	$table = $this->getUserTable();
+    	$user = $table->getByUsername($params['username'], false);
+    	$params['primaryId'] = $user->cat_id;
+    	
+    	// Update eMail address in VuFind database
+    	$user->email = $params['cudEmail'];
+    	$user->save(); // Save user entry
+    	$result = array('success' => true, 'status' => 'changed_userdata_success');
+    	
+    	// Update userdata also in Alma if the Alma driver is activated and if the authentication source is the VuFind database.
+    	// If another authentication source is used (e. g. LDAP), we don't update Alma because a synchronisazion process apart
+    	// from VuFind should do that job.
+    	if ($isAlma && $useVuFindDatabase) {
+    		$result = $this->catalog->changeUserData([
+    				'primaryId'	=> $params['primaryId'],
+    				'username'	=> $params['username'],
+    				'email'		=> $params['cudEmail'],
+    				'phone'		=> $params['cudPhone'],
+    				'phone2'	=> $params['cudPhone2']
+    		]);
+    	}
+    	
+    	return $result;
     }
     
 

@@ -295,8 +295,8 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 			// 0. Click button in changeuserdata.phtml
 			// 1. AkSitesController.php->changeUserDataAction()
 			// 2. Manager.php->updateUserData()
-			// 3. ILS.php->updateUserData()
-			// 4. Aleph.php->changeUserData();
+			// 3. ILS.php/Database.php->updateUserData()
+			// 4. Aleph.php/Alma.php->changeUserData();
 			try {
 				$result = $this->getAuthManager()->updateUserData($this->getRequest());
 			} catch (\VuFind\Exception\Auth $e) {

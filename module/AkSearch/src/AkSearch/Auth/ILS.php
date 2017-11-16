@@ -72,8 +72,8 @@ class ILS extends DefaultAuthILS {
     	// 0. Click button in changeuserdata.phtml
 		// 1. AkSitesController.php->changeUserDataAction()
 		// 2. Manager.php->updateUserData()
-		// 3. ILS.php->updateUserData()
-		// 4. Aleph.php->changeUserData();
+		// 3. ILS.php/Database.php->updateUserData()
+		// 4. Aleph.php/Alma.php->changeUserData();
 
     	// Ensure that all expected parameters are populated to avoid notices in the code below.
     	$params = [];

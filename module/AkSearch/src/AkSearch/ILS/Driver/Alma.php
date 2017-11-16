@@ -31,6 +31,8 @@
 namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
+use VuFind\Exception\Auth as AuthException;
+
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
 	use \VuFind\Log\LoggerAwareTrait;
@@ -533,18 +535,91 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
-	
+	/**
+	 * Change user data via API.
+	 * 
+	 * @param array $details	An array of user details
+	 * @return array			An array of data on the request including whether or not it was successful and a system message (if available)
+	 */
 	public function changeUserData($details) {
-		// TODO: Implement this method!
+		// 0. Click button in changeuserdata.phtml
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php/Database.php->updateUserData()
+		// 4. Aleph.php/Alma.php->changeUserData();
 		
-		/*
-		echo '<strong>Alma -> changeUserData()</strong><br />';
-		echo '<pre>';
-		print_r($details);
-		echo '</pre>';
-		*/
+		// Initialize variables:
+		$success = false;
+		$statusMessage = 'Could not change user data.';
+		$dateToday = date("Ymd");
+		$primaryId = $details['primaryId'];
+		$barcode = $details['username'];
+		
+		$newEmail = (isset($details['email'])) ? trim($details['email']) : '';
+		$newPhone = (isset($details['phone'])) ? trim($details['phone']) : '';
+		$newPhone2 = (isset($details['phone2'])) ? trim($details['phone2']) : '';
+		
+		if (empty($newEmail)) {
+			$statusMessage = 'required_fields_empty';			
+			return array('success' => $success, 'status' => $statusMessage);
+		}
+		
+		// Get the alma user XML object from API
+		$almaUserObject = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?&apikey='.$this->apiKey, 'GET');
+		$almaUserObject = $almaUserObject['xml']; // Get the user XML object from the return-array.
+		
+		// Remove user roles (they are not touched)
+		unset($almaUserObject->user_roles);
+		
+		// Set preferred eMail
+		foreach($almaUserObject->contact_info->emails->email as $email) {
+			foreach ($email->attributes() as $name => $value) {
+				if ($name == 'preferred' && $value == 'true') {
+					$email->email_address = $newEmail;
+				}
+			}
+		}
+		
+		// Set phone 1 (preferred)
+		foreach($almaUserObject->contact_info->phones->phone as $phone) {
+			foreach ($phone->attributes() as $name => $value) {
+				if ($name == 'preferred' && $value == 'true') {
+					$phone->phone_number = $newPhone;
+				}
+			}
+		}
+		
+		// Set phone 2 (first non-preferred phone number that was found)
+		foreach($almaUserObject->contact_info->phones->phone as $key => $phone) {
+			$isPreferred = true;
+			foreach ($phone->attributes() as $name => $value) {
+				if ($name == 'preferred' && $value == 'false') {
+					$isPreferred = false;
+				}
+			}
+			// Set the first non-preferred phone number and then stop (break) the loop as we don't change further non-preferred numbers.
+			if (!$isPreferred) {
+				$phone->phone_number = $newPhone2;
+				break;
+			}
+		}
+		
+		// Get XML for update process via API
+		$almaUserObjectForUpdate = $almaUserObject->asXML();
+		
+		// Send update via HTTP PUT to Alma
+		$updateResult = $this->doHTTPRequest($this->apiUrl.'users/'.$primaryId.'?user_id_type=all_unique&apikey='.$this->apiKey, 'PUT', $almaUserObjectForUpdate, ['Content-type' => 'application/xml']);
+		
+		if ($updateResult['status'] == '200') {
+			$statusMessage = 'changed_userdata_success';
+			$success = true;
+		} else {
+			$statusMessage = 'Changing user data not successful! HTTP error code: '.$updateResult['status'];
+		}	
+		
+		$returnArray = array('success' => $success, 'status' => $statusMessage);
+		return $returnArray;
 	}
-	
 	
 	
 	/**
@@ -667,7 +742,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$email_addr = null;
 			foreach($details->contact_info->emails->email as $email) {
 				foreach ($email->attributes() as $name => $value) {
-					if ($name == 'preferred' && $value == true) {
+					if ($name == 'preferred' && $value == 'true') {
 						$email_addr = (isset($email->email_address)) ? $email->email_address : null;
 					}
 				}

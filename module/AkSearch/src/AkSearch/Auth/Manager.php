@@ -85,11 +85,10 @@ class Manager extends DefaultAuthManager {
      */
     public function updateUserData($request) {
         // 0. Click button in changeuserdata.phtml
-        // 1. AkSitesController.php->changeUserDataAction()
-        // 2. Manager.php->updateUserData()
-        // 3. ILS.php->updateUserData()
-        // 4. Aleph.php->changeUserData();
-        
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php/Database.php->updateUserData()
+		// 4. Aleph.php/Alma.php->changeUserData();
         $result = $this->getAuth()->updateUserData($request);
         return $result;
     }
