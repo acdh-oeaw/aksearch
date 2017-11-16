@@ -128,7 +128,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		if ($almaWebhookSecret == null) {
 			$errorText = 'Please provide webhook secret in Alma.ini in section [Webhook]. It must be the same value that is used in Alma in the integration profile for the webhook!';
 			$returnArray['error'] = $errorText;
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
 			$this->httpResponse->setContent($returnJson);
@@ -146,7 +146,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Check for correct signature and return error message if check fails
 		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
 			$returnArray['error'] = 'Unauthorized: Signature value not correct!';
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
 			$this->httpResponse->setContent($returnJson);
@@ -171,7 +171,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$userIdentifiers = (isset($requestBodyJson->webhook_user->user->user_identifier)) ? $requestBodyJson->webhook_user->user->user_identifier : null;
 		foreach ($userIdentifiers as $userIdentifier) {
 			$idType = (isset($userIdentifier->id_type->value)) ? $userIdentifier->id_type->value : null;
-			if ($idType != null && $idType == 'BARCODE' && $barcode == null) {
+			if ($idType != null && $idType == '01' && $barcode == null) {
 				$barcode = (isset($userIdentifier->value)) ? $userIdentifier->value : null;
 			}
 		}
@@ -210,7 +210,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				if ($addedBarcodeStatus != '200') {
 					$errorText = 'Problem writing automatically generated barcode from VuFind back to Alma User with primary ID '.$primaryId.' while creating new user in VuFind from Alma webhook! Http status code: '.$addedBarcodeStatus;
 					$returnArray['error'] = $errorText;
-					$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+					$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 					$this->httpResponse->setStatusCode($addedBarcodeStatus); // Set HTTP status code according to Alma return value
 					$this->httpResponse->setContent($returnJson);
@@ -221,13 +221,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			
 			// Generate one-time-password
 			$password = $this->generatePassword();
-			/*
-			//if ($this->passwordHashingEnabled()) {
-			if ($this->akSearch()->passwordHashingEnabled()) { // See Controller\Plugin\AkSearch.php
-				$bcrypt = new Bcrypt();
-				$passHash = $bcrypt->create($password);
-			}
-			*/
 			$isOtp = 1;
 			
 			// Send eMail to user with one-time-password and barcode (= username):
@@ -235,7 +228,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			if (!$isMailSent) {
 				$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added to VuFind!';
 				$returnArray['error'] = $errorText;
-				$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 				$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
 				$this->httpResponse->setContent($returnJson);
@@ -245,7 +238,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		} else {
 		    $errorText = 'Only the user webhook action "CREATE" is allowed at the moment! Method used was: '.(($method != null) ? $method : "null");
 			$returnArray['error'] = $errorText;
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 			$this->httpResponse->setContent($returnJson);
@@ -261,41 +254,12 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			// Create a return message in case of error
 			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
 			$returnArray['error'] = $errorText;
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
 			$this->httpResponse->setContent($returnJson);
 			error_log('[Alma] '.$errorText); // Log the error in our own system
 		}
-		/*
-		// Update or create user in database table
-		$user = ($primaryId != null) ? $this->userTable->getByCatalogId($primaryId, $barcode, $createIfNotExist) : null;
-		if ($user != null && !empty($user)) {
-			$user->cat_id = $primaryId;
-			$user->username = $barcode;
-			$user->firstname = $firstName;
-			$user->lastname = $lastName;
-			$user->email = $eMail;
-			$user->cat_username = $barcode;
-			if ($createIfNotExist && $passHash != null) {
-				$user->pass_hash = $passHash;
-			} else if ($createIfNotExist && $password != null){
-				$user->password = $password;
-			}
-			$user->is_otp = $isOtp;
-			$user->save(); // Update user record
-			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
-		} else {
-			// Create a return message in case of error
-			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
-			$returnArray['error'] = $errorText;			
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
-			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
-			$this->httpResponse->setContent($returnJson);
-			error_log('[Alma] '.$errorText); // Log the error in our own system
-		}
-		*/
 		
 		return $this->httpResponse;
 	}
@@ -327,7 +291,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$returnArray = array_filter($returnArray); // Remove null from array
 		
 		// Create return json value
-		$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+		$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 		
 		// Set HTTP status code to OK (200)
 		$this->httpResponse->setStatusCode(200);
@@ -511,7 +475,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		if ($hasError) { $returnArray['request']['hasError'] = $hasError; }
 		if ($errorMsg) { $returnArray['request']['errorMsg'] = $errorMsg; } // The error message from the ILS server
 		$returnArray= array_filter($returnArray); // Remove null from array
-		$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+		$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 		
 		// Return XML
 		if ($returnFormat == 'xml') {
