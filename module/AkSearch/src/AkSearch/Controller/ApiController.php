@@ -726,10 +726,14 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		$email_subject = 'AK Bibliothek Wien - Ihr Account';
 		$email_message = '';
-		$email_message .= 'Besuchen Sie folgende Website und geben Sie die untenstehenden Daten ein.' . "\n\n";
-		$email_message .= 'URL: https://biapps.arbeiterkammer.at/aksearch/AkSites/SetPasswordWithOtp' . "\n";
-		$email_message .= 'Username: ' . $username. "\n";
-		$email_message .= 'Password: ' . $password. "\n";
+		$email_message .= 'Sehr geehrte Nutzerin, sehr geehrter Nutzer!'."\n\n";
+		$email_message .= 'An der AK Bibliothek Wien wurde ein NutzerInnen Account für Sie erstellt. Um unsere Services in Anspruch nehmen zu können, müssen Sie zunächst ein eigenes Passwort wählen.'."\n\n";
+		$email_message .= 'Besuchen Sie bitte folgende Website, geben Sie in die ensprechenden Felder die untenstehenden Daten ein und wählen Sie dann mithilfe der Felder "Neues Passwort" sowie "Neues Passwort bestätigen" ein eigenes Passwort.' . "\n\n";
+		$email_message .= 'URL: https://biapps.arbeiterkammer.at/aksearch/AkSites/SetPasswordWithOtp' . "\n\n";
+		$email_message .= '\tBenutzerInnen-Name: ' . $username. "\n";
+		$email_message .= '\tEinmal-Passwort: ' . $password. "\n\n";
+		$email_message .= 'Mit freundlichen Grüßen'."\n";
+		$email_message .= 'Ihr Team der AK Bibliothek Wien'."\n";
 		
 		$from = (isset($this->configAlma->Webhook->emailFrom)) ? $this->configAlma->Webhook->emailFrom : null;
 		$bcc = (isset($this->configAlma->Webhook->emailBCC)) ? $this->configAlma->Webhook->emailBCC: null;
