@@ -87,6 +87,22 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$requestBodyJson = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent()) : null;
 		//$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
 		
+		// If a file is specified in Alma.ini to which we should write the data received from the webhook, write it to that file.
+		$writeRequestBodyToFile = (isset($this->configAlma->Webhook->receivedDataFile) && !empty(trim($this->configAlma->Webhook->receivedDataFile))) ? true : false;
+		if ($writeRequestBodyToFile) {
+			$pathToFile = $this->configAlma->Webhook->receivedDataFile;
+			$writeToFile = file_put_contents($pathToFile, json_encode($requestBodyJson, JSON_PRETTY_PRINT));
+			
+			if ($writeToFile == false) {
+				$returnArray['error'] = 'Could not write received data from Alma webhook to file "'.$pathToFile.'" specified in Alma.ini';
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+				$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
+				$this->httpResponse->setContent($returnJson);
+				return $this->httpResponse;
+			}
+		}
+		
 		// Get webhook action
 		$webhookAction = (isset($requestBodyJson->action)) ? $requestBodyJson->action: null;
 		
@@ -106,7 +122,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	
 	private function webhookUser($requestBodyJson) {
-				
+		
 		// Get webhook secret from Alma.ini. If it is not set, return an error message
 		$almaWebhookSecret = (isset($this->configAlma->Webhook->secret) && !empty($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
 		if ($almaWebhookSecret == null) {
