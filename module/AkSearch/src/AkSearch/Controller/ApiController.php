@@ -145,7 +145,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Check for correct signature and return error message if check fails
 		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
-			$returnArray['error'] = 'Unauthorized: Signature value not correct! '.$hashedHmacMessage;
+			$returnArray['error'] = 'Unauthorized: Signature value not correct!';
 			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
