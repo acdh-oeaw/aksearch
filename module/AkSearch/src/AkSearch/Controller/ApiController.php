@@ -154,9 +154,11 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			return $this->httpResponse;
 		}
 		
+		
 		// Set some default values that will be overwritten if appropriate
 		$password = null;
 		$passHash = null;
+		$loanHistory = null;
 		$createIfNotExist = false;
 		$isOtp = 0;
 		
@@ -166,78 +168,100 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Get primary ID
 		$primaryId = (isset($requestBodyJson->webhook_user->user->primary_id)) ? $requestBodyJson->webhook_user->user->primary_id : null;
 		
-		// Get barcode
-		$barcode = null;
-		$userIdentifiers = (isset($requestBodyJson->webhook_user->user->user_identifier)) ? $requestBodyJson->webhook_user->user->user_identifier : null;
-		foreach ($userIdentifiers as $userIdentifier) {
-			$idType = (isset($userIdentifier->id_type->value)) ? $userIdentifier->id_type->value : null;
-			if ($idType != null && $idType == '01' && $barcode == null) {
-				$barcode = (isset($userIdentifier->value)) ? $userIdentifier->value : null;
-			}
-		}
-		
-		// Get first name
-		$firstName = (isset($requestBodyJson->webhook_user->user->first_name)) ? $requestBodyJson->webhook_user->user->first_name : null;
-		
-		// Get last name
-		$lastName = (isset($requestBodyJson->webhook_user->user->last_name)) ? $requestBodyJson->webhook_user->user->last_name : null;
-		
-		// Get preferred eMail
-		$eMail = null;
-		$contactEmails = (isset($requestBodyJson->webhook_user->user->contact_info->email)) ? $requestBodyJson->webhook_user->user->contact_info->email : null;
-		foreach ($contactEmails as $contactEmail) {
-			$preferred = (isset($contactEmail->preferred)) ? $contactEmail->preferred : false;
-			if ($preferred && $eMail == null) {
-				$eMail = (isset($contactEmail->email_address)) ? $contactEmail->email_address : null;
-			}
-		}
 
-		// Do stuff if a new user is create via Alma webhook.
-		if ($method == 'CREATE') {
+		if ($method == 'CREATE' || $method == 'UPDATE') {
 			
-			// Set variable for getByCatalogId() function
-			$createIfNotExist = true;
+			// Get barcode
+			$barcode = null;
+			$userIdentifiers = (isset($requestBodyJson->webhook_user->user->user_identifier)) ? $requestBodyJson->webhook_user->user->user_identifier : null;
+			foreach ($userIdentifiers as $userIdentifier) {
+				$idType = (isset($userIdentifier->id_type->value)) ? $userIdentifier->id_type->value : null;
+				if ($idType != null && $idType == '01' && $barcode == null) {
+					$barcode = (isset($userIdentifier->value)) ? $userIdentifier->value : null;
+				}
+			}
 			
-			// Create new barcode
-			if ($barcode == null) {
-				$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
-				$barcode = $this->akSearch()->generateBarcode($stringForHash);
+			// Get first name
+			$firstName = (isset($requestBodyJson->webhook_user->user->first_name)) ? $requestBodyJson->webhook_user->user->first_name : null;
+			
+			// Get last name
+			$lastName = (isset($requestBodyJson->webhook_user->user->last_name)) ? $requestBodyJson->webhook_user->user->last_name : null;
+			
+			// Get preferred eMail
+			$eMail = null;
+			$contactEmails = (isset($requestBodyJson->webhook_user->user->contact_info->email)) ? $requestBodyJson->webhook_user->user->contact_info->email : null;
+			foreach ($contactEmails as $contactEmail) {
+				$preferred = (isset($contactEmail->preferred)) ? $contactEmail->preferred : false;
+				if ($preferred && $eMail == null) {
+					$eMail = (isset($contactEmail->email_address)) ? $contactEmail->email_address : null;
+				}
+			}
+			
+			if ($method == 'CREATE') {
+				// Set variables
+				$createIfNotExist = true;
+				$loanHistory = false;
 				
-				// Write barcode back to Alma
-				$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
+				// Create new barcode
+				if ($barcode == null) {
+					$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
+					$barcode = $this->akSearch()->generateBarcode($stringForHash);
+					
+					// Write barcode back to Alma
+					$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
+					
+					// Return error if barcode could not be written to Alma
+					if ($addedBarcodeStatus != '200') {
+						$errorText = 'Problem writing automatically generated barcode from VuFind back to Alma User with primary ID '.$primaryId.' while creating new user in VuFind from Alma webhook! Http status code: '.$addedBarcodeStatus;
+						$returnArray['error'] = $errorText;
+						$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+						$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+						$this->httpResponse->setStatusCode($addedBarcodeStatus); // Set HTTP status code according to Alma return value
+						$this->httpResponse->setContent($returnJson);
+						error_log('[Alma] '.$errorText); // Log the error in our own system
+						return $this->httpResponse;
+					}
+				}
 				
-				// Return error if barcode could not be written to Alma
-				if ($addedBarcodeStatus != '200') {
-					$errorText = 'Problem writing automatically generated barcode from VuFind back to Alma User with primary ID '.$primaryId.' while creating new user in VuFind from Alma webhook! Http status code: '.$addedBarcodeStatus;
+				// Generate one-time-password
+				$password = $this->generatePassword();
+				$isOtp = 1;
+				
+				// Send eMail to user with one-time-password and barcode (= username):
+				$isMailSent = $this->sendMail($barcode, $password, $eMail);
+				if (!$isMailSent) {
+					$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added from Alma to VuFind!';
 					$returnArray['error'] = $errorText;
 					$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-					$this->httpResponse->setStatusCode($addedBarcodeStatus); // Set HTTP status code according to Alma return value
+					$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
 					$this->httpResponse->setContent($returnJson);
 					error_log('[Alma] '.$errorText); // Log the error in our own system
 					return $this->httpResponse;
 				}
+				
+			} else if ($method == 'UPDATE') {
+				if ($primaryId == null || $barcode == null) {
+					$errorText = 'Primary ID or barcode not available. User was not updated from Alma to VuFind!';
+					$returnArray['error'] = $errorText;
+					$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+					$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+					$this->httpResponse->setContent($returnJson);
+					error_log('[Alma] '.$errorText); // Log the error in our own system
+					return $this->httpResponse;
+				}
+				// If everything is there, go on. All variables we need were already set above.
+				
 			}
 			
-			// Generate one-time-password
-			$password = $this->generatePassword();
-			$isOtp = 1;
+			$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $eMail, $password, $isOtp, $primaryId, $barcode, $loanHistory, $createIfNotExist);
 			
-			// Send eMail to user with one-time-password and barcode (= username):
-			$isMailSent = $this->sendMail($barcode, $password, $eMail);
-			if (!$isMailSent) {
-				$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added from Alma to VuFind!';
-				$returnArray['error'] = $errorText;
-				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
-				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-				$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
-				$this->httpResponse->setContent($returnJson);
-				error_log('[Alma] '.$errorText); // Log the error in our own system
-				return $this->httpResponse;
-			}
-		} else if ($method == 'UPDATE') {
-			if ($primaryId == null || $barcode == null) {
-				$errorText = 'Primary ID or barcode not available. User was not updated from Alma to VuFind!';
+			if ($user != null) {
+				$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+			} else {
+				// Create a return message in case of error
+				$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
 				$returnArray['error'] = $errorText;
 				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
@@ -246,9 +270,25 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				error_log('[Alma] '.$errorText); // Log the error in our own system
 				return $this->httpResponse;
 			}
-			// If everything is there, pass on. All variables we need were already set above.
+			
+		} else if ($method == 'DELETE') {
+			if ($primaryId == null) {
+				$errorText = 'Primary ID not available. User was not deleted in VuFind database!';
+				$returnArray['error'] = $errorText;
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+				$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+				$this->httpResponse->setContent($returnJson);
+				error_log('[Alma] '.$errorText); // Log the error in our own system
+				return $this->httpResponse;
+			} else {
+				$noOfDeletedUsers = $this->akSearch()->deleteUserInDb($primaryId);
+				$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+			}
+			
+			
 		} else {
-		    $errorText = 'Only the user webhook action "CREATE" and "UPDATE" are allowed at the moment! Method used was: '.(($method != null) ? $method : "null");
+		    $errorText = 'Only the user webhook action "CREATE", "UPDATE" and "DELETE" are allowed! Method used was: '.(($method != null) ? $method : "null");
 			$returnArray['error'] = $errorText;
 			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
@@ -256,20 +296,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			$this->httpResponse->setContent($returnJson);
 			error_log('[Alma] '.$errorText); // Log the error in our own system
 			return $this->httpResponse;
-		}
-
-		$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $eMail, $password, $isOtp, $primaryId, $barcode, $createIfNotExist);
-		if ($user != null) {
-			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
-		} else {
-			// Create a return message in case of error
-			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
-			$returnArray['error'] = $errorText;
-			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
-			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
-			$this->httpResponse->setContent($returnJson);
-			error_log('[Alma] '.$errorText); // Log the error in our own system
 		}
 		
 		return $this->httpResponse;

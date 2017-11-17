@@ -95,6 +95,7 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 		return $this->configAlma;
 	}
 	
+	
 	/**
 	 * Get the config in config.ini
 	 *
@@ -102,6 +103,16 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 	 */
 	public function getConfig() {
 		return $this->config;
+	}
+	
+	
+	/**
+	 * Delete user from 'user' database table.
+	 * @param string $primaryId	The cat_id of the user
+	 * @return int				Number of deleted users
+	 */
+	public function deleteUserInDb($primaryId) {
+		return $this->userTable->deleteUserByCatalogId($primaryId);
 	}
 	
 	
@@ -213,10 +224,6 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 		
 		return $returnArray;
 	}
-	
-	
-	
 
-	
 }
 ?>

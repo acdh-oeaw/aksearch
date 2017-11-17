@@ -50,5 +50,15 @@ class User extends DefaultUserTable {
 	    return ($emailInDb != null && strtolower($emailInDb) === strtolower($email)) ? $row : null;
 	}
 	
+	
+	/**
+	 * Delete a user from the database based on catalog ID (cat_id).
+	 * 
+	 * @param string $catId	The cat_id of the user
+	 * @return int			Number of deleted users
+	 */
+	public function deleteUserByCatalogId($catId) {
+		return $this->delete(['cat_id' => $catId]);
+	}
     
 }
