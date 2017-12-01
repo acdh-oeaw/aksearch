@@ -132,7 +132,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
 	 */
-	public function getHolding($mmsId, array $patron = null, array $holIds = null) {
+	public function getHolding($mmsId, array $patron = null, array $holIds = null, array $itmLinkItems = null) {
 				
 		// Variable for return value:
 		$returnValue = [];
@@ -174,11 +174,14 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					$offset = ($maxItemsLoad > ($totalRecordCount-1)) ? ($totalRecordCount-1) : $maxItemsLoad;
 					$itemsForHolding = $this->getMoreItems($mmsId, $holId, $maxItemsLoad, $offset, $totalRecordCount, $itemsForHolding);
 				}
-				
 				$itemsAll = array_merge($itemsAll, $itemsForHolding);
 			}
 		}
 		
+		// Inject item link items
+		if ($itmLinkItems != null) {
+			$itemsAll = array_merge($itemsAll, $itmLinkItems);
+		}
 		
 		// Iterate over items, get available information and add it to an array as described in the VuFind Wiki at:
 		// https://vufind.org/wiki/development:plugins:ils_drivers#getholding
@@ -385,7 +388,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 *
 	 * @return array	xml => SimpleXMLElement, status => HTTP status code
 	 */
-	protected function doHTTPRequest($url, $method = 'GET', $rawBody = null, $headers = null) {
+	public function doHTTPRequest($url, $method = 'GET', $rawBody = null, $headers = null) {
 		if ($this->debug_enabled) {
 			$this->debug("URL: '$url'");
 		}

@@ -2137,6 +2137,56 @@ class SolrMab extends SolrDefault  {
 	}
 	
 	
+	
+	// #####################################################################################
+	// ##################################### ITM LINKS #####################################
+	// #####################################################################################
+	public function hasItmLink() {
+		return (isset($this->fields['itmLink_str']) && !empty($this->fields['itmLink_str'])) ? true : false;
+	}
+	
+	
+	public function getItmLinkItems() {
+		$itmLinkItems = [];
+		
+		if ($this->hasItmLink()) {
+			// Get driver (Aleph or Alma)
+			$ilsName = $this->mainConfig->Catalog->driver;
+			$itemLinkEnumeration = $this->fields['itmLink_str'];
+			$avaBibIds = (isset($this->fields['avaBibId_str_mv']) && ! empty($this->fields['avaBibId_str_mv'])) ? $this->fields['avaBibId_str_mv'] : null;
+			$avaHolIds = (isset($this->fields['avaHolId_str_mv']) && ! empty($this->fields['avaHolId_str_mv'])) ? $this->fields['avaHolId_str_mv'] : null;
+			if ($avaHolIds != null && $avaBibIds != null) {
+				foreach ($avaBibIds as $key => $avaBibId) {
+					if (strtolower($ilsName) == 'alma') {
+						$avaHolId = $avaHolIds[$key];
+						$alma = $this->ils->getDriver();
+						$almaConfig = $this->ils->getDriverConfig();
+						
+						if (method_exists($alma, 'doHTTPRequest')) {
+							$apiUrl = $almaConfig['API']['url'];
+							$apiKey = $almaConfig['API']['key'];
+
+							$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?apikey='.$apiKey, 'GET');							
+							$items = $itemResult['xml']->item;
+							foreach($items as $item) {
+								$enumerationA = $item->item_data->enumeration_a;
+								if ($enumerationA == $itemLinkEnumeration) {
+									$itmLinkItems[] = $item;
+								}
+							}
+							
+						} else {
+							// TODO: Output error that method for calling the API of the ILS does not exist in the ILS driver [NAME].
+						}
+					}
+				}
+			} else {
+				// TODO: Output error that Solr field avaHolId_str_mv is not available. It should be indext when enriching from primo-publishing-files.
+			}
+		}
+		
+		return $itmLinkItems;
+	}
 
 
 	// #######################################################################################
@@ -2217,7 +2267,9 @@ class SolrMab extends SolrDefault  {
     		return array();
     	}
     	try {
-    		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds());
+    		$itmLinkItems = $this->getItmLinkItems();
+    		$itmLinkItems = ($itmLinkItems != null && !empty($itmLinkItems)) ? $itmLinkItems : null;
+    		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds(), $itmLinkItems);
 
     		foreach ($holdings as &$holdingsOfLocation) {
     			$items = &$holdingsOfLocation['items'];

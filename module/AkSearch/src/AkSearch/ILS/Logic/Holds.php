@@ -18,7 +18,7 @@ class Holds extends DefaultHolds {
      *
      * @return array A sorted results set
      */
-    public function getHoldings($id, $ids = null) {
+    public function getHoldings($id, $ids = null, $itmLinkItems = null) {
 
         $holdings = [];
 
@@ -34,8 +34,9 @@ class Holds extends DefaultHolds {
             if (isset($config['consortium']) && $config['consortium'] == true) {
                 $result = $this->catalog->getConsortialHoldings($id, $patron ? $patron : null, $ids);
             } else {            	
-            	// Added $ids as last parameter as we will pass in the Alma Holding IDs to save an API request
-            	$result = $this->catalog->getHolding($id, (($patron) ? $patron : null), $ids);
+            	// Added $ids and $itmLinkItems as parameter as we will pass in the Alma Holding IDs to save an API request and to resolve the
+            	// problematic item link display.
+            	$result = $this->catalog->getHolding($id, (($patron) ? $patron : null), $ids, $itmLinkItems);
             }
 
             $mode = $this->catalog->getHoldsMode();
