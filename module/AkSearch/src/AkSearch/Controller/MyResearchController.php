@@ -224,6 +224,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		$city = $this->params()->fromPost('city');
     		$email = $this->params()->fromPost('email');
     		$phone = $this->params()->fromPost('phone');
+    		$phone = ($phone != null && !empty($phone)) ? $phone : '000000000';
     		$birthday = $this->params()->fromPost('birthday');
     		$birthdayTs = null;
     		if ($birthday != null) {
