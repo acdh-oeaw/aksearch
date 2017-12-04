@@ -132,7 +132,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
 	 */
-	public function getHolding($mmsId, array $patron = null, array $holIds = null, array $itmLinkItems = null) {
+	public function getHolding($mmsId, array $patron = null, array $holIds = null, array $itmLinkItems = null, array $lkrLinkItems = null) {
 				
 		// Variable for return value:
 		$returnValue = [];
@@ -181,6 +181,11 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// Inject item link items
 		if ($itmLinkItems != null) {
 			$itemsAll = array_merge($itemsAll, $itmLinkItems);
+		}
+		
+		// Inject lkr link items
+		if ($lkrLinkItems != null) {
+			$itemsAll = array_merge($itemsAll, $lkrLinkItems);
 		}
 		
 		// Iterate over items, get available information and add it to an array as described in the VuFind Wiki at:

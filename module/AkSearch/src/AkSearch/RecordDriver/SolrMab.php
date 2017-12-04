@@ -2150,8 +2150,7 @@ class SolrMab extends SolrDefault  {
 		$itmLinkItems = [];
 		
 		if ($this->hasItmLink()) {
-			// Get driver (Aleph or Alma)
-			$ilsName = $this->mainConfig->Catalog->driver;
+			$ilsName = $this->mainConfig->Catalog->driver; // Get driver (Aleph or Alma)
 			$itemLinkEnumeration = $this->fields['itmLink_str'];
 			$avaBibIds = (isset($this->fields['avaBibId_str_mv']) && ! empty($this->fields['avaBibId_str_mv'])) ? $this->fields['avaBibId_str_mv'] : null;
 			$avaHolIds = (isset($this->fields['avaHolId_str_mv']) && ! empty($this->fields['avaHolId_str_mv'])) ? $this->fields['avaHolId_str_mv'] : null;
@@ -2187,8 +2186,62 @@ class SolrMab extends SolrDefault  {
 		
 		return $itmLinkItems;
 	}
+	
+	
+	// #####################################################################################
+	// ##################################### LKR LINKS #####################################
+	// #####################################################################################
+	public function hasLkrLink() {
+		return (isset($this->fields['lkrBibId_str_mv']) && !empty($this->fields['lkrBibId_str_mv'])) ? true : false;
+	}
+	
+	public function getLkrLinkItems() {
+		$lkrLinkItems = [];
+		if ($this->hasLkrLink()) {
+			$ilsName = $this->mainConfig->Catalog->driver; // Get driver (Aleph or Alma)
+			if (strtolower($ilsName) == 'alma') {
+				$lkrLinkEnumeration = $this->fields['lkrText_str_mv'];
+				$alma = $this->ils->getDriver();
 
+				if (method_exists($alma, 'doHTTPRequest')) {
+					$almaConfig = $this->ils->getDriverConfig();
+					$apiUrl = $almaConfig['API']['url'];
+					$apiKey = $almaConfig['API']['key'];
+					$avaBibIds = (isset($this->fields['avaBibId_str_mv']) && ! empty($this->fields['avaBibId_str_mv'])) ? $this->fields['avaBibId_str_mv'] : null;
+					$avaHolIds = (isset($this->fields['avaHolId_str_mv']) && ! empty($this->fields['avaHolId_str_mv'])) ? $this->fields['avaHolId_str_mv'] : null;
+					$itmHolIds = (isset($this->fields['holdingIds_str_mv']) && ! empty($this->fields['holdingIds_str_mv'])) ? $this->fields['holdingIds_str_mv'] : null;
+					
+					if ($avaHolIds != null && $avaBibIds != null) {
+						// Check if a HOL ID in avaHolId_str_mv also exists in holdingIds_str_mv. If yes, remove it from $avaHolIds to avoid doubled items.
+						$avaHolIds = ($itmHolIds != null) ? array_diff($avaHolIds, $itmHolIds) : $avaHolIds;
+						
+						foreach ($avaBibIds as $avaBibId) {
+							foreach($avaHolIds as $avaHolId) {
+								
+								$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?apikey='.$apiKey, 'GET');							
+								$items = $itemResult['xml']->item;
+								
+								foreach($items as $item) {
+									$enumerationA = $item->item_data->enumeration_a;
+									if ($lkrLinkEnumeration != null && !empty($lkrLinkEnumeration)) {
+										if (in_array($enumerationA, $lkrLinkEnumeration)) {
+											$lkrLinkItems[] = $item;
+										}
+									} else {
+										$lkrLinkItems[] = $item;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return $lkrLinkItems;
+	}
 
+	
 	// #######################################################################################
 	// ################################## ILS COMMUNICATION ##################################
 	// #######################################################################################
@@ -2269,7 +2322,10 @@ class SolrMab extends SolrDefault  {
     	try {
     		$itmLinkItems = $this->getItmLinkItems();
     		$itmLinkItems = ($itmLinkItems != null && !empty($itmLinkItems)) ? $itmLinkItems : null;
-    		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds(), $itmLinkItems);
+    		$lkrLinkItems = $this->getLkrLinkItems();
+    		$lkrLinkItems = ($lkrLinkItems != null && !empty($lkrLinkItems)) ? $lkrLinkItems : null;
+    		
+    		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds(), $itmLinkItems, $lkrLinkItems);
 
     		foreach ($holdings as &$holdingsOfLocation) {
     			$items = &$holdingsOfLocation['items'];
