@@ -2165,7 +2165,7 @@ class SolrMab extends SolrDefault  {
 							$apiUrl = $almaConfig['API']['url'];
 							$apiKey = $almaConfig['API']['key'];
 
-							$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?apikey='.$apiKey, 'GET');							
+							$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?limit=100&apikey='.$apiKey, 'GET');							
 							$items = $itemResult['xml']->item;
 							foreach($items as $item) {
 								$enumerationA = $item->item_data->enumeration_a;
@@ -2218,7 +2218,7 @@ class SolrMab extends SolrDefault  {
 						foreach ($avaBibIds as $avaBibId) {
 							foreach($avaHolIds as $avaHolId) {
 								
-								$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?apikey='.$apiKey, 'GET');							
+								$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?limit=100&apikey='.$apiKey, 'GET');							
 								$items = $itemResult['xml']->item;
 								
 								foreach($items as $item) {
