@@ -16,6 +16,24 @@ a {
 	outline: 0 !important;
 }
 
+#systemChangeAlert {
+	border: medium solid red;
+	float: left;
+	padding-top: 18px;
+	padding-bottom: 18px;
+	padding-left: 8px;
+	padding-right: 8px;
+	margin-left: 25px;
+	margin-top: 16px;
+	font-size: 15px;
+	font-weight: bold;
+}
+
+.fa-exclamation-triangle {
+	color: #f57900 !important;
+	font-size: 20px;
+}
+
 .container {
 	width: 85%;
 }
@@ -790,6 +808,23 @@ a.list-group-item:hover, a.list-group-item:focus {
 	
 	h4 {
 		font-size: 14px;
+	}
+	
+	#systemChangeAlert {
+		border: medium solid red;
+		float: left;
+		padding-top: 8px;
+		padding-bottom: 8px;
+		padding-left: 5px;
+		padding-right: 5px;
+		margin-top: 8px;
+		margin-left: -15px;
+		font-size: 15px;
+		font-weight: bold;
+	}
+	
+	.fa-exclamation-triangle {
+		color: #f57900 !important;
 	}
 	
 	.container {
