@@ -420,6 +420,8 @@ class SolrMab extends SolrDefault  {
 					$format = 'game';
 				} else if (in_array('map', $formats)) {
 					$format = 'map';
+				} else if (in_array('ebook', $formats)) {
+					$format = 'ebook';
 				} else {
 					$format = 'unknown';
 				}
