@@ -87,7 +87,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		
 		// User must be logged in at this point, so we can assume this is non-false
 		$user = $this->getUser();
-				
+		
 		// Begin building view object
 		$view = $this->createViewModel();
 
@@ -101,8 +101,20 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		*/
 
 		$catalog = $this->getILS();
-		$profile = $catalog->getMyProfile($patron);
-		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);		
+		$profile = $catalog->getMyProfile($patron);		
+		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);
+		
+		// If user has not yet opted-in for loan history, set a value for the template and show an opt-in message there:
+		if (isset($loanHistory['isLoanHistory']) && $loanHistory['isLoanHistory'] == false) {
+		    $view->loanHistory = $loanHistory;
+		    $view->setTemplate('aksites/loanhistory');
+		    
+		    // Identification
+		    $user->updateHash();
+		    $view->hash = $user->verify_hash;
+		    
+		    return $view;
+		}		
 		
 		// If form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {

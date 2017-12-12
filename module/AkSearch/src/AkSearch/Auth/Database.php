@@ -521,9 +521,26 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	return $supportsUserDataChange;
     }
     
+    
+    public function isLoanHistory($profile) {
+        // Get user data from database
+        $user = $this->getUserTable()->getByUsername($profile['barcode'], false);
+        
+        // Check if the user has chosen to save the loan history
+        return (isset($user->save_loans)) ? filter_var($user->save_loans, FILTER_VALIDATE_BOOLEAN) : false;
+    }
+    
 
     public function getLoanHistory($profile) {
-    	$loanHistoryArray = [];
+        $loanHistoryArray = [];
+        
+        
+        if (!$this->isLoanHistory($profile)) {
+            $loanHistoryArray['isLoanHistory'] = false;
+            return $loanHistoryArray;
+        }
+        
+        
     	$table = $this->getLoansTable();
     	$loans = $table->getByIlsUserId($profile['id']);
     	
