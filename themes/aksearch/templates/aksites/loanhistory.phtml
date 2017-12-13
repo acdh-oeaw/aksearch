@@ -22,7 +22,6 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
 <? else: ?>	
 
 	<? if (isset($this->loanHistory['isLoanHistory']) && $this->loanHistory['isLoanHistory'] == false):?>
-
 		<?=$this->transEsc('loanHistoryOptInText')?>
 		<br /><br />
 		<form name="optInLoanHistory" id="optInLoanHistory" method="post">
@@ -30,11 +29,10 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
 				<tr>
 					<td nowrap="nowrap" style="padding: 15px;"><input type="checkbox" id="chkOptInLoanHistory" name="chkOptInLoanHistory" <?=(($chkOptInLoanHistory == 1) ? 'checked="checked"' : '')?>/></td>
 					<td width="100%"><label for="chkOptInLoanHistory" style="margin-bottom: 0px;"><?=$this->transEsc('loanHistoryOptInCheckbox')?></label></td>
-					<td nowrap="nowrap"><input type="submit" class="btn btn-default" style="width: 55px;" name="submit" value="<?=$this->transEsc("OK")?>" /></td>
+					<td nowrap="nowrap"><input type="submit" class="btn btn-default" style="width: 55px;" name="submitOptIn" value="<?=$this->transEsc("OK")?>" /></td>
 				</tr>			
 	        </table>
 		</form>
-		
 	<? elseif (!empty($this->loanHistory) && !isset($this->loanHistory['isLoanHistory'])): ?>
 		<form name="exportLoanHistory" id="exportLoanHistory" method="post">
 	        <div class="toolbar">

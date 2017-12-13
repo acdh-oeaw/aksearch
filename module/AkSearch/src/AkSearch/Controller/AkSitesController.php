@@ -107,16 +107,13 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		$profile = $catalog->getMyProfile($patron);		
 		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);
 		
-		echo '<pre>';
-		print_r($postParams);
-		echo '</pre>';
-		
 		// If user has not yet opted-in for loan history, set a value for the template and show an opt-in message there:
 		if (isset($loanHistory['isLoanHistory']) && $loanHistory['isLoanHistory'] == false) {
 		    $view->loanHistory = $loanHistory;
 		    $view->setTemplate('aksites/loanhistory');
 		    
-		    if ($this->formWasSubmitted('submit')) {		        
+		    // If the opt-in form was submitted, handle the opt-in logic
+		    if ($this->formWasSubmitted('submitOptIn')) {		        
 		        // 0. Click button in loanhistory.phtml
 		        // 1. AkSitesController.php->loanHistoryAction()
 		        // 2. Manager.php->setIsLoanHistory()
@@ -132,17 +129,17 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		            // Show message and go to home on success
 		            $this->flashMessenger()->addMessage($result['status'], 'success');
 		            $view->chkOptInLoanHistory = 1;
-		            //return $this->redirect()->toRoute('aksites-changeuserdata');
+		            
+		            // If opt-in was successful, reload site to show the loan history list
+		            return $this->redirect()->toRoute('aksites-loanhistory');
 		        } else {
 		            $this->flashMessenger()->addMessage($result['status'], 'error');
 		        }
 		    }
-		    
 		    return $view;
 		}
-				
 		
-		// If form was submitted, export loan history to CSV
+		// If export form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {
 			
 			if (isset($loanHistory) && !empty($loanHistory)) {
@@ -240,7 +237,6 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				fclose($output);
 				exit;
 			}
-			
 		}
 		
 		// Build paginator if needed
@@ -261,6 +257,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		
 		$view->paginator = $paginator;
 
+		$transactionHistory = [];
 		foreach ($loanHistory as $i => $current) {					
 			// Build record driver (only for the current visible page):
 			if ($i >= $pageStart && $i <= $pageEnd) {
@@ -269,8 +266,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		}
 		
 		// Set loan history to view
-		$view->loanHistory = $transactionHistory;	
-		
+		$view->loanHistory = $transactionHistory;
 		$view->setTemplate('aksites/loanhistory');
 
 		return $view;
