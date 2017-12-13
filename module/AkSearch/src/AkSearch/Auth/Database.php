@@ -530,6 +530,11 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
         return (isset($user->save_loans)) ? filter_var($user->save_loans, FILTER_VALIDATE_BOOLEAN) : false;
     }
     
+    
+    public function setIsLoanHistory($profile, $request) {
+        // TODO: Updated user table "save_loans"
+    }
+    
 
     public function getLoanHistory($profile) {
         $loanHistoryArray = [];

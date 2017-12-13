@@ -118,6 +118,11 @@ class Manager extends DefaultAuthManager {
     	$loanHistory = $this->getAuth()->getLoanHistory($profile);
     	return $loanHistory;
     }
+    
+    public function setIsLoanHistory($profile, $request) {
+        $loanHistory = $this->getAuth()->setIsLoanHistory($profile, $request);
+        return $loanHistory;
+    }
 
     
     public function requestSetPassword($username, $request) {
