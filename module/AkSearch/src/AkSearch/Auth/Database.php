@@ -531,14 +531,36 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    public function setIsLoanHistory($profile, $request) {
-        // TODO: Updated user table "save_loans"
+    public function setIsLoanHistory($profile, $postParams) {
+    	// 0. Click button in loanhistory.phtml
+        // 1. AkSitesController.php->loanHistoryAction()
+        // 2. Manager.php->setIsLoanHistory()
+        // 3. ILS.php/Database.php->setIsLoanHistory()
+		        
+        // Get user data from database
+        $user = $this->getUserTable()->getByUsername($profile['barcode'], false);
+        
+        // Check from post parameters of form if user opted-in to save loan history
+        $isLoanHistory = (isset($postParams['chkOptInLoanHistory'])) ? 1 : 0;
+
+        // Save the chosen value to the database
+        $user->save_loans = $isLoanHistory;
+        $user->firstname = 'Michael';
+        $user->save();
+        
+        // Return the result
+        $result = [];
+        if ($isLoanHistory == 1) {
+        	$result = array('success' => true, 'status' => 'setIsLoanHistorySuccess');
+        } else {
+        	$result = array('success' => false, 'status' => 'setIsLoanHistoryNotSet');
+        }
+        return $result;
     }
     
-
+    
     public function getLoanHistory($profile) {
         $loanHistoryArray = [];
-        
         
         if (!$this->isLoanHistory($profile)) {
             $loanHistoryArray['isLoanHistory'] = false;

@@ -119,9 +119,13 @@ class Manager extends DefaultAuthManager {
     	return $loanHistory;
     }
     
-    public function setIsLoanHistory($profile, $request) {
-        $loanHistory = $this->getAuth()->setIsLoanHistory($profile, $request);
-        return $loanHistory;
+    public function setIsLoanHistory($profile, $postParams) {
+    	// 0. Click button in loanhistory.phtml
+        // 1. AkSitesController.php->loanHistoryAction()
+        // 2. Manager.php->setIsLoanHistory()
+        // 3. ILS.php/Database.php->setIsLoanHistory()
+        $result = $this->getAuth()->setIsLoanHistory($profile, $postParams);
+        return $result;
     }
 
     

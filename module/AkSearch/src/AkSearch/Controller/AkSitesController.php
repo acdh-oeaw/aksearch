@@ -85,6 +85,9 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 			return $patron;
 		}
 		
+		// Get post params
+		$postParams = $this->params()->fromPost();
+		
 		// User must be logged in at this point, so we can assume this is non-false
 		$user = $this->getUser();
 		
@@ -104,42 +107,40 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		$profile = $catalog->getMyProfile($patron);		
 		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);
 		
+		echo '<pre>';
+		print_r($postParams);
+		echo '</pre>';
+		
 		// If user has not yet opted-in for loan history, set a value for the template and show an opt-in message there:
 		if (isset($loanHistory['isLoanHistory']) && $loanHistory['isLoanHistory'] == false) {
 		    $view->loanHistory = $loanHistory;
 		    $view->setTemplate('aksites/loanhistory');
+		    
 		    if ($this->formWasSubmitted('submit')) {		        
 		        // 0. Click button in loanhistory.phtml
 		        // 1. AkSitesController.php->loanHistoryAction()
 		        // 2. Manager.php->setIsLoanHistory()
 		        // 3. ILS.php/Database.php->setIsLoanHistory()
-		        // 4. If ILS.php: Aleph.php/Alma.php->[function_name]();
 		        try {
-		            $result = $this->getAuthManager()->setIsLoanHistory($profile, $this->getRequest());
+		            $result = $this->getAuthManager()->setIsLoanHistory($profile, $postParams);
 		        } catch (\VuFind\Exception\Auth $e) {
 		            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
 		            return $view;
 		        }
 		        
-		        /*
 		        if ($result['success']) {
 		            // Show message and go to home on success
-		            $this->flashMessenger()->addMessage('changed_userdata_success', 'success');
-		            return $this->redirect()->toRoute('aksites-changeuserdata');
+		            $this->flashMessenger()->addMessage($result['status'], 'success');
+		            $view->chkOptInLoanHistory = 1;
+		            //return $this->redirect()->toRoute('aksites-changeuserdata');
 		        } else {
 		            $this->flashMessenger()->addMessage($result['status'], 'error');
-		            return $view;
 		        }
-		        */
-		        
 		    }
 		    
-		    // Identification
-		    $user->updateHash();
-		    $view->hash = $user->verify_hash;
-		    
 		    return $view;
-		}		
+		}
+				
 		
 		// If form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {
@@ -270,9 +271,6 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		// Set loan history to view
 		$view->loanHistory = $transactionHistory;	
 		
-		// Identification
-		$user->updateHash();
-		$view->hash = $user->verify_hash;
 		$view->setTemplate('aksites/loanhistory');
 
 		return $view;
