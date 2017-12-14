@@ -123,7 +123,7 @@ class Manager extends DefaultAuthManager {
     	// 0. Click button in loanhistory.phtml
         // 1. AkSitesController.php->loanHistoryAction()
         // 2. Manager.php->setIsLoanHistory()
-        // 3. ILS.php/Database.php->setIsLoanHistory()
+        // 3. Database.php->setIsLoanHistory()
         $result = $this->getAuth()->setIsLoanHistory($profile, $postParams);
         return $result;
     }
