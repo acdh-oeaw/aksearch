@@ -36,7 +36,9 @@ use VuFind\Exception\Auth as AuthException;
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
 	use \VuFind\Log\LoggerAwareTrait;
+	//use \Zend\ServiceManager\ServiceLocatorAwareTrait;
     use \VuFindHttp\HttpServiceAwareTrait;
+    //use \VuFind\I18n\Translator\TranslatorAwareTrait;
     
 	/**
 	 * API key of Alma API
@@ -193,6 +195,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		foreach ($itemsAll as $key => $item) {
 			$id									= $mmsId;
 			$availability						= ((string)$item->item_data->base_status == '1') ? true : false;
+			$availabilityTextPrefix				= null; // We calculate the availability text, which is show to the user, below
+			$availabilityTextMain				= null; // We calculate the availability text, which is show to the user, below
+			$availabilityTextSuffix				= null; // We calculate the availability text, which is show to the user, below
 			$status								= null; // We calculate the status below based on [DefaultPolicies] in Alma.ini and the item execption status (if set for the item)
 			$baseStatus							= (string)$item->item_data->base_status->attributes()->desc; // The Alma base status for the item.
 			$libraryCode						= (string)$item->item_data->library;
@@ -254,15 +259,61 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				$loan = $loanData['xml']->item_loan;
 				$duedate = (string)$loan->due_date;
 				$duedate = $this->parseDate($duedate);
+				$availabilityTextPrefix = 'Due';
+				$availabilityTextMain = ': '.$duedate;
+				$availabilityTextSuffix = null;
 				$holdtype = ($is_holdable) ? 'reserve' : '';
 				$addLink = ($is_holdable) ? true : false;
+			} else if ($process_type == 'LOST_LOAN') {
+				$availabilityTextPrefix = null;
+				$availabilityTextMain = 'lost';
+				$availabilityTextSuffix = null;
+			} else if ($process_type == 'MISSING') {
+				$availabilityTextPrefix = null;
+				$availabilityTextMain = 'missing';
+				$availabilityTextSuffix = null;
 			}
 			
+			//$translator = $this->getServiceLocator()->get('VuFind\Translator');
+			//$this->setTranslator($translator);
+			//echo $this->translate('lost');
+			
 			if ($requested) {
+				/*
 				$duedate = ($duedate == null) ? 'requested' : $duedate;
+				if ($duedate == 'requested') {
+					$availabilityTextMain = 'requested';
+				} else if ($duedate != 'requested' && $duedate != null) {
+					$availabilityTextPrefix = 'Due';
+					$availabilityTextMain = ': '.$duedate.' - ';
+					$availabilityTextSuffix = 'requested';
+				}
+				*/
+				
+				if ($process_type == null || empty($process_type)) {
+					$availabilityTextPrefix = null;
+					$availabilityTextMain = 'requested';
+					$availabilityTextSuffix = null;
+				} else if ($process_type == 'LOAN' || $process_type == 'LOST_LOAN' || $process_type == 'MISSING') {
+					$availabilityTextMain .= ' - ';
+					$availabilityTextSuffix = 'requested';
+				}
+				
 				$holdtype = ($is_holdable) ? 'reserve' : '';
 				$addLink = ($is_holdable) ? true : false;
 				$availability = false;
+			}
+			
+			if ($returnDate != null) {
+				$availabilityTextPrefix = null;
+				$availabilityTextMain = $returnDate;
+				$availabilityTextSuffix = null;
+			}
+			
+			if ($requestsPlaced != null) {
+				$availabilityTextPrefix = 'Requests';
+				$availabilityTextMain = ': '.$requestsPlaced;
+				$availabilityTextSuffix = null;
 			}
 			
 			if ($policyCode == null || empty($policyCode)) {
@@ -285,6 +336,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					// Array fields described on VuFind ILS page:
 					'id'								=> $id,
 					'availability'						=> $availability,
+					'availabilityTextPrefix'			=> $availabilityTextPrefix,
+					'availabilityTextMain'				=> $availabilityTextMain,
+					'availabilityTextSuffix'			=> $availabilityTextSuffix,
 					'status'							=> $status,
 					'location'							=> $locationCode,
 					'locationhref'						=> $locationHref,

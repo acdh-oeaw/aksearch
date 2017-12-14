@@ -178,6 +178,10 @@ if (! empty($holdings)) {
 		
 		foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
 			
+			echo '<pre>';
+			print_r($holdingOfLocation);
+			echo '</pre>';
+			
 			$check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 			
 			// Call Numbers (first and second)
@@ -235,23 +239,26 @@ if (! empty($holdings)) {
 						echo '</div>';
 					} else { // Begin Unavailable Items (Recalls)
 						echo '<div>';
+						echo $this->transEsc($this->escapeHtml($holdingOfLocation['availabilityTextPrefix']));
+						echo $this->transEsc($this->escapeHtml($holdingOfLocation['availabilityTextMain']));
+						echo $this->transEsc($this->escapeHtml($holdingOfLocation['availabilityTextSuffix']));
+						echo '<br>TEST END<br><hr><br>';
 						
-						// Information-Text:
 						echo '<span class="checkedout">';
 						if (isset($holdingOfLocation['returnDate']) && $holdingOfLocation['returnDate']) {
-							echo '<span class="statusExtra">' . $this->escapeHtml($holdingOfLocation['returnDate']) . '</span>';
+							//echo '<span class="statusExtra">' . $this->escapeHtml($holdingOfLocation['returnDate']) . '</span>';
 						}
 						
 						if (isset($holdingOfLocation['duedate']) && $holdingOfLocation['duedate']) {
 							if ($holdingOfLocation['duedate'] == 'requested') {
-								echo '<span class="statusExtra">' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
+								//echo '<span class="statusExtra">' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
 							} else {
-								echo '<span class="statusExtra">' . $this->transEsc("Due") . ': ' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
+								//echo '<span class="statusExtra">' . $this->transEsc("Due") . ': ' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
 							}
 						}
 						
 						if (isset($holdingOfLocation['requests_placed']) && $holdingOfLocation['requests_placed'] > 0) {
-							echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
+							//echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
 						}
 						
 						if ((!isset($holdingOfLocation['duedate']) || !$holdingOfLocation['duedate']) && (!isset($holdingOfLocation['requests_placed']) || !$holdingOfLocation['requests_placed']) && (!isset($holdingOfLocation['returnDate']) || !$holdingOfLocation['returnDate'])) {
