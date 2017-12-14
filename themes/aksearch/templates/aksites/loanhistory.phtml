@@ -20,7 +20,6 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
 <? if (!$this->auth()->getManager()->supportsLoanHistory($this->auth_method)): ?>
   <div class="error"><?=$this->transEsc('loanHistoryDisabled') ?></div>
 <? else: ?>	
-
 	<? if (isset($this->loanHistory['isLoanHistory']) && $this->loanHistory['isLoanHistory'] == false):?>
 		<?=$this->transEsc('loanHistoryOptInText')?>
 		<br /><br />
@@ -34,6 +33,18 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
 	        </table>
 		</form>
 	<? elseif (!empty($this->loanHistory) && !isset($this->loanHistory['isLoanHistory'])): ?>
+		<?=$this->transEsc('loanHistoryOptOutText')?>
+		<br /><br />
+        <form name="optOutLoanHistory" id="optOutLoanHistory" method="post">
+        	<table id="tblOptOutLoanHistory">
+				<tr>
+					<td nowrap="nowrap" style="padding-right: 15px;"><input type="checkbox" id="chkOptOutLoanHistory" name="chkOptOutLoanHistory" /></td>
+					<td width="100%"><label for="chkOptOutLoanHistory" style="margin-bottom: 0px;"><?=$this->transEsc('loanHistoryOptOutCheckbox')?></label></td>
+					<td nowrap="nowrap"><input type="submit" class="btn btn-default" style="width: 55px;" name="submitOptOut" value="<?=$this->transEsc("OK")?>" /></td>
+				</tr>			
+	        </table>
+        </form>
+		<br /><br />
 		<form name="exportLoanHistory" id="exportLoanHistory" method="post">
 	        <div class="toolbar">
 	          <input type="submit" class="btn btn-default" name="submit" value="<?=$this->transEsc("exportLoanHistory")?>" />
@@ -86,8 +97,6 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
               <strong><?=$this->transEsc('by')?>:</strong> 
               <a href="<?=$this->record($resource)->getLink('author', $listAuthor)?>"><?=$this->escapeHtml($listAuthor)?></a><br/>
             <? endif; ?>
-            
-            
             
             <? if (!empty($ilsDetails['volume'])): ?>
               <strong><?=$this->transEsc('Volume')?>:</strong> <?=$this->escapeHtml($ilsDetails['volume'])?>

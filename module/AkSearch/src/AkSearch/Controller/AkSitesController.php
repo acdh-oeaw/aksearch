@@ -139,6 +139,22 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		    return $view;
 		}
 		
+		
+		// If opt-out form was submitted, handle the opt-out logic
+		if ($this->formWasSubmitted('submitOptOut')) {
+		    echo '<pre>';
+		    print_r($postParams);
+		    echo '</pre>';
+		    
+		    try {
+		        $result = $this->getAuthManager()->setIsLoanHistory($profile, $postParams);
+		    } catch (\VuFind\Exception\Auth $e) {
+		        $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+		        return $view;
+		    }
+		}
+		
+		
 		// If export form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {
 			
