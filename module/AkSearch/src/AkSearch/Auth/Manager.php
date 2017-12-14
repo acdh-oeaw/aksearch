@@ -119,6 +119,7 @@ class Manager extends DefaultAuthManager {
     	return $loanHistory;
     }
     
+    
     public function setIsLoanHistory($profile, $postParams) {
     	// 0. Click button in loanhistory.phtml
         // 1. AkSitesController.php->loanHistoryAction()
@@ -127,14 +128,19 @@ class Manager extends DefaultAuthManager {
         $result = $this->getAuth()->setIsLoanHistory($profile, $postParams);
         return $result;
     }
-
+    
+    
+    public function deleteLoanHistory($profile) {
+    	$result = $this->getAuth()->deleteLoanHistory($profile);
+        return $result;
+    }
+    
     
     public function requestSetPassword($username, $request) {
         // 0. Click button in requestsetpassword.phtml
         // 1. AkSitesController.php->requestSetPasswordAction()
         // 2. Auth\Manager.php->requestSetPassword()
         // 3. Auth\Database.php->requestSetPassword()
-        
         $result = $this->getAuth()->requestSetPassword($username, $request);
         return $result;
     }
@@ -145,7 +151,6 @@ class Manager extends DefaultAuthManager {
         // 1. Controller\AkSitesController.php->setPasswordAction()
         // 2. Auth\Manager.php->setPassword()
         // 3. Auth\Database.php->setPassword()
-
     	$result = $this->getAuth()->setPassword($username, $hash, $request);
         return $result;
     }
@@ -156,7 +161,6 @@ class Manager extends DefaultAuthManager {
     	// 1. AkSitesController.php->setPasswordWithOtpAction()
     	// 2. Manager.php->setPasswordWithOtp()
     	// 3. Database.php->setPasswordWithOtp()
-    	
     	$result = $this->getAuth()->setPasswordWithOtp($request);
     	return $result;
     }

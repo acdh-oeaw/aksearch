@@ -1,4 +1,11 @@
 <?
+// Translated texts for javascript
+$this->jsTranslations()->addStrings(
+	array(
+		'setLoanHistoryOptOutWarning' => 'setLoanHistoryOptOutWarning'
+	)
+);
+
 // Set up page title:
 $this->headTitle($this->translate('loanHistory'));
 
@@ -35,7 +42,7 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
 	<? elseif (!empty($this->loanHistory) && !isset($this->loanHistory['isLoanHistory'])): ?>
 		<?=$this->transEsc('loanHistoryOptOutText')?>
 		<br /><br />
-        <form name="optOutLoanHistory" id="optOutLoanHistory" method="post">
+        <form name="optOutLoanHistory" id="optOutLoanHistory" onsubmit="return confirmLoanHistoryDeletion()" method="post">
         	<table id="tblOptOutLoanHistory">
 				<tr>
 					<td nowrap="nowrap" style="padding-right: 15px;"><input type="checkbox" id="chkOptOutLoanHistory" name="chkOptOutLoanHistory" /></td>
@@ -145,3 +152,11 @@ $chkOptInLoanHistory = $this->chkOptInLoanHistory;
     </div>
   </div>
 <? endif; ?>
+
+<script type="text/javascript">
+function confirmLoanHistoryDeletion() {
+	if ($('#chkOptOutLoanHistory').is(':checked')) {
+		return confirm(vufindString['setLoanHistoryOptOutWarning']);
+	}		
+}
+</script>

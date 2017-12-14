@@ -117,7 +117,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		        // 0. Click button in loanhistory.phtml
 		        // 1. AkSitesController.php->loanHistoryAction()
 		        // 2. Manager.php->setIsLoanHistory()
-		        // 3. ILS.php/Database.php->setIsLoanHistory()
+		        // 3. Database.php->setIsLoanHistory()
 		        try {
 		            $result = $this->getAuthManager()->setIsLoanHistory($profile, $postParams);
 		        } catch (\VuFind\Exception\Auth $e) {
@@ -126,7 +126,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		        }
 		        
 		        if ($result['success']) {
-		            // Show message and go to home on success
+		            // Show message on success
 		            $this->flashMessenger()->addMessage($result['status'], 'success');
 		            $view->chkOptInLoanHistory = 1;
 		            
@@ -139,21 +139,28 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		    return $view;
 		}
 		
-		
 		// If opt-out form was submitted, handle the opt-out logic
 		if ($this->formWasSubmitted('submitOptOut')) {
-		    echo '<pre>';
-		    print_r($postParams);
-		    echo '</pre>';
-		    
 		    try {
 		        $result = $this->getAuthManager()->setIsLoanHistory($profile, $postParams);
+		    	if ($result['success']) {
+		    		// Delete loan history from database
+		    		$resultDelete = $this->getAuthManager()->deleteLoanHistory($profile);
+		    		
+		            // Show message on success
+		            $this->flashMessenger()->addMessage($result['status'], 'success');
+		            $view->chkOptInLoanHistory = 0;
+		            
+		            // If opt-out was successful, reload site to show the opt-in site
+		            return $this->redirect()->toRoute('aksites-loanhistory');
+		        } else {
+		            $this->flashMessenger()->addMessage($result['status'], 'error');
+		        }
 		    } catch (\VuFind\Exception\Auth $e) {
 		        $this->flashMessenger()->addMessage($e->getMessage(), 'error');
 		        return $view;
 		    }
 		}
-		
 		
 		// If export form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {

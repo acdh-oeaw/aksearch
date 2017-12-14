@@ -535,29 +535,55 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	// 0. Click button in loanhistory.phtml
         // 1. AkSitesController.php->loanHistoryAction()
         // 2. Manager.php->setIsLoanHistory()
-        // 3. ILS.php/Database.php->setIsLoanHistory()
+        // 3. Database.php->setIsLoanHistory()
         
+    	// Check from post parameters of the opt-in or opt-out form and set a variable that indicats if the user opts-in or not.
+    	$isOptIn = (isset($postParams['submitOptIn'])) ? true : false;
+    	$isOptOut = (isset($postParams['submitOptOut'])) ? true : false;
+    	
         $optIn = 0;
-        if ( (isset($postParams['submitOptIn']) && isset($postParams['chkOptInLoanHistory'])) || (isset($postParams['submitOptOut']) && !isset($postParams['chkOptOutLoanHistory'])) ) {
+        if ( ($isOptIn && isset($postParams['chkOptInLoanHistory'])) || ($isOptOut && !isset($postParams['chkOptOutLoanHistory'])) ) {
             $optIn = 1;
         }
-     
+        
         // Get user data from database
         $user = $this->getUserTable()->getByUsername($profile['barcode'], false);
         
-        // Check from post parameters of form if user opted-in to save loan history
-        //$isLoanHistory = (isset($postParams['chkOptInLoanHistory'])) ? 1 : 0;
-
         // Save the chosen value to the database
         $user->save_loans = $optIn;
         $user->save();
         
         // Return the result
         $result = [];
-        if ($isLoanHistory == 1) {
-        	$result = array('success' => true, 'status' => 'setIsLoanHistorySuccess');
+        if ($isOptIn) {
+	        if ($optIn == 1) {
+	        	$result = array('success' => true, 'status' => 'setLoanHistoryOptInSuccess');
+	        } else {
+	        	$result = array('success' => false, 'status' => 'setLoanHistoryOptInError');
+	        }
+        } else if ($isOptOut) {
+        	if ($optIn == 0) {
+	        	$result = array('success' => true, 'status' => 'setLoanHistoryOptOutSuccess');
+	        } else {
+	        	$result = array('success' => false, 'status' => 'setLoanHistoryOptOutError');
+	        }
+        }
+        
+        return $result;
+    }
+    
+    
+    public function deleteLoanHistory($profile) {    	
+    	$ilsUserId = $profile['id'];
+    	$loansTable = $this->getLoansTable();
+    	$noDeletedLoans = $loansTable->deleteByIlsUserId($ilsUserId);
+    	
+    	// Return the result
+        $result = [];
+        if (is_int($noDeletedLoans)) {
+        	$result = array('success' => true, 'status' => 'deletedLoanHistorySuccess');
         } else {
-        	$result = array('success' => false, 'status' => 'setIsLoanHistoryNotSet');
+        	$result = array('success' => false, 'status' => 'deletedLoanHistoryError');
         }
         return $result;
     }
@@ -570,7 +596,6 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
             $loanHistoryArray['isLoanHistory'] = false;
             return $loanHistoryArray;
         }
-        
         
     	$table = $this->getLoansTable();
     	$loans = $table->getByIlsUserId($profile['id']);
@@ -615,7 +640,6 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     					// Other values that are not defined in the VuFind default return array for getMyTransactions()
     					'author' => $author,
     					'location' => $location,
-    					
     					//'reqnum' => $reqnum,
     					//'returned' => $this->parseDate($returned),
     					//'type' => $type,
