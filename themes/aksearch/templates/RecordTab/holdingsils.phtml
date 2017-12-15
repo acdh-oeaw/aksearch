@@ -136,7 +136,10 @@ if (! empty($holdings)) {
 	    } else {
 	        $locationName = $this->transEsc($location);
 	    }
-	    	
+	    
+	    // Masking of location name (e. g. ABT.X-YZ.987654)
+	    $locationName = $this->driver->getMaskedValue($locationName);
+	    
 		// Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
 		// of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
 		// we will display a "show more" button.
@@ -177,11 +180,11 @@ if (! empty($holdings)) {
 		echo '</tr>';
 		
 		foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
-			
+			/*
 			echo '<pre>';
 			print_r($holdingOfLocation);
 			echo '</pre>';
-			
+			*/
 			$check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 			
 			// Call Numbers (first and second)
@@ -215,7 +218,7 @@ if (! empty($holdings)) {
 				echo ($hasSecondCallNo) ? '<td>' . $callNoSecond . '</td>' : ''; // If there is a second call no, show an additional table column
 				echo '<td>' . $collection . '</td>';
 				echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
-				echo '<td>' . $status . '</td>';
+				echo '<td>' . $this->transEsc($status) . '</td>';
 				
 				// Show status of item
 				echo '<td>';
@@ -227,7 +230,6 @@ if (! empty($holdings)) {
 					if ($holdingOfLocation['availability']) {
 						echo '<div>';
 						echo '<span class="available">' . $this->transEsc("Available") . '</span> ';
-						
 						/*
 						// Link for placing a hold
 						if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
@@ -239,41 +241,7 @@ if (! empty($holdings)) {
 						echo '</div>';
 					} else { // Begin Unavailable Items (Recalls)
 						echo '<div>';
-						echo $this->transEsc($this->escapeHtml($holdingOfLocation['availabilityTextPrefix']));
-						echo $this->transEsc($this->escapeHtml($holdingOfLocation['availabilityTextMain']));
-						echo $this->transEsc($this->escapeHtml($holdingOfLocation['availabilityTextSuffix']));
-						echo '<br>TEST END<br><hr><br>';
-						
-						echo '<span class="checkedout">';
-						if (isset($holdingOfLocation['returnDate']) && $holdingOfLocation['returnDate']) {
-							//echo '<span class="statusExtra">' . $this->escapeHtml($holdingOfLocation['returnDate']) . '</span>';
-						}
-						
-						if (isset($holdingOfLocation['duedate']) && $holdingOfLocation['duedate']) {
-							if ($holdingOfLocation['duedate'] == 'requested') {
-								//echo '<span class="statusExtra">' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
-							} else {
-								//echo '<span class="statusExtra">' . $this->transEsc("Due") . ': ' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
-							}
-						}
-						
-						if (isset($holdingOfLocation['requests_placed']) && $holdingOfLocation['requests_placed'] > 0) {
-							//echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
-						}
-						
-						if ((!isset($holdingOfLocation['duedate']) || !$holdingOfLocation['duedate']) && (!isset($holdingOfLocation['requests_placed']) || !$holdingOfLocation['requests_placed']) && (!isset($holdingOfLocation['returnDate']) || !$holdingOfLocation['returnDate'])) {
-							echo '<span class="statusExtra">' . $this->transEsc("not_available_at_the_moment") . '</span>';
-						}
-						echo '</span>';
-						
-						/*
-						// Link for request:
-						if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
-							$checkClass = $check ? ' checkRequest' : '';
-							$checkText = $check ? 'Check Recall' : 'Recall This';
-							echo '<a class="holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $checkText . '</span></a>';
-						}
-						*/
+						echo $this->escapeHtml($holdingOfLocation['availabilityText']);
 						echo '</div>';
 					}
 					echo '</td>';

@@ -136,12 +136,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
 	 */
 	public function getHolding($mmsId, array $patron = null, array $holIds = null, array $itmLinkItems = null, array $lkrLinkItems = null) {
-        // Translate Example
-	    echo '<pre>';
-	    print_r($this->translate('lost'));
-	    echo '</pre>';
-	    
-	    
+
 		// Variable for return value:
 		$returnValue = [];
 		
@@ -201,9 +196,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		foreach ($itemsAll as $key => $item) {
 			$id									= $mmsId;
 			$availability						= ((string)$item->item_data->base_status == '1') ? true : false;
-			$availabilityTextPrefix				= null; // We calculate the availability text, which is show to the user, below
-			$availabilityTextMain				= null; // We calculate the availability text, which is show to the user, below
-			$availabilityTextSuffix				= null; // We calculate the availability text, which is show to the user, below
+			$availabilityText					= null; // We calculate the availability text, which is show to the user, below
 			$status								= null; // We calculate the status below based on [DefaultPolicies] in Alma.ini and the item execption status (if set for the item)
 			$baseStatus							= (string)$item->item_data->base_status->attributes()->desc; // The Alma base status for the item.
 			$libraryCode						= (string)$item->item_data->library;
@@ -258,77 +251,61 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			} else {
 				//throw new \Exception('Either fulfillment units or user groups are not set correctly in Alma.ini. See sections [FulfillmentUnits] and [Requestable] there and check that all values correspond to existing values in Alma configuration.');
 			}
-			
+
 			// For some data we need to do additional API calls due to the Alma API architecture
 			if ($process_type == 'LOAN') {
 				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
 				$loan = $loanData['xml']->item_loan;
 				$duedate = (string)$loan->due_date;
 				$duedate = $this->parseDate($duedate);
-				$availabilityTextPrefix = 'Due';
-				$availabilityTextMain = ': '.$duedate;
-				$availabilityTextSuffix = null;
+				$availabilityText = $this->translate('Due').': '.$duedate;
 				$holdtype = ($is_holdable) ? 'reserve' : '';
 				$addLink = ($is_holdable) ? true : false;
 			} else if ($process_type == 'LOST_LOAN') {
-				$availabilityTextPrefix = null;
-				$availabilityTextMain = 'lost';
-				$availabilityTextSuffix = null;
+				$availabilityText = $this->translate('lost');
+				$holdtype = ($is_holdable) ? 'reserve' : '';
 			} else if ($process_type == 'MISSING') {
-				$availabilityTextPrefix = null;
-				$availabilityTextMain = 'missing';
-				$availabilityTextSuffix = null;
+				$availabilityText = $this->translate('missing');
+				$holdtype = ($is_holdable) ? 'reserve' : '';
+			} else {
+				$availabilityText = $this->translate('not_available_at_the_moment');
 			}
 			
-			
-			
-			if ($requested) {
-				/*
-				$duedate = ($duedate == null) ? 'requested' : $duedate;
-				if ($duedate == 'requested') {
-					$availabilityTextMain = 'requested';
-				} else if ($duedate != 'requested' && $duedate != null) {
-					$availabilityTextPrefix = 'Due';
-					$availabilityTextMain = ': '.$duedate.' - ';
-					$availabilityTextSuffix = 'requested';
-				}
-				*/
-				
+			if ($requested) {				
 				if ($process_type == null || empty($process_type)) {
-					$availabilityTextPrefix = null;
-					$availabilityTextMain = 'requested';
-					$availabilityTextSuffix = null;
+					$availabilityText = $this->translate('requested');
 				} else if ($process_type == 'LOAN' || $process_type == 'LOST_LOAN' || $process_type == 'MISSING') {
-					$availabilityTextMain .= ' - ';
-					$availabilityTextSuffix = 'requested';
+					$availabilityText .= ' - '.$this->translate('requested');
 				}
-				
 				$holdtype = ($is_holdable) ? 'reserve' : '';
 				$addLink = ($is_holdable) ? true : false;
 				$availability = false;
 			}
 			
 			if ($returnDate != null) {
-				$availabilityTextPrefix = null;
-				$availabilityTextMain = $returnDate;
-				$availabilityTextSuffix = null;
+				$availabilityText = $returnDate;
 			}
 			
 			if ($requestsPlaced != null) {
-				$availabilityTextPrefix = 'Requests';
-				$availabilityTextMain = ': '.$requestsPlaced;
-				$availabilityTextSuffix = null;
+				$availabilityText = $this->translate('Requests').': '.$requestsPlaced;
 			}
 			
 			if ($policyCode == null || empty($policyCode)) {
-				// There is no exection policy set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
-				$status = $defaultPolicies[$itemFulfillmentUnit];
+				if ($process_type == 'WORK_ORDER_DEPARTMENT' || $process_type == 'TECHNICAL') {
+					$status = 'inProcess';
+				} else if ($process_type == 'ACQ') {
+					$status = 'orderedAtVendor';
+				} else {
+					// There is no execption policy or proces type set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
+					$status = $defaultPolicies[$itemFulfillmentUnit];
+				}
+				
 			} else {
 				// There is an exceptional item policy set. We use the API to get the description and display it to the user
 				$result = $this->doHTTPRequest($this->apiUrl.'conf/code-tables/ItemPolicy?apikey='.$this->apiKey, 'GET');
 				$itemPolicies = $result['xml']->rows->row;
 				foreach ($itemPolicies as $key => $itemPolicy) {
-					$itemPolicyCode = $itemPolicy->code;
+					$itemPolicyCode = (string)$itemPolicy->code;
 					if ($itemPolicyCode == $policyCode) {
 						$status = $itemPolicyCode;
 						break;
@@ -336,13 +313,37 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				}
 			}
 			
+			// Check for "not available item statuses" in AKsearch.ini:
+			$not_available_item_statuses = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->ItemStatus->not_available_item_statuses);
+			if (in_array($policyName, $not_available_item_statuses)) {
+				$availability = false;
+				$addLink = false;
+			}
+			
+			// Check for "not_available_locations" in AKsearch.ini:
+			$not_available_locations = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->ItemStatus->not_available_locations);
+			if (in_array($locationCode, $not_available_locations)) {
+				$availability = false;
+				$addLink = false;
+			}
+			
+			// Get from reading room collections. For these collections, the text "GetFromReadingRoom" (see language files) will be shown
+			if ($availability) {
+				$readingRoomCollections = (isset($this->akConfig->Collections->reading_room_collections) && !empty($this->akConfig->Collections->reading_room_collections)) ? $this->akConfig->Collections->reading_room_collections : array();
+				$readingRoomCollections = (!empty($readingRoomCollections)) ? $readingRoomCollections->toArray() : $readingRoomCollections;
+				$getFromReadingRoom = in_array($locationName, $readingRoomCollections);
+				if ($getFromReadingRoom) {
+					//$addLink = false;
+					$addLink = ($is_holdable) ? true : false; // Check if user is allowed to place a hold (see Alma.ini -> [Requestable]. If yes, show the hold button anyway
+				}
+			}
+			
+			
 			$returnValue[] = [
 					// Array fields described on VuFind ILS page:
 					'id'								=> $id,
 					'availability'						=> $availability,
-					'availabilityTextPrefix'			=> $availabilityTextPrefix,
-					'availabilityTextMain'				=> $availabilityTextMain,
-					'availabilityTextSuffix'			=> $availabilityTextSuffix,
+					'availabilityText'					=> $availabilityText,
 					'status'							=> $status,
 					'location'							=> $locationCode,
 					'locationhref'						=> $locationHref,
@@ -376,6 +377,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'callnumber_second'					=> $callnumber_second,
 					'libraryCode'						=> $libraryCode,
 					'libraryName'						=> $libraryName,
+					'fulfillmentUnit'					=> $itemFulfillmentUnit,
 					'locationName'						=> $locationName,
 					'baseStatus'						=> $baseStatus,
 					'requested'							=> $requested,
@@ -386,6 +388,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'policyCode'						=> $policyCode,
 					'policyName'						=> $policyName,
 					'totalNoOfItems'					=> $totalNoOfItems, // This is necessary for paging (load more items)!!!
+					'get_from_readingroom'				=> $getFromReadingRoom,
 			];
 		}
 		

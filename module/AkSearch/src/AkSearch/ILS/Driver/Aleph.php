@@ -279,19 +279,19 @@ class Aleph extends AlephDefault {
 			}
 			
 			// Check for "not available item statuses" in AKsearch.ini:
-			$not_available_item_statuses = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->AlephItemStatus->not_available_item_statuses);
+			$not_available_item_statuses = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->ItemStatus->not_available_item_statuses);
 			if (in_array($z30->{'z30-item-status'}, $not_available_item_statuses)) {
 				$availability = false;
 			}
 			
 			// Check for "not_available_locations" in AKsearch.ini:
-			$not_available_locations = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->AlephItemStatus->not_available_locations);
+			$not_available_locations = preg_split('/[\s*,\s*]*,+[\s*,\s*]*/', $this->akConfig->ItemStatus->not_available_locations);
 			if (in_array($sub_library_code, $not_available_locations)) {
 				$availability = false;
 			}
 			
 			// Get from reading room collections. For these collections, the text "GetFromReadingRoom" (see language files) will be shown
-			$readingRoomCollections = (isset($this->akConfig->AlephCollections->reading_room_collections) && !empty($this->akConfig->AlephCollections->reading_room_collections)) ? $this->akConfig->AlephCollections->reading_room_collections : array();
+			$readingRoomCollections = (isset($this->akConfig->Collections->reading_room_collections) && !empty($this->akConfig->Collections->reading_room_collections)) ? $this->akConfig->Collections->reading_room_collections : array();
 			$readingRoomCollections = (!empty($readingRoomCollections)) ? $readingRoomCollections->toArray() : $readingRoomCollections;
 			$getFromReadingRoom = in_array($collection, $readingRoomCollections);
 			

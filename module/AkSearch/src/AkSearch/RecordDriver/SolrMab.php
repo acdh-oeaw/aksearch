@@ -2328,21 +2328,23 @@ class SolrMab extends SolrDefault  {
     		$lkrLinkItems = ($lkrLinkItems != null && !empty($lkrLinkItems)) ? $lkrLinkItems : null;
     		
     		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds(), $itmLinkItems, $lkrLinkItems);
-
+    		
     		foreach ($holdings as &$holdingsOfLocation) {
     			$items = &$holdingsOfLocation['items'];
     			
     			foreach ($items as $key => &$item) {
     				
-    				// Masking call no 1, call no 2, collection and collection description
+    				// Masking call no 1, call no 2, collection/location and collection/location description
     				$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
     				$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
     				$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
     				$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
+    				$locationName = (isset($item['locationName']) && !empty($item['locationName'])) ? $item['locationName'] : null;
     				$item['callnumber'] = ($callNo1 != null) ? $this->getMaskedValue($callNo1) : null;
     				$item['callnumber_second'] = ($callNo2 != null) ? $this->getMaskedValue($callNo2) : null;
     				$item['collection'] = ($collection != null) ? $this->getMaskedValue($collection) : null;
     				$item['collection_desc'] = ($collection_desc != null) ? $this->getMaskedValue($collection_desc) : null;
+    				$item['locationName'] = ($locationName != null) ? $this->getMaskedValue($locationName) : null;
     				
     				// Hide items according to user configuration in AKsearch.ini
     				foreach ($this->akConfig->HideItems as $configKey => $configValue) {
@@ -2367,7 +2369,7 @@ class SolrMab extends SolrDefault  {
      * @param string $mode
      * @return unknown|string|mixed
      */
-    private function getMaskedValue($stringToMask, $mode = 'begins') {
+    public function getMaskedValue($stringToMask, $mode = 'begins') {
     	
     	if ($mode == 'begins') {
     		$akConfigMasking = trim($this->akConfig->Masking->beginswith);
