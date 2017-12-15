@@ -32,13 +32,14 @@ namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\Exception\Auth as AuthException;
+use VuFind\Exception\Date as DateException;
 
-class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
+class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface, \VuFind\I18n\Translator\TranslatorAwareInterface {
 
 	use \VuFind\Log\LoggerAwareTrait;
-	//use \Zend\ServiceManager\ServiceLocatorAwareTrait;
     use \VuFindHttp\HttpServiceAwareTrait;
-    //use \VuFind\I18n\Translator\TranslatorAwareTrait;
+    use \VuFind\I18n\Translator\TranslatorAwareTrait;
+    
     
 	/**
 	 * API key of Alma API
@@ -135,7 +136,12 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 * @see \VuFind\ILS\Driver\DriverInterface::getHolding()
 	 */
 	public function getHolding($mmsId, array $patron = null, array $holIds = null, array $itmLinkItems = null, array $lkrLinkItems = null) {
-				
+        // Translate Example
+	    echo '<pre>';
+	    print_r($this->translate('lost'));
+	    echo '</pre>';
+	    
+	    
 		// Variable for return value:
 		$returnValue = [];
 		
@@ -274,9 +280,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				$availabilityTextSuffix = null;
 			}
 			
-			//$translator = $this->getServiceLocator()->get('VuFind\Translator');
-			//$this->setTranslator($translator);
-			//echo $this->translate('lost');
+			
 			
 			if ($requested) {
 				/*
