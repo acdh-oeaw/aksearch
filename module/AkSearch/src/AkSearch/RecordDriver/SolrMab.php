@@ -1965,7 +1965,7 @@ class SolrMab extends SolrDefault  {
     				$role = $author_additional_NameRoleGnd[$key];
     			}  else if (($key % 3) == 2) { // Third and last of 3 values
     				$gnd = $author_additional_NameRoleGnd[$key];
-    				
+
     				// We have all values now, add them to the return array:
     				$participants[$role][] = array($gnd => $name);
     			}
@@ -1987,8 +1987,56 @@ class SolrMab extends SolrDefault  {
     			}
     		}
     	}
-			
-		return (isset($participants) && !empty($participants)) ? $participants : null;
+    	
+    	// Deduplication of participants per role
+    	// TODO: TEST WITH 990004394930203343
+    	$participantsDeDup = [];
+    	foreach ($participants as $role => $participant) {
+    		$participantsDeDup[$role] = [];
+    		foreach ($participant as $key => $gndNameArray) {
+    			foreach($gndNameArray as $gnd => $name) {
+		    		if (!empty($participantsDeDup[$role])) {
+			    		foreach ($participantsDeDup[$role] as $keyDeDup => $gndNameDeDupArray) {
+	    					foreach ($gndNameDeDupArray as $gndDeDup => $nameDeDup) {
+	    						if ($gnd != $gndDeDup || $name != $nameDeDup) {
+	    							$participantsDeDup[$role][] = array($gnd => $name);
+	    						}
+	    					}
+	    					
+	    				}
+	    				/*
+	    				echo '<strong>NOT EMPTY: '.$role.'</strong><br />';
+		    			echo '<pre>';
+		    			print_r($participantsDeDup[$role]);
+		    			echo '</pre>';
+		    			*/
+		    		} else {
+		    			$participantsDeDup[$role][] = array($gnd => $name);
+		    			/*
+		    			echo '<strong>EMPTY '.$role.'</strong><br />';
+		    			echo '<pre>';
+		    			print_r($participantsDeDup[$role]);
+		    			echo '</pre>';
+		    			*/
+		    		}
+    			}
+    		}
+    	}
+
+    	/*
+    	echo '<pre>';
+    	print_r($participants);
+    	echo '</pre>';
+    	*/
+    	
+    	/*
+    	echo '<pre>';
+    	print_r($participantsDeDup);
+    	echo '</pre>';
+    	*/
+    	
+		return (isset($participantsDeDup) && !empty($participantsDeDup)) ? $participantsDeDup : null;
+		//return (isset($participants) && !empty($participants)) ? $participants : null;
 	}
 	
 	
