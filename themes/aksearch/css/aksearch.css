@@ -49,6 +49,11 @@ a {
 	font-size: 20px;
 }
 
+.fa-exclamation-triangle.smallTriangle {
+	color: #f57900 !important;
+	font-size: 15px;
+}
+
 .container {
 	width: 85%;
 }

@@ -242,6 +242,8 @@ if (! empty($holdings)) {
 					}
 					echo '</td>';
 					echo '<td>';
+					echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
+					/*
 					if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
 						if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
 							if (!$user) {
@@ -252,12 +254,11 @@ if (! empty($holdings)) {
 							} else {
 								// Link for placing a hold
 								if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
-									/*
+									
 									// Use this if we check if the request is valid in checkRequestIsValidAjax (PHP class AkSearch\Controller\AkAjaxController and JS checkRequestIsValid in record.aksearch.js) 
-									$checkClass = $check ? ' checkRequest' : '';
-									$checkText = $check ? 'Check Hold' : 'Place a Hold';
-									echo '<a class="btn btn-default clear-btn holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
-									*/
+									//$checkClass = $check ? ' checkRequest' : '';
+									//$checkText = $check ? 'Check Hold' : 'Place a Hold';
+									//echo '<a class="btn btn-default clear-btn holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
 									
 									$holdButtonText = $this->transEsc('Place a Hold');
 									if (isset($holdingOfLocation['holdtype']) && $holdingOfLocation['holdtype'] == 'reserve') {
@@ -278,8 +279,10 @@ if (! empty($holdings)) {
 							echo $this->transEsc('login_disabled');
 						}
 					}
+					*/
 					echo '</td>';
 					echo '</tr>';
+					
 				}
 			}
 		}
