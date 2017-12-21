@@ -29,6 +29,21 @@ a {
 	font-weight: bold;
 }
 
+#systemChangeAlert2 {
+	border: medium solid red;
+	padding-top: 18px;
+	padding-bottom: 18px;
+	padding-left: 8px;
+	padding-right: 8px;
+	margin-left: 25px;
+	margin-right: 25px;
+	margin-top: 16px;
+	margin-bottom: 16px;
+	font-size: 15px;
+	font-weight: bold;
+	text-align: center;
+}
+
 .fa-exclamation-triangle {
 	color: #f57900 !important;
 	font-size: 20px;
