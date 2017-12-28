@@ -52,6 +52,94 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 	}
 	
 	
+	/**
+     * Handling submission of a new password for a user.
+     * Overriding original function to prevent automatic login after submission of new password. The reason for this: If the user is
+     * forced to reset the password (see MySQL table "user", columsn "force_pw_change"), he still could use the "recover password" function
+     * and get logged in, although he still should be forced to change his password. 
+     *
+     * @return view
+     */
+	
+    public function newPasswordAction()
+    {
+        // Have we submitted the form?
+        if (!$this->formWasSubmitted('submit')) {
+            return $this->redirect()->toRoute('home');
+        }
+        // Pull in from POST
+        $request = $this->getRequest();
+        $post = $request->getPost();
+        // Verify hash
+        $userFromHash = isset($post->hash)
+            ? $this->getTable('User')->getByVerifyHash($post->hash)
+            : false;
+        // View, password policy and reCaptcha
+        $view = $this->createViewModel($post);
+        $view->passwordPolicy = $this->getAuthManager()
+            ->getPasswordPolicy();
+        $view->useRecaptcha = $this->recaptcha()->active('changePassword');
+        // Check reCaptcha
+        if (!$this->formWasSubmitted('submit', $view->useRecaptcha)) {
+            return $view;
+        }
+        // Missing or invalid hash
+        if (false == $userFromHash) {
+            $this->flashMessenger()->addMessage('recovery_user_not_found', 'error');
+            // Force login or restore hash
+            $post->username = false;
+            return $this->forwardTo('MyResearch', 'Recover');
+        } elseif ($userFromHash->username !== $post->username) {
+            $this->flashMessenger()
+                ->addMessage('authentication_error_invalid', 'error');
+            $userFromHash->updateHash();
+            $view->username = $userFromHash->username;
+            $view->hash = $userFromHash->verify_hash;
+            return $view;
+        }
+        // Verify old password if we're logged in
+        if ($this->getUser()) {
+            if (isset($post->oldpwd)) {
+                // Reassign oldpwd to password in the request so login works
+                $tempPassword = $post->password;
+                $post->password = $post->oldpwd;
+                $valid = $this->getAuthManager()->validateCredentials($request);
+                $post->password = $tempPassword;
+            } else {
+                $valid = false;
+            }
+            if (!$valid) {
+                $this->flashMessenger()
+                    ->addMessage('authentication_error_invalid', 'error');
+                $view->verifyold = true;
+                return $view;
+            }
+        }
+        // Update password
+        try {
+            $user = $this->getAuthManager()->updatePassword($this->getRequest());
+        } catch (AuthException $e) {
+            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+            return $view;
+        }
+        // Update hash to prevent reusing hash
+        $user->updateHash();
+        
+        // Login - AKserch: Prevent login! Log-out instead!
+        //$this->getAuthManager()->login($this->request);
+        $this->getAuthManager()->logout($this->url()->fromRoute('home'));
+        
+        // Go to favorites
+        //$this->flashMessenger()->addMessage('new_password_success', 'success');
+        //return $this->redirect()->toRoute('myresearch-home');
+        
+        // Stay on the same site!
+        $this->flashMessenger()->addMessage('new_password_success', 'success');
+        return $view;
+    }
+    
+    
+    
     /**
      * Prepare and direct the home page where it needs to go.
      * 
