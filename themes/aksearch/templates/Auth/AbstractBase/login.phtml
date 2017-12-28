@@ -1,3 +1,11 @@
+<div id="systemChangeAlert2">
+	<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>&nbsp;
+	Login nicht möglich!&nbsp;
+	<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+	<br />
+	Systemumstieg vom 22.12.17 - 7.1.18!
+</div>
+
 <? $account = $this->auth()->getManager(); ?>
 <? $sessionInitiator = $account->getSessionInitiator($this->serverUrl($this->url('myresearch-home'))); ?>
 <? if (!$sessionInitiator): // display default login form if no login URL provided ?>
