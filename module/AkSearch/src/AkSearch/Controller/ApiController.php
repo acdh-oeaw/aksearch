@@ -757,7 +757,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		return $updateResult['status']; // Return http status code
 	}
 	
-	
+	// TODO: Remove static eMail text (e. g. move to languages files)
 	private function sendMail($username, $password, $to) {
 		$success = false;
 		
@@ -766,7 +766,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$email_message .= 'Sehr geehrte Nutzerin, sehr geehrter Nutzer!'."\n\n";
 		$email_message .= 'An der AK Bibliothek Wien wurde ein NutzerInnen Account für Sie erstellt. Um unsere Services in Anspruch nehmen zu können, müssen Sie zunächst ein eigenes Passwort wählen.'."\n\n";
 		$email_message .= 'Besuchen Sie bitte folgende Website, geben Sie in die ensprechenden Felder die untenstehenden Daten ein und wählen Sie dann mithilfe der Felder "Neues Passwort" sowie "Neues Passwort bestätigen" ein eigenes Passwort.' . "\n\n";
-		$email_message .= 'URL: https://biapps.arbeiterkammer.at/aksearch/AkSites/SetPasswordWithOtp' . "\n\n";
+		$email_message .= 'URL: https://aksearch.arbeiterkammer.at/AkSites/SetPasswordWithOtp' . "\n\n";
 		$email_message .= '  BenutzerInnen-Name: ' . $username. "\n";
 		$email_message .= '  Einmal-Passwort: ' . $password. "\n\n";
 		$email_message .= 'Mit freundlichen Grüßen'."\n";
