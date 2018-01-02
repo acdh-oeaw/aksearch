@@ -137,14 +137,13 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 
     
     /**
-     * Attempt to authenticate the current user. Throws exception if login fails.
+     * Attempt to authenticate a user. Throws exception if login fails.
      * Exteded version for use with Alma.
      *
-     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing
-     * account credentials.
+     * @param	\Zend\Http\PhpEnvironment\Request	$request	Request object containing account credentials.
      *
-     * @throws AuthException
-     * @return \VuFind\Db\Row\User Object representing logged-in user.
+     * @throws	AuthException
+     * @return	\VuFind\Db\Row\User								Object representing logged-in user.
      */
     public function authenticate($request) {
     	// Make sure the credentials are non-blank:
@@ -154,9 +153,11 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     		throw new AuthException('authentication_error_blank');
     	}
     	
-    	// Get user data from database
-    	$user = $this->getUserTable()->getByUsername($this->username, false);
-    
+    	// Get user data from database if we don't already have a user.
+    	if ($user == null) {
+    		$user = $this->getUserTable()->getByUsername($this->username, false);
+    	}
+    	
     	// Check if the user should be forced to change his password
     	if (is_object($user) && $this->isForcePwChange($user)) {
     	    // Return user object with "$user->force_pw_change" set to "1"

@@ -7,12 +7,15 @@ use \ZfcRbac\Service\AuthorizationServiceAwareTrait;
 use \Zend\Http\Response as HttpResponse;
 use Zend\Crypt\Password\Bcrypt;
 use Zend\Mail as Mail;
+use AkSearch\View\Helper\Root\Auth;
+use Zend\Http\Request;
 
 
 // Hide all PHP errors and warnings as this could brake the JSON and/or XML output
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(0);
+
 
 class ApiController extends AbstractBase implements AuthorizationServiceAwareInterface {
 	
@@ -30,6 +33,12 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	 * @var \AkSearch\Db\Table\User
 	 */
 	protected $userTable;
+	
+	/**
+	 * Plugin manager for db table
+	 * @var \VuFind\Db\Table\PluginManager
+	 */
+	protected $dbTableManager;
 	
 	/**
 	 * Http service
@@ -66,8 +75,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			throw new \Exception('Authorization service missing');
 		}
 		
+		$this->dbTableManager = $dbTableManager;
 		$this->userTable = $dbTableManager->get('user');
 		$this->httpService = $httpService;
+		
 	}
 	
 	
@@ -371,9 +382,18 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Perform user-api action
 		switch ($apiUserAction) {
 			case 'Auth':
+				$userAuthSystem = (isset($this->configAKsearch->API->userAuthSystem)) ? $this->configAKsearch->API->userAuthSystem : 'Database';
 				$username = $requestBodyArray['username'];
 				$password = $requestBodyArray['password'];
-				return $this->userAuth($requestMethod, $this->host, $this->database, $username, $password);
+				
+				if ($userAuthSystem == 'Aleph') {
+					$httpResponse = $this->userAuthAleph($requestMethod, $this->host, $this->database, $username, $password);
+				} else if ($userAuthSystem == 'Database') {
+					$httpResponse = $this->userAuthDatabase($requestMethod, $username, $password);
+				}
+				
+				return $httpResponse;
+				
 				break;
 			default:
 				$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
@@ -383,8 +403,178 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		}
 	}
 	
+	
+	private function userAuthDatabase($requestMethod, $username, $password, $returnFormat = 'json') {
+		// Only POST requests are allowed
+		if ($requestMethod != 'POST') {
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Only POST requests are allowed.');
+			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
+			return $this->httpResponse; // Stop code execution here if request method is not POST
+		}
+		
+		// Default values for return array
+		$isValid = 'U'; // U = Unknown (Default) - we don't know yet if the user credentials are valid or not
+		$userExists = 'U'; // U = Unknown (Default) - we don't know yet if the user credentials really exists or not
+		$isExpired = 'U'; // U = Unknown. At this point we don't know if the user account is expired
+		$expired = null; // null. We use null because we can easily remove null values from the return array. Data for account expiration should only be shown when the account really is expired.
+		$expireDateTS = null;
+		$expiryDateFormatted = null;
+		$isBlocked = 'U'; // U = Unknown. At this point we don't know if the user has blocks or not
+		$blocks = null; // null. We use null because we can easily remove null values from the return array. Blocks should only be shown when there really are blocks.
+		$hasError = null; // null = There is no error. We use null because we can easily remove null values from the return array. Errors should only be shown when there really are errors.
+		$errorMsg = null; // null = There is no error message.
+		
+		// Return variables
+		$returnFormat = strtolower($returnFormat);
+		$returnArray = [];
+		$returnJson = null;
+		
+		// Create request for \AkSearch\Auth\Database::authenticate
+		$request = new Request();
+		$request->setMethod(Request::METHOD_POST);
+		$request->getPost()->set('username', $username);
+		$request->getPost()->set('password', $password);
+		
+		// Authenticate the user and catch exceptions
+		try {
+			$authDb = new \AkSearch\Auth\Database();
+			$authDb->setConfig($this->config);
+			$authDb->setDbTableManager($this->dbTableManager);
+			$user = $authDb->authenticate($request);
+			$forcePwChange = (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+			
+			if ($forcePwChange) {
+				// Force password change is activated
+				$isValid = 'N';
+				$userExists = 'Y';
+				$isBlocked = 'Y';
+				$blocks[0]['code'] = '01';
+				$blocks[0]['note'] = 'Systemwechsel: Bitte in aksearch.arbeiterkammer.at einloggen und Konto aktivieren! System change: log-in at aksearch.arbeiterkammer.at to activate account!';
+				$this->httpResponse->setStatusCode(403); // Forbidden
+			} else {
+				// Check also if user exists in Alma via API
+				// TODO: Should already be done in \AkSearch\Auth\Database.php
+				$primaryId = (isset($user->cat_id) && !empty($user->cat_id)) ? $user->cat_id : null;
+				$apiUrl = $this->configAlma->API->url;
+				$apiKey = $this->configAlma->API->key;
+				$almaUserObject = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
+				$almaUserObject = $almaUserObject['xml']; // Get the user XML object from the return-array.
+				
+				if (isset($almaUserObject->errorsExist) && $almaUserObject->errorsExist == true) {
+					$hasError = 'Y';
+					if (isset($almaUserObject->errorList)) {
+						// Get first error
+						$error = $almaUserObject->errorList->error[0];
+						$almaErrorMsg = (isset($error->errorMessage)) ? 'Alma error message: '.(string)$error->errorMessage : '';
+						$almaErrorCode = (isset($error->errorCode)) ? (string)$error->errorCode : null;
+						$almaErrorCodeMsg = ($almaErrorCode != null) ? ' (Alma error code: '.$almaErrorCode.')' : '';
+						$errorMsg = $almaErrorMsg.$almaErrorCodeMsg;
+						$this->httpResponse->setStatusCode(401); // Unauthorized
+						
+						if ($almaErrorCode = '401861' || $almaErrorCode = '401890' || $almaErrorCode = '4019990' || $almaErrorCode = '4019998') {
+							$isValid = 'N';
+							$userExists = 'N';
+						} else {
+							$isValid = 'U';
+							$userExists = 'U';
+						}
+					}
+				} else {
+					$userExists = 'Y';
+					
+					// Check for user blocks in Alma
+					if (isset($almaUserObject->user_blocks) && !empty($almaUserObject->user_blocks)) {
+						$isBlocked = 'Y';
+						$blockCounter = 0;
+						foreach($almaUserObject->user_blocks->user_block as $key => $userBlock) {
+							$blockCounter++;
+							$blocks[$blockCounter]['code'] = (string)$userBlock->block_description;
+							$blocks[$blockCounter]['note'] = (string)$userBlock->block_description['desc'];
+						}
+					} else {
+						$isBlocked = 'N';
+					}
+					
+					// Check if user account is expired
+					$expiryDate = (string)$almaUserObject->expiry_date;
+					$expiryDate = rtrim($expiryDate, 'Z');
+					$expiryDateObj = \DateTime::createFromFormat('Y-m-d H:i:s', $expiryDate.' 23:59:59');
+					$expireDateTS = $expiryDateObj->getTimestamp();
+					$nowTs = time();
+					if ($expireDateTS < $nowTs) {
+						$isExpired = 'Y';
+						$expiryDateFormatted = date('d.m.Y', $expireDateTS);
+						$expired['timestamp'] = $expireDateTS;
+						$expired['formatted'] = $expiryDateFormatted;
+					} else {
+						$isExpired = 'N';
+					}
+					
+					if ($isBlocked == 'Y' || $isExpired == 'Y') {
+						$isValid = 'N';
+						$this->httpResponse->setStatusCode(403); // Forbidden
+					} else {
+						$isValid = 'Y';
+						$this->httpResponse->setStatusCode(200); // OK
+					}
+				}
+			}
+		} catch (\VuFind\Exception\Auth $authException) {
+			if ($authException->getMessage() == 'authentication_error_invalid') {
+				// Credentials are invalid
+				$isValid = 'N';
+				$userExists = 'U';
+				$this->httpResponse->setStatusCode(401); // Unauthorized				
+			} else if ($authException->getMessage() == 'authentication_error_otp') {
+				// Password is OTP
+				$isValid = 'N';
+				$userExists = 'Y';
+				$isBlocked = 'Y';
+				$blocks[0]['code'] = '02';
+				$blocks[0]['note'] = 'Kein Log-in mit Einmal-Passwort. Neues Passwort auf aksearch.arbeiterkammer.at setzen! No log-in with one-time-password. Set new password at aksearch.arbeiterkammer.at!';
+				$this->httpResponse->setStatusCode(403); // Forbidden
+			} else if ($authException->getMessage() == 'authentication_error_blank') {
+				// Blank credentials
+				$isValid = 'N';
+				$userExists = 'N';
+				$this->httpResponse->setStatusCode(401); // Unauthorized
+			}
+		} catch (\Exception $ex) {
+			$this->httpResponse->setStatusCode(500); // Internal Server Error (500)
+		}
+		
+		// Create the return array
+		$returnArray['user']['isValid'] = $isValid;
+		$returnArray['user']['exists'] = $userExists;
+		$returnArray['expired']['isExpired'] = $isExpired;
+		if ($expired) { $returnArray['expired']['date'] = $expired; }
+		$returnArray['blocks']['isBlocked'] = $isBlocked;
+		if ($blocks) { $returnArray['blocks']['reasons'] = $blocks; }
+		if ($hasError) { $returnArray['request']['hasError'] = $hasError; }
+		if ($errorMsg) { $returnArray['request']['errorMsg'] = $errorMsg; } // The error message from the database or ILS
+		$returnArray= array_filter($returnArray); // Remove null from array
+		$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+		
+		// Return XML
+		if ($returnFormat == 'xml') {
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Only "json" response is supported at the moment!');
+			// $headers->addHeaderLine('Content-type', 'text/xml');
+			// $this->response->setContent($XML);
+		} else if ($returnFormat == 'json') {
+			// Return JSON (Default)
+			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+			$this->httpResponse->setContent($returnJson);
+		} else {
+			$this->httpResponse->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+		}
+		
+		return $this->httpResponse;
+	}
+	
 
-	private function userAuth($requestMethod, $host, $library, $username, $password, $returnFormat = 'json') {
+	private function userAuthAleph($requestMethod, $host, $library, $username, $password, $returnFormat = 'json') {
 		// Only POST requests are allowed
 		if ($requestMethod != 'POST') {
 			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
