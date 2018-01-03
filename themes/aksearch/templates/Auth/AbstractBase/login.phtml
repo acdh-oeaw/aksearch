@@ -1,4 +1,4 @@
-<div id="systemChangeAlert2">
+<div id="systemChangeAlert2" style="display: none;">
 	<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>&nbsp;
 	Login nicht möglich!&nbsp;
 	<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
@@ -22,12 +22,14 @@
         if ($loginFormLink) {
             echo '<a class="btn btn-primary" href="'.$this->addLink['url'].'" target="'.$target.'">'.$this->transEsc($this->addLink['text']).'</a>';
         }
+        /*
         if ($creationLink) {
             echo '<a class="btn btn-link createAccountLink" href="'.$this->url('myresearch-account').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Create New Account').'</a>';
         }
         if ($recoveryLink) {
             echo '<a class="btn btn-link" href="'.$this->url('myresearch-recover').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Forgot Password').'</a>';
         }
+        */
         echo '</div>';
         
         echo '<div class="col-sm-4">';
