@@ -246,7 +246,48 @@ if (! empty($holdings)) {
 					}
 					echo '</td>';
 					echo '<td>';
-					echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
+					
+					// REMOVE IF ELSE BLOCK AFTER TESTING
+					if ($user->cat_id === 'AK7318') {
+						if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
+							if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
+								if (!$user) {
+									// Link for login
+									echo '<a href="'.$this->url('myresearch-userlogin').'" class="akOpenLogin btn btn-default clear-btn" title="'.$this->transEsc("Login").'">'.$this->transEsc("Login").'</a>';
+								} elseif (!$user->cat_username) {
+									echo $this->translate("hold_profile_html", array('%%url%%' => $this->currentPath() . '?catalogLogin=true'));
+								} else {
+									// Link for placing a hold
+									if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
+										
+										// Use this if we check if the request is valid in checkRequestIsValidAjax (PHP class AkSearch\Controller\AkAjaxController and JS checkRequestIsValid in record.aksearch.js) 
+										//$checkClass = $check ? ' checkRequest' : '';
+										//$checkText = $check ? 'Check Hold' : 'Place a Hold';
+										//echo '<a class="btn btn-default clear-btn holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
+										
+										$holdButtonText = $this->transEsc('Place a Hold');
+										if (isset($holdingOfLocation['holdtype']) && $holdingOfLocation['holdtype'] == 'reserve') {
+											$holdButtonText = $this->transEsc('Recall This');
+										}
+										echo '<a class="btn btn-default clear-btn holdPlace" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($holdButtonText) . '</span></a>';
+											
+									} else {
+										if (isset($holdingOfLocation['get_from_readingroom']) && $holdingOfLocation['get_from_readingroom'] == true) {
+											echo $this->transEsc('GetFromReadingRoom');
+										} else {
+											echo $this->transEsc('AskLibraryStaff');
+										}
+										
+									}
+								}
+							} else {
+								echo $this->transEsc('login_disabled');
+							}
+						}
+					} else {
+						echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
+					}
+					
 					/*
 					if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
 						if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
