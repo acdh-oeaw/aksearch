@@ -416,7 +416,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	            if ($sendEmailResult['success']) {
 	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'success');
 	            } else {
-	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'success');
+	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'error');
 	            }
 	        } else {
 	            $this->flashMessenger()->addMessage($result['status'], 'error');
@@ -435,23 +435,72 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	    // If we can't find a user
 	    if (null == $user) {
 	        $sendEmailResult = array('success' => false, 'status' => 'recovery_user_not_found');
-	        //$this->flashMessenger()->addMessage('recovery_user_not_found', 'error');
 	    } else {
 	        // Make sure we've waiting long enough
 	        $hashtime = $this->getHashAge($user->verify_hash);
 	        $recoveryInterval = isset($config->Authentication->recover_interval) ? $config->Authentication->recover_interval : 60;
 	        if (time() - $hashtime < $recoveryInterval) {
-	            //$this->flashMessenger()->addMessage('recovery_too_soon', 'error');
 	            $sendEmailResult = array('success' => false, 'status' => 'recovery_too_soon');
 	        } else {
-	            // Attempt to send the email
-	            try {
+	        	
+	        	// Generate new hash
+	        	$user->updateHash();
+	        	
+	        	// Get authentication method
+	            $method = $this->getAuthManager()->getAuthMethod();
+	            
+	            // Get eMail text and subject from languages file and translate it
+	            $emailText = $this->translate('eMailRequestSetPasswordText', ['_firstName_' => $user->firstname, '_lastName_' => $user->lastname, '_url_' => $this->getServerUrl('aksites-setpassword') . '?hash=' . $user->verify_hash . '&auth_method=' . $method]);
+		    	$subject = $this->translate('eMailRequestSetPasswordSubject', ['_firstName_' => $user->firstname, '_lastName_' => $user->lastname]);
+		    	
+		    	// Get addresses
+		    	$toEmail = (isset($user->email) && !empty($user->email)) ? $user->email : null;
+		    	$fromEmail = (isset($almaConfig->Users->emailFrom) && !empty($almaConfig->Users->emailFrom)) ? $almaConfig->Users->emailFrom : $config->Site->email;
+	            $replyToEmail = (isset($almaConfig->Users->emailReplyTo) && !empty($almaConfig->Users->emailReplyTo)) ? $almaConfig->Users->emailReplyTo : null;
+		    	$bccEmail = (isset($almaConfig->Users->emailBcc) && !empty($almaConfig->Users->emailBcc)) ? $almaConfig->Users->emailBcc : null;
+		
+		    	// This sets up the email to be sent
+		    	$mail = new \Zend\Mail\Message();
+		    	$headers = $mail->getHeaders();
+		    	$headers->removeHeader('Content-Type');
+		    	$headers->addHeaderLine('Content-Type', 'text/html;charset=UTF-8');
+		    	$mail->addTo($toEmail);
+		    	$mail->setFrom($fromEmail);
+		    	$mail->setReplyTo($replyToEmail);
+		    	$mail->setBcc($bccEmail);
+		    	$mail->setSubject($subject);
+		    	
+		    	// Prepare HTML for eMail
+		    	$html = new \Zend\Mime\Part($emailText);
+		    	$html->type = 'text/html';
+		    	$html->setCharset('UTF-8');
+		    	$body = new \Zend\Mime\Message();
+		    	$body->setParts(array($html));
+		    	
+		    	// Add html to eMail body
+		    	$mail->setBody($body);
+		    	
+		    	try {
+		    		// Send eMail
+		    		$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
+		    		$sendEmailResult = array('success' => true, 'status' => 'success_request_set_password_email');
+		    	} catch (MailException $mex) {
+		    		$sendEmailResult = array('success' => false, 'status' => $e->getMessage());
+		    		error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
+		    	}
+	        	
+	        	
+	            /*
+	        	
+	        	try {
 	                // Create a fresh hash
 	                $user->updateHash();
 	                $config = $this->getConfig();
 	                $renderer = $this->getViewRenderer();
 	                $method = $this->getAuthManager()->getAuthMethod();
 	                // Custom template for emails (text-only)
+	                
+	                //Email/requestSetPasswordEmail.phtml
 	                $message = $renderer->render(
 	                    'Email/recover-password.phtml',
 	                    [
@@ -461,18 +510,26 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 	                );
 	                
 	                $fromEmail = (isset($almaConfig->Webhook->emailFrom) && !empty($almaConfig->Webhook->emailFrom)) ? $almaConfig->Webhook->emailFrom : $config->Site->email;
-	                $this->getServiceLocator()->get('VuFind\Mailer')->send(
-	                    $user->email,
-	                	$fromEmail,
-	                    $this->translate('request_set_password_email_subject'),
-	                    $message
-	                    );
-	                //$this->flashMessenger()->addMessage('recovery_email_sent', 'success');
-	                $sendEmailResult = array('success' => true, 'status' => 'success_request_set_password_email');
+	                $bcc = (isset($almaConfig->Webhook->emailBCC) && !empty($almaConfig->Webhook->emailBCC)) ? $almaConfig->Webhook->emailBCC : null;
+		
+					// This sets up the email to be sent
+					$mail = new \Zend\Mail\Message();
+					$mail->setBody($message);
+					$mail->setFrom($fromEmail);
+					$mail->addTo($user->email);
+					$mail->setSubject($this->translate('request_set_password_email_subject'));
+					$mail->addBcc($bcc);
+					
+					
+					$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
+					$sendEmailResult = array('success' => true, 'status' => 'success_request_set_password_email');
+					
 	            } catch (\Vufind\Exception\Mail $e) {
 	                //$this->flashMessenger()->addMessage($e->getMessage(), 'error');
 	                $sendEmailResult = array('success' => false, 'status' => $e->getMessage());
+	                error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
 	            }
+	            */
 	        }
 	    }
 	    

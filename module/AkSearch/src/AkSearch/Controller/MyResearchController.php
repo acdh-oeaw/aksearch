@@ -495,8 +495,10 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     					// Send eMails
     					$from = $configAlma->Users->emailFrom;
     					$replyTo = $configAlma->Users->emailReplyTo;
+		    			$bcc = (isset($configAlma->Users->emailBcc) && !empty($configAlma->Users->emailBcc)) ? $configAlma->Users->emailBcc : null;
     					$toLibrary = $configAlma->Users->emailLibrary;
-    					$sentEmailToPatron = $this->sendEmailToNewPatron($gender, $job, $jobsSpecialEmailText, $firstName, $lastName, $barcode, $dateExpiryTS, $displayDateFormat, $email, $from, $replyTo);
+    					
+    					$sentEmailToPatron = $this->sendEmailToNewPatron($gender, $job, $jobsSpecialEmailText, $firstName, $lastName, $barcode, $dateExpiryTS, $displayDateFormat, $email, $from, $replyTo, $bcc);
     					$sentEmailToLibrary = $this->sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $from, $replyTo, $toLibrary);
     					
     					if ($sentEmailToPatron && $sentEmailToLibrary) {
@@ -533,7 +535,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
      * 
      * @return boolean true if eMail was sent successfully, false otherwise
      */
-    private function sendEmailToNewPatron($gender, $job, $jobsSpecialEmailText, $firstName, $lastName, $barcode, $dateExpiryTS, $displayDateFormat, $to, $from, $replyTo) {
+    private function sendEmailToNewPatron($gender, $job, $jobsSpecialEmailText, $firstName, $lastName, $barcode, $dateExpiryTS, $displayDateFormat, $to, $from, $replyTo, $bcc) {
     	$success = false;
     	$subject= $this->translate('eMailToUserSubject');
     	$salutation = ($gender == 'FEMALE') ? $this->translate('eMailToUserSalutationMs') : $this->translate('eMailToUserSalutationMr');
@@ -559,6 +561,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     	$mail->addTo($to);
     	$mail->setFrom($from);
     	$mail->setReplyTo($replyTo);
+    	$mail->setBcc($bcc);
     	$mail->setSubject($subject);
     	
     	// Prepare HTML for eMail
