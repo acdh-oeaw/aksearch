@@ -1988,55 +1988,31 @@ class SolrMab extends SolrDefault  {
     		}
     	}
     	
-    	// Deduplication of participants per role
-    	// TODO: TEST WITH 990004394930203343
+    	// TODO: Is there is a more efficiant way to deduplicate the participants? Maybe already at indexing time?
+    	// Test with 990004598010203343 and 990004394930203343
     	$participantsDeDup = [];
     	foreach ($participants as $role => $participant) {
-    		$participantsDeDup[$role] = [];
     		foreach ($participant as $key => $gndNameArray) {
     			foreach($gndNameArray as $gnd => $name) {
-		    		if (!empty($participantsDeDup[$role])) {
-			    		foreach ($participantsDeDup[$role] as $keyDeDup => $gndNameDeDupArray) {
+    				$addParticipant = true;
+	    			if (!empty($participantsDeDup)) {
+	    				foreach ($participantsDeDup[$role] as $keyDeDup => $gndNameDeDupArray) {
 	    					foreach ($gndNameDeDupArray as $gndDeDup => $nameDeDup) {
-	    						if ($gnd != $gndDeDup || $name != $nameDeDup) {
-	    							$participantsDeDup[$role][] = array($gnd => $name);
-	    						}
+		    					if ($gnd == $gndDeDup && $name == $nameDeDup) {
+		    						$addParticipant = false;
+			    				}
 	    					}
-	    					
 	    				}
-	    				/*
-	    				echo '<strong>NOT EMPTY: '.$role.'</strong><br />';
-		    			echo '<pre>';
-		    			print_r($participantsDeDup[$role]);
-		    			echo '</pre>';
-		    			*/
-		    		} else {
-		    			$participantsDeDup[$role][] = array($gnd => $name);
-		    			/*
-		    			echo '<strong>EMPTY '.$role.'</strong><br />';
-		    			echo '<pre>';
-		    			print_r($participantsDeDup[$role]);
-		    			echo '</pre>';
-		    			*/
-		    		}
+    				}
+	    			
+	    			if ($addParticipant) {
+	    				$participantsDeDup[$role][] = array($gnd => $name);
+	    			}
     			}
     		}
     	}
-
-    	/*
-    	echo '<pre>';
-    	print_r($participants);
-    	echo '</pre>';
-    	*/
-    	
-    	/*
-    	echo '<pre>';
-    	print_r($participantsDeDup);
-    	echo '</pre>';
-    	*/
     	
 		return (isset($participantsDeDup) && !empty($participantsDeDup)) ? $participantsDeDup : null;
-		//return (isset($participants) && !empty($participants)) ? $participants : null;
 	}
 	
 	
