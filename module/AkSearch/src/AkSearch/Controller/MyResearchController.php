@@ -340,10 +340,12 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		$dateExpiryConfig = (isset($configAlma->Users->expiryDate)) ? $configAlma->Users->expiryDate->toArray() : ['scope' => 'Y', 'add' => 1];
     		$dateExpiryScope = (isset($dateExpiryConfig['scope'])) ? $dateExpiryConfig['scope'] : 'Y';
     		$dateExpiryAdd = (isset($dateExpiryConfig['add'])) ? $dateExpiryConfig['add'] : 1;
+    		
+    		/*
     		$jobsDateExpiryConfig = (isset($configAlma->Users->jobsSpecialExpiryDate)) ? $configAlma->Users->jobsSpecialExpiryDate->toArray() : ['scope' => 'Y', 'add' => 1];
     		$jobsDateExpiryScope = (isset($jobsDateExpiryConfig['scope'])) ? $jobsDateExpiryConfig['scope'] : 'Y';
     		$jobsDateExpiryAdd = (isset($jobsDateExpiryConfig['add'])) ? $jobsDateExpiryConfig['add'] : 1;
-    		
+
     		if (in_array($job, $jobsSpecialExpiryDate)) { // Special expiry date for certain job(s)
     			// TODO: Remove tolerance date and VWA date if contributing code to VuFind master code becaus this is a special case for AK Bibliothek Wien.
     			//       Use commented code below instead!
@@ -358,14 +360,16 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     			}
     			
     			// TODO: Use this code if contributing to VuFind master code!
-    			/*
-    			$dateExpiryTS = mktime(0, 0, 0, date('m') + ((strcasecmp($jobsDateExpiryScope, 'm') == 0) ? $jobsDateExpiryAdd : 0), date('d') + ((strcasecmp($jobsDateExpiryScope, 'd') == 0) ? $jobsDateExpiryAdd : 0), date('Y')  + ((strcasecmp($jobsDateExpiryScope, 'Y') == 0) ? $jobsDateExpiryAdd : 0));
-    			$dateExpiry = date('Y-m-d', $dateExpiryTS);
-    			*/
+    			//$dateExpiryTS = mktime(0, 0, 0, date('m') + ((strcasecmp($jobsDateExpiryScope, 'm') == 0) ? $jobsDateExpiryAdd : 0), date('d') + ((strcasecmp($jobsDateExpiryScope, 'd') == 0) ? $jobsDateExpiryAdd : 0), date('Y')  + ((strcasecmp($jobsDateExpiryScope, 'Y') == 0) ? $jobsDateExpiryAdd : 0));
+    			//$dateExpiry = date('Y-m-d', $dateExpiryTS);
     		} else { // Set default expiry date
     			$dateExpiryTS = mktime(0, 0, 0, date('m') + ((strcasecmp($dateExpiryScope, 'm') == 0) ? $dateExpiryAdd : 0), date('d') + ((strcasecmp($dateExpiryScope, 'd') == 0) ? $dateExpiryAdd : 0), date('Y')  + ((strcasecmp($dateExpiryScope, 'Y') == 0) ? $dateExpiryAdd : 0));
     			$dateExpiry = date('Y-m-d', $dateExpiryTS);
     		}
+    		*/
+    		
+    		$dateExpiryTS = mktime(0, 0, 0, date('m') + ((strcasecmp($dateExpiryScope, 'm') == 0) ? $dateExpiryAdd : 0), date('d') + ((strcasecmp($dateExpiryScope, 'd') == 0) ? $dateExpiryAdd : 0), date('Y')  + ((strcasecmp($dateExpiryScope, 'Y') == 0) ? $dateExpiryAdd : 0));
+    		$dateExpiry = date('Y-m-d', $dateExpiryTS);
 
     		$birthdayAlma = ($birthdayTs != null) ? date('Y-m-d', $birthdayTs) : null;
     		
@@ -472,7 +476,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     			// Remove whitespaces from XML string:
     			$xml_string = preg_replace("/\n/i", "", $xml_string);
     			$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
-    			
+
     			// Create user in Alma
     			$almaReturn = $this->akSearch()->doHTTPRequest($configAlma->API->url.'users/?&apikey='.$configAlma->API->key, 'POST', $xml_string, ['Content-Type' => 'application/xml']);
 
