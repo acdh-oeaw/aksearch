@@ -432,6 +432,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 						  <job_description>'.$job.'</job_description>
 						  <gender>'.$gender.'</gender>
 						  <user_group>'.$userGroup.'</user_group>
+                          <preferred_language desc="German">de</preferred_language>
 						  <birth_date>'.$birthdayAlma.'Z</birth_date>
 						  <expiry_date>'.$dateExpiry.'Z</expiry_date>
 						  <account_type>'.$accountType.'</account_type>
