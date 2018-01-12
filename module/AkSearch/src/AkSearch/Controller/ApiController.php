@@ -155,6 +155,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$almaSignature = ($this->getRequest()->getHeaders()->get('X-Exl-Signature')) ? $this->getRequest()->getHeaders()->get('X-Exl-Signature')->getFieldValue() : null;
 		
 		// Check for correct signature and return error message if check fails
+		/*
 		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
 			$returnArray['error'] = 'Unauthorized: Signature value not correct!';
 			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
@@ -164,6 +165,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			error_log('[Alma] Unauthorized: Signature value not correct!'); // Log the error in our own system
 			return $this->httpResponse;
 		}
+		*/
 		
 		
 		// Set some default values that will be overwritten if appropriate
