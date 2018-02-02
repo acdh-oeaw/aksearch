@@ -229,7 +229,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$source								= null; // We don't set anything here! If we do, we break the "record -> hold" route in the theme.
 			$use_unknown_message				= false;
 			$services							= null; // We don't use this functionality
-			$description						= (string)$item->item_data->description;
+			$description						= (string)$item->item_data->description; // Also used for sorting
 			$callnumber_second					= (string)$item->item_data->alternative_call_number;
 			$requested							= ((string)$item->item_data->requested == 'false') ? false : true; //((string)$item->item_data->requested == 'false') ? false : 'Requested';
 			$process_type						= (string)$item->item_data->process_type;
@@ -237,6 +237,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$policyCode							= (string)$item->item_data->policy;
 			$policyName							= (string)$item->item_data->policy->attributes()->desc;
 			$totalNoOfItems						= (string)$item->holding_data->no_of_items; // This is necessary for paging (load more items)!!!
+			$enumerationA						= (string)$item->item_data->enumeration_a; // For sorting
 			
 			// Get the fulfillment unit for the item. We need it for some other calculations.
 			$itemFulfillmentUnit = $this->getFulfillmentUnitByLocation($locationCode, $fulfillementUnits);
@@ -389,9 +390,36 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'policyName'						=> $policyName,
 					'totalNoOfItems'					=> $totalNoOfItems, // This is necessary for paging (load more items)!!!
 					'get_from_readingroom'				=> $getFromReadingRoom,
+					'enumerationA'						=> $enumerationA,
 			];
+				
 		}
 		
+		// Create array for sorting
+		foreach ($returnValue as $key => $rowToSort) {
+
+			// Enumeration A
+			$enumerationASort = 0;
+			$enumerationARaw = $rowToSort['enumerationA'];
+			//$hasNumber = preg_match('/^\d+/', $volumeNoRaw, $result);
+			$hasNumber = preg_match('/\d+/', $enumerationARaw, $resultEnumerationA);
+			if ($hasNumber) {
+				$enumerationASort = $resultEnumerationA[0];
+			}
+			$sortEnumerationA[$key] = $enumerationASort;
+			
+			// Publish date
+			$descriptionSort = 0;
+			$descriptionRaw = $rowToSort['description'];
+			$hasNumber = preg_match('/\d+/', $descriptionRaw, $resultDescription);
+			if ($hasNumber) {
+				$descriptionSort = $resultDescription[0];
+			}
+			$sortDescription[$key] = $descriptionSort;
+		}
+
+		array_multisort($sortEnumerationA, SORT_DESC, $sortDescription, SORT_DESC, $returnValue);
+		 
 		return $returnValue;
 	}
 	
