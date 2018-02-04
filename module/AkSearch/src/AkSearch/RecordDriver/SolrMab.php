@@ -2502,15 +2502,30 @@ class SolrMab extends SolrDefault  {
      * 
      * @return array
      */
-    public function getJournalHoldings() {    	
-    	if (!$this->hasILS()) {
-    		return array();
+    public function getJournalHoldings() {
+        $returnValue = array();
+        
+    	if ($this->hasILS()) {
+    	    try {
+    	        if ($this->mainConfig->Catalog->driver == 'Aleph') {
+    	            $returnValue = $this->ils->getJournalHoldings($this->getSysNo());
+    	        } else if ($this->mainConfig->Catalog->driver == 'Alma') {
+    	            
+    	            
+    	            $returnValue[$counter]['sublib'] = $sublibrary;
+    	            $returnValue[$counter]['holding'] = $holdingSummary;
+    	            $returnValue[$counter]['gaps'] = $gaps;
+    	            $returnValue[$counter]['shelfmark'] = $shelfMark;
+    	            $returnValue[$counter]['location'] = $location;
+    	            $returnValue[$counter]['locationshelfmark'] = $locationShelfMark;
+    	            $returnValue[$counter]['comment'] = $comment;
+    	        }
+    	    } catch (ILSException $e) {
+    	        $returnValue = array();
+    	    }
     	}
-    	try {
-    		return $this->ils->getJournalHoldings($this->getSysNo());
-    	} catch (ILSException $e) {
-    		return array();
-    	}
+    	
+    	return $returnValue;
     }
     
     
@@ -2582,22 +2597,29 @@ class SolrMab extends SolrDefault  {
     
     
     /**
-     * Check if the BIB record has journal holdings (= real holding).
+     * Check if the BIB record has journal holdings.
      * 
      * @return boolean	true if at least one journal holding exists, false otherwise.
      */
     public function hasJournalHoldings() {
-    	// Check if ILS is active
-    	if (!$this->hasILS()) {
-    		return false;
+        $hasJournalHoldings = false;
+
+        if ($this->hasILS()) { // Check if ILS is active
+    	    try {
+    	        $ilsDriver = $this->mainConfig->Catalog->driver;
+    	        if ($ilsDriver == 'Aleph') {
+    	            $hasJournalHoldings = $this->ils->hasJournalHoldings($this->getSysNo());
+    	        } else if ($ilsDriver == 'Alma') {
+    	            if (isset($this->fields['hol866aZsfBestandsangabe_txt_mv']) || isset($this->fields['hol866zLuecken_txt_mv'])) {
+    	                $hasJournalHoldings = true;
+    	            }
+    	        }
+    	    } catch (ILSException $e) {
+    	        $hasJournalHoldings = false;
+    	    }
     	}
     	
-    	try {
-    		return $this->ils->hasJournalHoldings($this->getSysNo());
-    	} catch (ILSException $e) {
-    		return false;
-    	}
-
+    	return $hasJournalHoldings;
     }
     
     
