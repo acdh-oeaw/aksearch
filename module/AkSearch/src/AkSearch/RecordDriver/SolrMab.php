@@ -2117,11 +2117,16 @@ class SolrMab extends SolrDefault  {
 	 * @return array		Array of all DDC values or null if none exists
 	 */
 	public function getDDCs() {
-		$ddcs = null;
+		$ddcs = [];
 		if (isset($this->fields['dewey-full'])) {
 			$ddcs = $this->fields['dewey-full'];
 		}
-		return $ddcs;
+		$ddcsAK = [];
+		if (isset($this->fields['deweyAk_txt_mv'])) {
+			$ddcsAK = $this->fields['deweyAk_txt_mv'];
+		}
+
+		return array_merge($ddcsAK, $ddcs);
 	}
 	
 	/**
