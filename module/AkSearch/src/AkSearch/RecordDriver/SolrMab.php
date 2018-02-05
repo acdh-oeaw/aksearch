@@ -2498,35 +2498,95 @@ class SolrMab extends SolrDefault  {
     
     
     /**
-     * Gets the Aleph journal holdings
+     * Gets the Aleph or Alma journal holdings
      * 
      * @return array
      */
     public function getJournalHoldings() {
-        $returnValue = array();
-        
-    	if ($this->hasILS()) {
-    	    try {
-    	        if ($this->mainConfig->Catalog->driver == 'Aleph') {
-    	            $returnValue = $this->ils->getJournalHoldings($this->getSysNo());
-    	        } else if ($this->mainConfig->Catalog->driver == 'Alma') {
-    	            
-    	            
-    	            $returnValue[$counter]['sublib'] = $sublibrary;
-    	            $returnValue[$counter]['holding'] = $holdingSummary;
-    	            $returnValue[$counter]['gaps'] = $gaps;
-    	            $returnValue[$counter]['shelfmark'] = $shelfMark;
-    	            $returnValue[$counter]['location'] = $location;
-    	            $returnValue[$counter]['locationshelfmark'] = $locationShelfMark;
-    	            $returnValue[$counter]['comment'] = $comment;
-    	        }
-    	    } catch (ILSException $e) {
-    	        $returnValue = array();
-    	    }
-    	}
-    	
-    	return $returnValue;
-    }
+		$returnValue = [];
+		
+		if ($this->hasILS()) {
+			try {
+				if ($this->mainConfig->Catalog->driver == 'Aleph') {
+					$returnValue = $this->ils->getJournalHoldings($this->getSysNo());
+				} else if ($this->mainConfig->Catalog->driver == 'Alma') {
+					
+					$hol866azArr = (isset($this->fields['hol866az_txt_mv']) && !empty($this->fields['hol866az_txt_mv'])) ? $this->fields['hol866az_txt_mv'] : null;
+					
+					if ($hol866azArr != null && !empty($hol866azArr)) {
+						
+						$holOwnArr = (isset($this->fields['hol852bOwn_txt_mv']) && !empty($this->fields['hol852bOwn_txt_mv'])) ? $this->fields['hol852bOwn_txt_mv'] : null;
+						$holOwnStr = ($holOwnArr != null) ? implode(', ', $holOwnArr) : null;
+						
+						$holCallNoArr = (isset($this->fields['hol852hSignatur_txt_mv']) && !empty($this->fields['hol852hSignatur_txt_mv'])) ? $this->fields['hol852hSignatur_txt_mv'] : null;
+						$holCallNoStr = ($holCallNoArr != null) ? implode(', ', $holCallNoArr) : null;
+						$holSpecialCallNoArr = (isset($this->fields['hol852jSonderstandortSignatur_txt_mv']) && !empty($this->fields['hol852jSonderstandortSignatur_txt_mv'])) ? $this->fields['hol852jSonderstandortSignatur_txt_mv'] : null;
+						$holSpecialCallNoStr = ($holSpecialCallNoArr != null) ? implode(', ', $holSpecialCallNoArr) : null;
+						
+						$permanentLocationArr = (isset($this->fields['permanentLocations_str_mv']) && !empty($this->fields['permanentLocations_str_mv'])) ? $this->fields['permanentLocations_str_mv'] : null;
+						$permanentLocationArrTranslated = [];
+						if ($permanentLocationArr != null && !empty($permanentLocationArr)) {
+							foreach($permanentLocationArr as $permanentLocation) {
+								$permanentLocationArrTranslated[] = $this->translate($permanentLocation);
+							}
+						}
+						$permanentLocationStr = ($permanentLocationArrTranslated != null && !empty($permanentLocationArrTranslated)) ? implode(', ', $permanentLocationArrTranslated) : null;
+						$locationZslArr = (isset($this->fields['zslNo_txt_mv']) && !empty($this->fields['zslNo_txt_mv'])) ? $this->fields['zslNo_txt_mv'] : null;
+						$locationZslStr =  ($locationZslArr != null) ? implode(', ', $locationZslArr) : null;
+						$location = null;
+						if ($permanentLocationStr != null && $locationZslStr != null) {
+							$location = $permanentLocationStr.', '.$locationZslStr;
+						} else if ($permanentLocationStr != null && $locationZslStr == null) {
+							$location = $permanentLocationStr;
+						} else if ($permanentLocationStr == null && $locationZslStr != null) {
+							$location = $locationZslStr;
+						}
+						
+						$holSpecialLocationArr = (isset($this->fields['hol852cSonderstandort_txt_mv']) && !empty($this->fields['hol852cSonderstandort_txt_mv'])) ? $this->fields['hol852cSonderstandort_txt_mv'] : null;
+						$holSpecialLocationArrDiff = ($permanentLocationArr != null && $holSpecialLocationArr != null) ? array_diff($holSpecialLocationArr, $permanentLocationArr) : null;
+						$holSpecialLocationTranslated = [];
+						if ($holSpecialLocationArrDiff != null && !empty($holSpecialLocationArrDiff)) {
+							foreach($holSpecialLocationArrDiff as $specialLocation) {
+								 $holSpecialLocationTranslated[] = $this->translate($specialLocation);
+							}
+						}
+						$holSpecialLocationStr = ($holSpecialLocationTranslated != null && !empty($holSpecialLocationTranslated)) ? implode(', ', $holSpecialLocationTranslated) : null;
+						if ($location != null && $holSpecialLocationStr != null) {
+							$location .= '; '.$holSpecialLocationStr;
+						} else if ($location == null && $holSpecialLocationStr != null) {
+							$location = $holSpecialLocationStr;
+						}
+
+						$holCommentArr = (isset($this->fields['hol866zKommentar_txt_mv']) && !empty($this->fields['hol866zKommentar_txt_mv'])) ? $this->fields['hol866zKommentar_txt_mv'] : null;
+						$holCommentStr = ($holCommentArr != null) ? implode(', ', $holCommentArr) : null;
+
+						$moduloCounter = 0;
+						$counter = 0;
+						foreach ($hol866azArr as $hol866az) {
+							if ($moduloCounter == 0 || ($moduloCounter % 2) == 0) {
+								$returnValue[$counter]['holding'] = ($hol866az != null && !empty($hol866az)) ? $hol866az : null;
+							}
+							if ($moduloCounter == 1 || ($moduloCounter % 2) == 1) {
+								$returnValue[$counter]['gaps'] = ($hol866az != null && !empty($hol866az) && $hol866az != 'NoGaps') ? $hol866az : null;
+							}
+							
+							$returnValue[$counter]['sublib'] = $holOwnStr;
+							$returnValue[$counter]['shelfmark'] = $this->getMaskedValue($holCallNoStr);
+							$returnValue[$counter]['location'] = $this->getMaskedValue($location);
+							$returnValue[$counter]['locationshelfmark'] = $this->getMaskedValue($holSpecialCallNoStr);
+							$returnValue[$counter]['comment'] = $holCommentStr;
+							
+							$moduloCounter = $moduloCounter + 1;
+						}
+					}
+				}
+			} catch (ILSException $e) {
+				$returnValue = array();
+			}
+		}
+		
+		return $returnValue;
+	}
     
     
     /**
