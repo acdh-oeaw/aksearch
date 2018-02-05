@@ -2707,6 +2707,16 @@ class SolrMab extends SolrDefault  {
     }
     
     
+    /**
+     * Returns true if the record supports real-time AJAX status lookups.
+     *
+     * @return bool
+     */
+    public function supportsAjaxStatus() {
+        return false;
+    }
+    
+    
     
 }
 ?>
