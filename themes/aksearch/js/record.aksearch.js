@@ -137,7 +137,44 @@ function checkRequestIsValid(element, requestURL, requestType, blockedClass) {
 	// Do nothing as this can cause errors when checking a lot of items (e. g. from newspapers)
 }
 
-
+function getItemAvailability() {
+	var url = path + '/AJAX/JSON';
+	var itemId = 'ID_MIKE';
+	var data = {
+		method: 'getItemAvailability',
+		itemId: itemId
+	};
+	
+	$.ajax({
+		dataType: 'json',
+		url: url,
+		data: data,
+		success: function(response) {
+			console.log('Success:');
+			console.log(response);
+			/*
+			if (response.status == 'OK') {
+				if (response.data.status) {
+					$(element).removeClass('disabled')
+					.attr('title', response.data.msg)
+					.html(response.data.msg);
+					//.html('<i class="fa fa-flag"></i>&nbsp;'+response.data.msg);
+				} else {
+					$(element).remove();
+				}
+			} else if (response.status == 'NEED_AUTH') {
+				$(element).replaceWith('<span class="' + blockedClass + '">' + response.data.msg + '</span>');
+			}
+			*/
+		},
+		error: function(response) {
+			console.log('Error:');
+			console.log(response);
+		}
+	});
+	
+	
+}
 
 $(document).ready(function() {
 
@@ -154,7 +191,9 @@ $(document).ready(function() {
 
 		return Lightbox.get('MyResearch', 'UserLogin');
 	});
-
+	
+	
+	getItemAvailability();
 	
 });
 

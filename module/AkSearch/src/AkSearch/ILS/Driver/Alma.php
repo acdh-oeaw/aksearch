@@ -424,6 +424,11 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
+	public function getItemAvailability($mmsId, $holId, $itmId) {
+		
+	}
+	
+	
 	/**
 	 * Check if the "show more items" link/button should be displayed or not.
 	 *
