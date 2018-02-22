@@ -1803,7 +1803,8 @@ class SolrMab extends SolrDefault  {
 	 * @return string
 	 */
 	public function getTitle() {
-		return isset($this->fields['title']) ? str_replace(array('<', '>'), '', $this->fields['title']) : '';
+		$titleOfPart = isset($this->fields['title_part_txt']) ? ': '.str_replace(array('<', '>'), '', $this->fields['title_part_txt']) : '';
+		return isset($this->fields['title']) ? str_replace(array('<', '>'), '', $this->fields['title']).$titleOfPart : '';
 	}
 
 	/**
