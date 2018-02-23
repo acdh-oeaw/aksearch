@@ -424,9 +424,11 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	}
 	
 	
+	/*
 	public function getItemAvailability($mmsId, $holId, $itmId) {
 		
 	}
+	*/
 	
 	
 	/**

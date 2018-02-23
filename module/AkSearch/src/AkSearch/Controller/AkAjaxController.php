@@ -106,28 +106,28 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 		return $this->output($json, self::STATUS_OK);
 	}
 	
-	
+/*
 	public function getItemAvailabilityAjax() {
 		$this->outputMode = 'json';
 		$data = $this->params()->fromQuery('itemId');
 		return $this->output($data, self::STATUS_OK);
 		
-		/*
-		$gndid = $this->params()->fromQuery('gndid');
-		$client = $this->getServiceLocator()->get('VuFind\Http')->createClient('http://hub.culturegraph.org/entityfacts/' . $gndid);
-		$client->setMethod('GET');
-		$result = $client->send();
 		
-		// If an error occurs
-		if (! $result->isSuccess()) {
-			return $this->output($this->translate('An error has occurred'), self::STATUS_ERROR);
-		}
+// 		$gndid = $this->params()->fromQuery('gndid');
+// 		$client = $this->getServiceLocator()->get('VuFind\Http')->createClient('http://hub.culturegraph.org/entityfacts/' . $gndid);
+// 		$client->setMethod('GET');
+// 		$result = $client->send();
 		
-		$json = $result->getBody();
-		return $this->output($json, self::STATUS_OK);
-		*/
+// 		// If an error occurs
+// 		if (! $result->isSuccess()) {
+// 			return $this->output($this->translate('An error has occurred'), self::STATUS_ERROR);
+// 		}
+		
+// 		$json = $result->getBody();
+// 		return $this->output($json, self::STATUS_OK);
+		
 	}
-	
+*/
 
 	
 	/**
