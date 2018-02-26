@@ -624,7 +624,7 @@ class Aleph extends AlephDefault {
 	 * @return array        Array of the patron's transactions on success.
 	 */
 	public function getMyTransactions($user, $history = false) {
-		$userId = $user['id'];
+		$userId = $user->cat_id;
 		$transList = [];
 		$params = ["view" => "full"];
 		if ($history) {

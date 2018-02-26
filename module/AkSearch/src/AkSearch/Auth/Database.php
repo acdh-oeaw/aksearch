@@ -523,16 +523,16 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    public function isLoanHistory($profile) {
+    public function isLoanHistory($user) {
         // Get user data from database
-        $user = $this->getUserTable()->getByUsername($profile['barcode'], false);
+        $user = $this->getUserTable()->getByUsername($user->username, false);
         
         // Check if the user has chosen to save the loan history
         return (isset($user->save_loans)) ? filter_var($user->save_loans, FILTER_VALIDATE_BOOLEAN) : false;
     }
     
     
-    public function setIsLoanHistory($profile, $postParams) {
+    public function setIsLoanHistory($user, $postParams) {
     	// 0. Click button in loanhistory.phtml
         // 1. AkSitesController.php->loanHistoryAction()
         // 2. Manager.php->setIsLoanHistory()
@@ -548,11 +548,11 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
         }
         
         // Get user data from database
-        $user = $this->getUserTable()->getByUsername($profile['barcode'], false);
+        $userDb = $this->getUserTable()->getByUsername($user->username, false);
         
         // Save the chosen value to the database
-        $user->save_loans = $optIn;
-        $user->save();
+        $userDb->save_loans = $optIn;
+        $userDb->save();
         
         // Return the result
         $result = [];
@@ -574,8 +574,8 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    public function deleteLoanHistory($profile) {    	
-    	$ilsUserId = $profile['id'];
+    public function deleteLoanHistory($user) {    	
+    	$ilsUserId = $user->cat_id;
     	$loansTable = $this->getLoansTable();
     	$noDeletedLoans = $loansTable->deleteByIlsUserId($ilsUserId);
     	
@@ -590,16 +590,16 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    public function getLoanHistory($profile) {
+    public function getLoanHistory($user) {
         $loanHistoryArray = [];
         
-        if (!$this->isLoanHistory($profile)) {
+        if (!$this->isLoanHistory($user)) {
             $loanHistoryArray['isLoanHistory'] = false;
             return $loanHistoryArray;
         }
         
     	$table = $this->getLoansTable();
-    	$loans = $table->getByIlsUserId($profile['id']);
+    	$loans = $table->getByIlsUserId($user->cat_id);
     	
     	if ($loans) {
     		foreach ($loans as $loan) {

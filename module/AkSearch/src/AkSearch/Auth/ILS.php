@@ -44,8 +44,8 @@ class ILS extends DefaultAuthILS {
 	}
 	
 	
-	public function getLoanHistory($profile) {
-		$result = $this->getCatalog()->getLoanHistory($profile);
+	public function getLoanHistory($user) {
+		$result = $this->getCatalog()->getLoanHistory($user);
 		return $result;
 	}
 	

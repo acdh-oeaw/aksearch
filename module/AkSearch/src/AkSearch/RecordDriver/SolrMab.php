@@ -343,7 +343,7 @@ class SolrMab extends SolrDefault  {
 		// Get driver (Aleph or Alma)
 		$ilsName = $this->mainConfig->Catalog->driver;
 
-		if (strtolower($ilsName) == 'alma') {
+		if (strtolower($ilsName) == 'alma' || strtolower($ilsName) == 'noils') {
 			
 			// Get publication type as string:
 			$publicationType = (array_key_exists('erscheinungsform_str', $this->fields)) ? $this->fields['erscheinungsform_str'] : null;

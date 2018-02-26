@@ -80,11 +80,6 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 			return $this->redirect()->toRoute('home');
 		}
 		
-		// Stop now if the user does not have valid catalog credentials available
-		if (!is_array($patron = $this->catalogLogin())) {
-			return $patron;
-		}
-		
 		// Get post params
 		$postParams = $this->params()->fromPost();
 		
@@ -94,18 +89,8 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		// Begin building view object
 		$view = $this->createViewModel();
 
-		/*
-		// Obtain user information from ILS
-		$catalog = $this->getILS();
-		$profile = $catalog->getMyProfile($patron);
-		
-		// Get loan history from ILS
-		$loanHistory = $catalog->getLoanHistory($profile);
-		*/
-
-		$catalog = $this->getILS();
-		$profile = $catalog->getMyProfile($patron);		
-		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);
+		// Get the loan history
+		$loanHistory = $this->getAuthManager()->getLoanHistory($user);
 		
 		// If user has not yet opted-in for loan history, set a value for the template and show an opt-in message there:
 		if (isset($loanHistory['isLoanHistory']) && $loanHistory['isLoanHistory'] == false) {
@@ -119,7 +104,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		        // 2. Manager.php->setIsLoanHistory()
 		        // 3. Database.php->setIsLoanHistory()
 		        try {
-		            $result = $this->getAuthManager()->setIsLoanHistory($profile, $postParams);
+		            $result = $this->getAuthManager()->setIsLoanHistory($user, $postParams);
 		        } catch (\VuFind\Exception\Auth $e) {
 		            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
 		            return $view;
@@ -142,10 +127,10 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		// If opt-out form was submitted, handle the opt-out logic
 		if ($this->formWasSubmitted('submitOptOut')) {
 		    try {
-		        $result = $this->getAuthManager()->setIsLoanHistory($profile, $postParams);
+		        $result = $this->getAuthManager()->setIsLoanHistory($user, $postParams);
 		    	if ($result['success']) {
 		    		// Delete loan history from database
-		    		$resultDelete = $this->getAuthManager()->deleteLoanHistory($profile);
+		    		$resultDelete = $this->getAuthManager()->deleteLoanHistory($user);
 		    		
 		            // Show message on success
 		            $this->flashMessenger()->addMessage($result['status'], 'success');
