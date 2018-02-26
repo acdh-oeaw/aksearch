@@ -4,9 +4,24 @@
 
     // Set up breadcrumbs:
     $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Account') . '</li>';
+
 ?>
 <h2><?=$this->transEsc('User Account')?></h2>
 <?=$this->flashmessages()?>
+
+<?php 
+$offlineMode = $this->ils()->getOfflineMode();
+if ($offlineMode == "ils-offline") {
+	echo '<div class="alert alert-warning">';
+		echo '<h2>'.$this->transEsc('ils_offline_title').'</h2>';
+		echo '<p><strong>'.$this->transEsc('ils_offline_status').'</strong></p>';
+		echo '<p>'.$this->transEsc('ils_offline_login_message').'</p>';
+		$supportEmail = $this->escapeHtmlAttr($this->systemEmail());
+		echo '<p><a href="mailto:'.$supportEmail.'">'.$supportEmail.'</a></p>';
+	echo '</div>';
+	return;
+}
+?>
 
 <form method="post" name="accountForm" id="accountForm" class="form-horizontal" data-toggle="validator" role="form">
   <?=$this->auth()->getCreateFields()?>

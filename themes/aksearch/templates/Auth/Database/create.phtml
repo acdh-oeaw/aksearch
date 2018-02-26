@@ -1,17 +1,4 @@
 <?php
-$offlineMode = $this->ils()->getOfflineMode();
-
-if ($offlineMode == "ils-offline") {
-	echo '<div class="alert alert-warning">';
-		echo '<h2>'.$this->transEsc('ils_offline_title').'</h2>';
-		echo '<p><strong>'.$this->transEsc('ils_offline_status').'</strong></p>';
-		echo '<p>'.$this->transEsc('ils_offline_login_message').'</p>';
-		$supportEmail = $this->escapeHtmlAttr($this->systemEmail());
-		echo '<p><a href="mailto:'.$supportEmail.'">'.$supportEmail.'</a></p>';
-	echo '</div>';
-	return;
-}
-
 $requiredFields = $this->required;
 
 $salutationRequired = in_array('salutation', $requiredFields);
