@@ -1,5 +1,8 @@
-<? $account = $this->auth()->getManager(); ?>
-<? $sessionInitiator = $account->getSessionInitiator($this->serverUrl($this->url('myresearch-home'))); ?>
+<?php 
+$account = $this->auth()->getManager();
+$sessionInitiator = $account->getSessionInitiator($this->serverUrl($this->url('myresearch-home')));
+$offlineMode = $this->ils()->getOfflineMode();
+?>
 <? if (!$sessionInitiator): // display default login form if no login URL provided ?>
   <form method="post" class="form-horizontal" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm">
     <?=$this->auth()->getLoginFields()?>
@@ -11,13 +14,13 @@
     $recoveryLink = $account->supportsRecovery(); // VuFind specific
     if ($loginFormLink || $creationLink || $recoveryLink) {
         echo '<div class="col-sm-offset-3 col-sm-4">';
-        if ($loginFormLink) {
+        if ($loginFormLink && $offlineMode != 'ils-offline') {
             echo '<a class="btn btn-primary" href="'.$this->addLink['url'].'" target="'.$target.'">'.$this->transEsc($this->addLink['text']).'</a>';
         }
-        if ($creationLink) {
+        if ($creationLink && $offlineMode != 'ils-offline') {
             echo '<a class="btn btn-link createAccountLink" href="'.$this->url('myresearch-account').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Create New Account').'</a>';
         }
-        if ($recoveryLink) {
+        if ($recoveryLink && $offlineMode != 'ils-offline') {
             echo '<a class="btn btn-link" href="'.$this->url('myresearch-recover').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Forgot Password').'</a>';
         }
         echo '</div>';
