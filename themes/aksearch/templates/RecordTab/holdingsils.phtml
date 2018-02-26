@@ -140,12 +140,23 @@ if (! empty($holdings)) {
 	    // Masking of location name (e. g. ABT.X-YZ.987654)
 	    $locationName = $this->driver->getMaskedValue($locationName);
 	    
+	    // Get current number of items per holding:
+	    $noOfCurrentItems = count($holdingsOfLocation['items']);
+	    	
+	    if ($noOfCurrentItems == 0) {
+	    	// Break this loop iteration and continue with next loop iteration. This hides a location totally if there are no items. If we
+	    	// don't do that, we get an empty table that just contains columns-headers, which is not quite useful. 
+	    	continue;
+	    }
+	    
+	    // Get total number of items per holding:
+	    $totalNoOfItems = $holdingsOfLocation['totalNoOfItems'];
+	    
 		// Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
 		// of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
 		// we will display a "show more" button.
-		$noOfCurrentIlsHoldings = count($holdingsOfLocation['items']);
-		if ($noOfCurrentIlsHoldings == $noOfItemsToLoad) {			
-			$noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
+		if ($noOfCurrentItems == $noOfItemsToLoad) {			
+			$noOfTotalItems = ($totalNoOfItems) ? $totalNoOfItems : null;
 			$showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
 		}
 		
