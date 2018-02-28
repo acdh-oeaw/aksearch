@@ -2072,6 +2072,11 @@ class SolrMab extends SolrDefault  {
 				$allKeywordChains[$noWithLeadingZero] = $keywordChain;
 			}
 		}
+		
+		$formKeywordChain = $this->getFormKeywordChain();
+		if ($formKeywordChain != null) {
+		    $allKeywordChains[] = $formKeywordChain;
+		}
 		return $allKeywordChains;
 	}
 	
@@ -2110,6 +2115,19 @@ class SolrMab extends SolrDefault  {
 			$keywordChain = $this->fields['keywordChain'.$no.'_txt_mv'];
 		}
 		return $keywordChain;
+	}
+	
+	/**
+	 * Get form keyword chain
+	 *
+	 * @return array		Array of all values of the form keyword chain or null if the form keyword chain does not exist.
+	 */
+	public function getFormKeywordChain() {
+	    $keywordChain = null;
+	    if (isset($this->fields['keywordChainForm_txt_mv'])) {
+	        $keywordChain = $this->fields['keywordChainForm_txt_mv'];
+	    }
+	    return $keywordChain;
 	}
 	
 	/**
