@@ -2377,10 +2377,15 @@ class SolrMab extends SolrDefault  {
     				$item['locationName'] = ($locationName != null) ? $this->getMaskedValue($locationName) : null;
     				
     				// Hide items according to user configuration in AKsearch.ini
-    				foreach ($this->akConfig->HideItems as $configKey => $configValue) {
-    					if (isset($item[$configKey]) && $item[$configKey] == $configValue) {
-    						unset($items[$key]);
-    					}
+    				$hideItemsSetting = $this->akConfig->HideItems;
+    				foreach ($hideItemsSetting as $configKey => $configValues) {
+    				    if (isset($item[$configKey])) {
+    				        foreach ($configValues as $configValue) {
+    				            if ($item[$configKey] == $configValue) {
+    				                unset($items[$key]);
+    				            }
+    				        }
+    				    }
     				}
     			}
     		}
