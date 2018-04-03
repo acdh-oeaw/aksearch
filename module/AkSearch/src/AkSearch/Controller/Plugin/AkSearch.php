@@ -136,7 +136,7 @@ class AkSearch extends AbstractPlugin implements \Zend\Log\LoggerAwareInterface 
 			$user->username = $barcode;
 			$user->firstname = $firstName;
 			$user->lastname = $lastName;
-			$user->email = $eMail;
+			$user->email = ($eMail != null && !empty($eMail)) ? $eMail : '';
 			$user->cat_username = $barcode;
 			if ($loanHistory != null) {
 				$user->save_loans = (($loanHistory) ? 1 : 0);
