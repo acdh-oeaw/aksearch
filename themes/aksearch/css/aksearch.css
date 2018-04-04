@@ -151,6 +151,15 @@ a {
 	text-decoration: underline;
 }
 
+#wiesollarbeit {
+	background:url("../images/akwien/WieSollArbeit.png") no-repeat scroll center center transparent;
+	background-size: contain;
+	height: 300px;
+    margin-top: 25px;
+    margin-bottom: -40px;
+    margin-left: auto;
+    margin-right: auto;
+}
 
 /* Search-Bar and Breadcrumbs */
 .navbar-brand {
