@@ -441,6 +441,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 						    <addresses>
 						      <address preferred="true">
 						        <line1>'.$street.'</line1>
+								<line2>'.$zip.' '. $city .'</line2>
 						        <city>'.$city.'</city>
 								<postal_code>'.$zip.'</postal_code>
 						        <start_date>'.$dateToday.'Z</start_date>
