@@ -1929,10 +1929,10 @@ class SolrMab extends SolrDefault  {
 		$author1Role = isset($this->fields['author_role']) ? $this->fields['author_role'] : 'NoRole';
 		$author1Gnd = isset($this->fields['author_GndNo_str']) ? $this->fields['author_GndNo_str'] : 'NoGndId';
 		
-		// Second participant
-		$author2 = isset($this->fields['author2']) ? $this->fields['author2'][0] : null;
-		$author2Role = isset($this->fields['author2_role']) ? $this->fields['author2_role'][0] : 'NoRole';
-		$author2Gnd = isset($this->fields['author2_GndNo_str']) ? $this->fields['author2_GndNo_str'] : 'NoGndId';
+		// Second participant. Not necessary because it is included in field "author_additional_NameRoleGnd"
+		//$author2 = isset($this->fields['author2']) ? $this->fields['author2'][0] : null;
+		//$author2Role = isset($this->fields['author2_role']) ? $this->fields['author2_role'][0] : 'NoRole';
+		//$author2Gnd = isset($this->fields['author2_GndNo_str']) ? $this->fields['author2_GndNo_str'] : 'NoGndId';
 		
 		// All other participants
 		$author_additional_NameRoleGnd = (isset($this->fields['author_additional_NameRoleGnd_str_mv']) && !empty($this->fields['author_additional_NameRoleGnd_str_mv'])) ? $this->fields['author_additional_NameRoleGnd_str_mv'] : null;
@@ -1950,9 +1950,11 @@ class SolrMab extends SolrDefault  {
 		if ($author1 != null && $author1Role != null && $author1Gnd != null) {
 			$participants[$author1Role][] = array($author1Gnd => $author1);
 		}
+		/*
 		if ($author2 != null && $author2Role != null && $author2Gnd != null) {
 			$participants[$author2Role][] = array($author2Gnd => $author2);
 		}
+		*/
 		if ($corp1 != null && $corp1Role != null && $corp1Gnd != null) {
 			$participants[$corp1Role][] = array($corp1Gnd => $corp1);
 		}
@@ -2012,7 +2014,7 @@ class SolrMab extends SolrDefault  {
     			}
     		}
     	}
-    	
+
 		return (isset($participantsDeDup) && !empty($participantsDeDup)) ? $participantsDeDup : null;
 	}
 	
