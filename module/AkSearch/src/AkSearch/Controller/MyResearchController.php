@@ -578,6 +578,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     	$html = new \Zend\Mime\Part($emailText);
     	$html->type = 'text/html';
     	$html->setCharset('UTF-8');
+    	$html->setEncoding(\Zend\Mime\Mime::ENCODING_BASE64);
     	$body = new \Zend\Mime\Message();
     	$body->setParts(array($html));
     	
