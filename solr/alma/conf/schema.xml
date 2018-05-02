@@ -397,7 +397,7 @@
  <!-- <copyField source="author" dest="author_de" /> -->
  <copyField source="author" dest="author_wildcard" />
  <copyField source="author" dest="participants_txtF_mv" />
- <copyField source="author2" dest="participants_txtF_mv" />
+ <!-- <copyField source="author2" dest="participants_txtF_mv" /> --> <!-- Not necessary as author2 is also present in author_additional -->
  <copyField source="author_additional" dest="participants_txtF_mv" />
  <copyField source="corporateAuthorName_txt" dest="participants_txtF_mv" />
  <copyField source="corporateAuthor2Name_txt_mv" dest="participants_txtF_mv" />
