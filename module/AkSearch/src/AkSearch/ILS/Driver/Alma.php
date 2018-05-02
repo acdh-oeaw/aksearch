@@ -272,8 +272,8 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				$availabilityText = $this->translate('not_available_at_the_moment');
 			}
 			
-			if ($requested) {				
-				if ($process_type == null || empty($process_type)) {
+			if ($requested) {
+				if (($process_type == null || empty($process_type)) || $process_type == 'REQUESTED' || $process_type == 'HOLDSHELF') {
 					$availabilityText = $this->translate('requested');
 				} else if ($process_type == 'LOAN' || $process_type == 'LOST_LOAN' || $process_type == 'MISSING') {
 					$availabilityText .= ' - '.$this->translate('requested');
@@ -292,7 +292,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			}
 			
 			if ($policyCode == null || empty($policyCode)) {
-				if ($process_type == 'WORK_ORDER_DEPARTMENT' || $process_type == 'TECHNICAL') {
+				if ($process_type == 'WORK_ORDER_DEPARTMENT' || $process_type == 'TECHNICAL' || $process_type == 'TRANSIT') {
 					$status = 'inProcess';
 				} else if ($process_type == 'ACQ') {
 					$status = 'orderedAtVendor';
