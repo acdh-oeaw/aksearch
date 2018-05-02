@@ -532,12 +532,16 @@ class MyResearchController extends DefaultMyResearchController implements Transl
      * 
      * @param string $gender
      * @param string $job
-     * @param string $salutation
+     * @param string $jobsSpecialEmailText
      * @param string $firstName
      * @param string $lastName
      * @param string $barcode
      * @param int    $dateExpiryTS
-     * @param string $email
+     * @param string $displayDateFormat
+     * @param string $to
+     * @param $from
+     * @param $replyTo
+     * @param $bcc
      * 
      * @return boolean true if eMail was sent successfully, false otherwise
      */
