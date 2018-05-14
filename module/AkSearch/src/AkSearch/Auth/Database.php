@@ -68,8 +68,7 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	
     	// Call the default "create" function if the configuration "useVuFindDatabase" in Alma.ini is set to false
     	if (!$useVuFindDatabase) {
-    		parent::create($request);
-    		return; // Stop execution
+    	    return parent::create($request);
     	}
     	
         // Ensure that all expected parameters are populated to avoid notices in the code below.
@@ -173,6 +172,9 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	if (!is_object($user) || $this->isOtp($user)) {
     		throw new AuthException('authentication_error_otp');
     	}
+    	
+    	// Update the column "last_login" in the user table
+    	$this->updateLastLogin($user);
     	    	
     	// If we got this far, the login was successful:
     	return $user;
@@ -501,6 +503,11 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	}
     	
     	return $result;
+    }
+    
+    public function updateLastLogin($user) {
+        $user->last_login = date('Y-m-d H:i:s');
+        $user->save();
     }
     
 

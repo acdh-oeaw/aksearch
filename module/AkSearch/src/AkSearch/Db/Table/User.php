@@ -21,6 +21,24 @@ class User extends DefaultUserTable {
 	
 	
 	/**
+	 * Create a row for the specified username. Extended for Alma.
+	 *
+	 * @param string $username Username to use for retrieval.
+	 *
+	 * @return UserRow
+	 */
+	public function createRowForUsername($username)
+	{
+	    $row = $this->createRow();
+	    $row->username = $username;
+	    $currentDate = date('Y-m-d H:i:s');
+	    $row->created = $currentDate;
+	    $row->last_login = $currentDate;
+	    return $row;
+	}
+	
+	
+	/**
 	 * Create a row for the specified catalog ID.
 	 *
 	 * @param string $catId Catalog ID to use for retrieval.
@@ -31,7 +49,9 @@ class User extends DefaultUserTable {
 		$row = $this->createRow();
 		$row->cat_id = $catId;
 		$row->username = $username;
-		$row->created = date('Y-m-d H:i:s');
+		$currentDate = date('Y-m-d H:i:s');
+		$row->created = $currentDate;
+		$row->last_login = $currentDate;
 		return $row;
 	}
 	
