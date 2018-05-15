@@ -365,13 +365,22 @@ class SolrMab extends SolrDefault  {
 					} else {
 						$format = 'electronic';
 					}
+					if (in_array('soundcarrier', $formats)) {
+						$format = 'audiobook';
+					}
 				} else if (in_array('printed', $formats)) {
 					// Default for "printed" format. Overwrite below if other format is available.
 					$format = 'book';
-					
+
 					if (isset($publicationType)) {
 						if ($publicationType == 'Monographisch') {
-							$format = 'book';
+							
+							// Braille is also printed, but we have a different icon:
+							if (in_array('braille', $formats)) {
+								$format = 'braille';
+							} else {
+								$format = 'book';
+							}
 						} else if ($publicationType == 'Mehrbändig') {
 							$format = 'books';
 						} else if ($publicationType == 'Unselbständig') {
@@ -404,6 +413,8 @@ class SolrMab extends SolrDefault  {
 					$format = 'avunknown';
 				} else if (in_array('filmforprojection', $formats)) {
 					$format = 'filmforprojection';
+				} else if (in_array('videocassette', $formats)) {
+					$format = 'videocassette';
 				} else if (in_array('videorecording', $formats)) {
 					$format = 'video';
 				} else if (in_array('dvd', $formats)) {
@@ -418,7 +429,7 @@ class SolrMab extends SolrDefault  {
 					$format = 'file';
 				} else if (in_array('game', $formats)) {
 					$format = 'game';
-				} else if (in_array('map', $formats)) {
+				} else if (in_array('mapcard', $formats)) {
 					$format = 'map';
 				} else if (in_array('ebook', $formats)) {
 					$format = 'ebook';
@@ -515,7 +526,7 @@ class SolrMab extends SolrDefault  {
 					}
 				} else if (in_array('game', $formats)) {
 					$format = 'game';
-				} else if (in_array('map', $formats)) {
+				} else if (in_array('mapcard', $formats)) {
 					$format = 'map';
 				} else {
 					$format = 'unknown';
@@ -2174,7 +2185,19 @@ class SolrMab extends SolrDefault  {
 	 * @return array		Array of all formats or null if no format was found
 	 */
 	public function getFormats() {
-		return isset($this->fields['format']) ? $this->fields['format'] : null;
+		
+		$formats = isset($this->fields['format']) ? $this->fields['format'] : null;
+
+		if (isset($formats)) {
+			// If we have "compactdisc" and "dvd" as format, remove "compactdisc" so that we don't have misleading "format badges"
+			// and icons in the search result list.
+			if (in_array('dvd', $formats) && in_array('compactdisc', $formats)) {
+				$arrayKeyOfCompactDisc = array_keys($formats, 'compactdisc')[0];
+				unset($formats[$arrayKeyOfCompactDisc]);
+			}
+		}
+		
+		return $formats;
 	}
 	
 
