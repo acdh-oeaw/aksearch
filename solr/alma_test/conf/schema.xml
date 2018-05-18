@@ -229,8 +229,8 @@
    <field name="_version_" type="long" indexed="true" stored="true"/>
    <!-- Core Fields  -->
    <field name="id" type="string" indexed="true" stored="true"/>
-   <field name="fullrecord" type="string" indexed="false" stored="true"/>
-   <field name="marc_error" type="string" indexed="false" stored="true" multiValued="true"/>
+   <field name="fullrecord" type="string" indexed="true" stored="true"/>
+   <field name="marc_error" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="allfields" type="text" indexed="true" stored="false" multiValued="true"/>
    <field name="allfields_unstemmed" type="textProper" indexed="true" stored="false" multiValued="true"/>
    <field name="fulltext" type="text" indexed="true" stored="false"/>
@@ -266,7 +266,7 @@
    <field name="description" type="text" indexed="true" stored="true"/>
    <field name="contents" type="text" indexed="true" stored="true" multiValued="true"/>
    <field name="url" type="string" indexed="true" stored="true" multiValued="true"/>
-   <field name="thumbnail" type="string" indexed="false" stored="true"/>
+   <field name="thumbnail" type="string" indexed="true" stored="true"/>
    <!-- Catalog Specific Fields -->
    <field name="lccn" type="string" indexed="true" stored="true"/>
    <field name="ctrlnum" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -329,7 +329,7 @@
    <field name="title_in_hierarchy" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="hierarchy_browse" type="textFacetRaw" indexed="true" stored="false" multiValued="true"/>
    <!-- Used for loading correct record driver -->
-   <field name="recordtype" type="string" indexed="false" stored="true"/>
+   <field name="recordtype" type="string" indexed="true" stored="true"/>
    <!-- Tracking fields to keep track of oldest and most recent index times -->
    <field name="first_indexed" type="date" indexed="true" stored="true"/>
    <field name="last_indexed" type="date" indexed="true" stored="true"/>
