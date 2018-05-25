@@ -268,6 +268,10 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			} else if ($process_type == 'MISSING') {
 				$availabilityText = $this->translate('missing');
 				$holdtype = ($is_holdable) ? 'reserve' : '';
+			} else if ($process_type == 'WORK_ORDER_DEPARTMENT') {
+				if ($locationCode == 'L') {
+					$availabilityText = $this->translate('reservable');
+				}
 			} else {
 				$availabilityText = $this->translate('not_available_at_the_moment');
 			}
