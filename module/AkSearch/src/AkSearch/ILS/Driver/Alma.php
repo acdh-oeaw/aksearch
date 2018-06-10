@@ -960,59 +960,81 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 	
 	public function placeHold($details) {
-		
-		$mmsId = $details['id'];
-		$holdingId = $details['holding_id'];
-		$itemId = $details['item_id'];
-		$patronId = $details['patron']['id'];
-				
-		$pickupLocation = $details['pickUpLocation'];
-		if (!$pickupLocation) {
-			$pickupLocation = $this->getDefaultPickUpLocation($patron, $details);
-		}
-		$comment = $details['comment'];
-		try {
-			$requiredBy = $this->dateConverter->convertFromDisplayDate('Y-m-d', $details['requiredBy']).'Z';
-		} catch (DateException $de) {
-			return [
-					'success'    => false,
-					'sysMessage' => 'hold_date_invalid'
-			];
-		}
-		
-		$body = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><user_request></user_request>');
-		$body->addChild('request_type', 'HOLD');
-		$body->addChild('pickup_location_type', 'LIBRARY');
-		$body->addChild('pickup_location_library', $pickupLocation);
-		$body->addChild('last_interest_date', $requiredBy);
-		$body->addChild('comment', $comment);
-		$body = $body->asXML();
-		
-		$result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
-		
-		if ($result) {
-			$httpReturnCode = $result['status'];
-			
-			if ($httpReturnCode == 200) {
-				return ['success' => true];
-			} else {
-				$almaErrorCode = $result['xml']->errorList->error->errorCode;
-				$almaErrorMessage = $result['xml']->errorList->error->errorMessage;
-				error_log('[Alma] Alma.php -> placeHold(). Error (HTTP code '.$almaReturn['status'].') when placing a Hold in Alma via API: '.$almaErrorMessage);
-				
-				// TODO: Alma error code 401136 are also user blocks, not only "similar item" error!
-				return [
-						'success' => false,
-						'sysMessage' => 'almaErrorCode'.$almaErrorCode // Translation of sysMessage in language files!
-				];
-			}
-		} else {
-			return [
-					'success' => false,
-					'sysMessage' => "Bestellung konnte nicht abgesendet werden. Hold could not be placed."
-			];
-		}
+	    // Check for title or item level request
+	    //$level = $details['level'] ?? 'item'; // This would be the default vufind way, but we use a setting in Alma.ini
+	    $isAlmaTitleLevelHolds = (isset($this->config['Holds']['titleLevelHolds']))
+	                               ? filter_var($this->config['Holds']['titleLevelHolds'], FILTER_VALIDATE_BOOLEAN)
+	                               : false;
+	    
+	    // Get information that is valid for both types of hold requests (item and title level)
+	    $mmsId = $details['id'];
+	    $pickupLocation = $details['pickUpLocation'];
+	    $comment = $details['comment'];
+	    if (!$pickupLocation) {
+	        $pickupLocation = $this->getDefaultPickUpLocation();
+	    }
+	    try {
+	        $requiredBy = $this->dateConverter->convertFromDisplayDate('Y-m-d', $details['requiredBy']).'Z';
+	    } catch (DateException $de) {
+	        return [
+	            'success'    => false,
+	            'sysMessage' => 'hold_date_invalid'
+	        ];
+	    }
+	    $patronId = $details['patron']['id'];
 
+	    // Initialize variable for result of API call
+	    $result = null;
+	    
+	    // Prepare XML body message for API call
+	    $body = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><user_request></user_request>');
+	    $body->addChild('request_type', 'HOLD');
+	    $body->addChild('pickup_location_type', 'LIBRARY');
+	    $body->addChild('pickup_location_library', $pickupLocation);
+	    $body->addChild('last_interest_date', $requiredBy);
+	    $body->addChild('comment', $comment);
+
+	    if ($isAlmaTitleLevelHolds == true) {
+	        // Place title level hold request
+	        $description = (isset($details['description'])) ? $details['description'] : null;
+	        if ($description) {
+	           $body->addChild('description', $description);
+	        }
+	        $body = $body->asXML();
+	        $result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
+	    
+	    } else {
+	        
+	        // Place item level hold request
+	        $holdingId = $details['holding_id'];
+	        $itemId = $details['item_id'];
+
+	        $body = $body->asXML();
+	        $result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
+	    }
+	    
+	    if ($result) {
+	        $httpReturnCode = $result['status'];
+	        
+	        if ($httpReturnCode == 200) {
+	            return ['success' => true];
+	        } else {
+	            $almaErrorCode = $result['xml']->errorList->error->errorCode;
+	            $almaErrorMessage = $result['xml']->errorList->error->errorMessage;
+	            error_log('[Alma] Alma.php -> placeHold(). Error (HTTP code '.$httpReturnCode.') when placing a Hold in Alma via API: '.$almaErrorMessage);
+	            
+	            // TODO: Alma error code 401136 are also user blocks, not only "similar item" error!
+	            return [
+	                'success' => false,
+	                'sysMessage' => 'almaErrorCode'.$almaErrorCode // Translation of sysMessage in language files!
+	            ];
+	        }
+	    } else {
+	        return [
+	            'success' => false,
+	            'sysMessage' => 'Bestellung konnte nicht abgesendet werden. Hold could not be placed.'
+	        ];
+	    }
 	}
 	
 	
