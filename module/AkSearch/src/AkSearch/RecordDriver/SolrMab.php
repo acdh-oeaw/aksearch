@@ -2360,7 +2360,7 @@ class SolrMab extends SolrDefault  {
      */
     public function getBibliographicLevel() {
     	$leader = $this->getLeader();
-    	$biblioLevel = strtoupper($leader[6]);
+    	$biblioLevel = strtoupper($leader[7]);
     	
     	switch ($biblioLevel) {
     		case 'M': // Monograph
