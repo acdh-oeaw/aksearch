@@ -55,7 +55,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 	/**
      * Handling submission of a new password for a user.
      * Overriding original function to prevent automatic login after submission of new password. The reason for this: If the user is
-     * forced to reset the password (see MySQL table "user", columsn "force_pw_change"), he still could use the "recover password" function
+     * forced to reset the password (see MySQL table "user", column "force_pw_change"), he still could use the "recover password" function
      * and get logged in, although he still should be forced to change his password. 
      *
      * @return view
@@ -275,7 +275,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 	
     	// Process request, if necessary:
     	if ($this->formWasSubmitted('submit', false)) {
-    		
+    	        	    
     		// Variable for error checking
     		$formError = false;
     		
@@ -391,6 +391,12 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     			$formError = true;
     		}
     		
+    		// Make sure we have a unique email
+    		if ($this->getTable('User')->getByEmail($email)) {
+    		    $errorMsg[] = $this->translate('That email address is already used');
+    		    $formError = true;
+    		}
+
     		// Check if password has min 6 signs:
     		if ($minPasswordLength != null && strlen($password) < $minPasswordLength) {
     			$errorMsg[] = $this->translate('password_minimum_length', ['%%minlength%%' => $minPasswordLength]);
@@ -675,7 +681,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
      * Overwriting default function for using other "from" eMail-Address.
      *
      * @param \VuFind\Db\Row\User $user   User object we're recovering
-     * @param \VuFind\Config      $config Configuration object
+     * @param \VuFind\Config $config Configuration object
      *
      * @return void (sends email or adds error message)
      */
