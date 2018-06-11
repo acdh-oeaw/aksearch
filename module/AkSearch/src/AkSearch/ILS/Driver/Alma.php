@@ -43,7 +43,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
     
 	/**
 	 * API key of Alma API
-	 * 
+	 *
 	 * @var String
 	 */
 	protected $apiKey;
@@ -64,7 +64,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	
 	/**
 	 * AKsearch config
-	 * 
+	 *
 	 * @var unknown
 	 */
 	protected $akConfig = null;
@@ -83,7 +83,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	/**
 	 * {@inheritDoc}
 	 * Get API data from Alma.ini file.
-	 * 
+	 *
 	 * @see \VuFind\ILS\Driver\DriverInterface::init()
 	 */
 	public function init() {
@@ -146,6 +146,8 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		// Get config data:
 		$fulfillementUnits = $this->config['FulfillmentUnits'];
 		$requestableConfig = $this->config['Requestable'];
+		$recallableConfig = $this->config['Recallable'];
+		$recallableConfigProcessTypes = array_map('trim', explode(',', $recallableConfig['processTypes']));
 		$defaultPolicies = $this->config['DefaultPolicies'];
 		
 		// Check if we already get holding IDs from the data in Solr. If not, use the API.
@@ -219,6 +221,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$supplements						= null; // We don't use supplement information in holdings.
 			$indexes							= null; // We don't use index information in holdings.
 			$is_holdable						= false; // Additional checks necessary - see below
+			$is_recallable						= false;
 			$holdtype							= ''; // Additional checks necessary - see below
 			$addLink							= false; // Additional checks necessary - see below
 			$item_id							= (string)$item->item_data->pid;
@@ -247,8 +250,15 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 			if (($itemFulfillmentUnit != null && !empty($itemFulfillmentUnit)) && ($patronGroupCode!= null && !empty($patronGroupCode))) {
 				$is_holdable = ($requestableConfig[$itemFulfillmentUnit][$patronGroupCode] == 'Y') ? true : false;
-				$holdtype = ($is_holdable) ? 'hold' : '';
-				$addLink = ($is_holdable) ? true : false;
+				if (in_array($process_type, $recallableConfigProcessTypes)) {
+					$is_recallable = ($recallableConfig[$itemFulfillmentUnit][$patronGroupCode] == 'Y') ? true : false;
+				}
+				if ($is_holdable) {
+					$holdtype = 'hold';
+				} else  if ($is_recallable) {
+					$holdtype = 'reserve';
+				}
+				$addLink = ($is_holdable || $is_recallable) ? true : false;
 			} else {
 				//throw new \Exception('Either fulfillment units or user groups are not set correctly in Alma.ini. See sections [FulfillmentUnits] and [Requestable] there and check that all values correspond to existing values in Alma configuration.');
 			}
@@ -260,30 +270,34 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				$duedate = (string)$loan->due_date;
 				$duedate = $this->parseDate($duedate);
 				$availabilityText = $this->translate('Due').': '.$duedate;
-				$holdtype = ($is_holdable) ? 'reserve' : '';
-				$addLink = ($is_holdable) ? true : false;
+				$holdtype = ($is_recallable) ? 'reserve' : '';
+				$addLink = ($is_recallable) ? true : false;
 			} else if ($process_type == 'LOST_LOAN') {
 				$availabilityText = $this->translate('lost');
-				$holdtype = ($is_holdable) ? 'reserve' : '';
+				$holdtype = ($is_recallable) ? 'reserve' : '';
+				$addLink = ($is_recallable) ? true : false;
 			} else if ($process_type == 'MISSING') {
 				$availabilityText = $this->translate('missing');
-				$holdtype = ($is_holdable) ? 'reserve' : '';
+				$holdtype = ($is_recallable) ? 'reserve' : '';
+				$addLink = ($is_recallable) ? true : false;
 			} else if ($process_type == 'WORK_ORDER_DEPARTMENT') {
 				if ($locationCode == 'L') {
 					$availabilityText = $this->translate('reservable');
+					$holdtype = ($is_recallable) ? 'reserve' : '';
+					$addLink = ($is_recallable) ? true : false;
 				}
 			} else {
 				$availabilityText = $this->translate('not_available_at_the_moment');
 			}
-			
+
 			if ($requested) {
 				if (($process_type == null || empty($process_type)) || $process_type == 'REQUESTED' || $process_type == 'HOLDSHELF') {
 					$availabilityText = $this->translate('requested');
 				} else if ($process_type == 'LOAN' || $process_type == 'LOST_LOAN' || $process_type == 'MISSING') {
 					$availabilityText .= ' - '.$this->translate('requested');
 				}
-				$holdtype = ($is_holdable) ? 'reserve' : '';
-				$addLink = ($is_holdable) ? true : false;
+				$holdtype = ($is_recallable) ? 'reserve' : '';
+				$addLink = ($is_recallable) ? true : false;
 				$availability = false;
 			}
 			
@@ -298,8 +312,12 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			if ($policyCode == null || empty($policyCode)) {
 				if ($process_type == 'WORK_ORDER_DEPARTMENT' || $process_type == 'TECHNICAL' || $process_type == 'TRANSIT') {
 					$status = 'inProcess';
+					$holdtype = ($is_recallable) ? 'reserve' : '';
+					$addLink = ($is_recallable) ? true : false;
 				} else if ($process_type == 'ACQ') {
 					$status = 'orderedAtVendor';
+					$holdtype = ($is_recallable) ? 'reserve' : '';
+					$addLink = ($is_recallable) ? true : false;
 				} else {
 					// There is no execption policy or proces type set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
 					$status = $defaultPolicies[$itemFulfillmentUnit];
@@ -339,7 +357,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				$getFromReadingRoom = in_array($locationName, $readingRoomCollections);
 				if ($getFromReadingRoom) {
 					//$addLink = false;
-					$addLink = ($is_holdable) ? true : false; // Check if user is allowed to place a hold (see Alma.ini -> [Requestable]. If yes, show the hold button anyway
+					$addLink = ($is_holdable || $is_recallable) ? true : false; // Check if user is allowed to place a hold (see Alma.ini -> [Requestable]. If yes, show the hold button anyway
 				}
 			}
 			
@@ -395,6 +413,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 					'totalNoOfItems'					=> $totalNoOfItems, // This is necessary for paging (load more items)!!!
 					'get_from_readingroom'				=> $getFromReadingRoom,
 					'enumerationA'						=> $enumerationA,
+					'is_recallable'						=> $is_recallable,
 			];
 				
 		}
@@ -457,7 +476,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	
 	private function getMoreItems($mmsId, $holId, $maxItemsLoad, $offset, $totalRecordCount, &$items) {
 
-		$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items?limit='.$maxItemsLoad.'&offset='.$offset.'&apikey='.$this->apiKey, 'GET');		
+		$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items?limit='.$maxItemsLoad.'&offset='.$offset.'&apikey='.$this->apiKey, 'GET');
 		
 		foreach ($itemList['xml'] as $item) {
 			$items[] = $item;
@@ -476,7 +495,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	
 	/**
 	 * Not implemented at the moment.
-	 * 
+	 *
 	 * {@inheritDoc}
 	 * @see \VuFind\ILS\Driver\DriverInterface::getPurchaseHistory()
 	 */
@@ -645,7 +664,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	
 	/**
 	 * Change user data via API.
-	 * 
+	 *
 	 * @param array $details	An array of user details
 	 * @return array			An array of data on the request including whether or not it was successful and a system message (if available)
 	 */
@@ -668,7 +687,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$newPhone2 = (isset($details['phone2'])) ? trim($details['phone2']) : '';
 		
 		if (empty($newEmail)) {
-			$statusMessage = 'required_fields_empty';			
+			$statusMessage = 'required_fields_empty';
 			return array('success' => $success, 'status' => $statusMessage);
 		}
 		
@@ -723,7 +742,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			$success = true;
 		} else {
 			$statusMessage = 'Changing user data not successful! HTTP error code: '.$updateResult['status'];
-		}	
+		}
 		
 		$returnArray = array('success' => $success, 'status' => $statusMessage);
 		return $returnArray;
@@ -819,7 +838,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		
 		if ($password == null) {
 			$temp = ['id' => $user];
-			//$temp['college'] = $this->useradm;			
+			//$temp['college'] = $this->useradm;
 			return $this->getMyProfile($temp);
 		}
 		
@@ -894,7 +913,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function parseDate($date, $withTime = false) {
 		
-		// Remove trailing Z from end of date (e. g. from Alma we get dates like 2012-07-13Z - without a time, this is wrong): 
+		// Remove trailing Z from end of date (e. g. from Alma we get dates like 2012-07-13Z - without a time, this is wrong):
 		if (strpos($date, 'Z', (strlen($date)-1))) {
 			$date = preg_replace('/Z{1}$/', '', $date);
 		}
@@ -1187,7 +1206,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 				} else if (($dueDateTS - $nowTS) < 86400) {
 					// Due date within one day
 					$loan['dueStatus'] = 'due';
-				}				
+				}
 				
 				$returnArray[] = $loan;
 			}
@@ -1280,17 +1299,17 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	/**
 	 * FOR FUTURE USE. NOT USED AT THE MOMENT. JUST RETURNING THE DEFAULT PICKUP LOCATION FROM Alma.ini FOR CORRECT REQUEST PLACEMENT.
 	 * SEE ALSO SECTION [PickupLocations] in Alma.ini!
-	 * 
+	 *
 	 * Creates a drop down if the return array returns 2 or more pickup locations. The use then can choose where he wants to
 	 * pick up the item.
-	 * 
+	 *
 	 * @param array $patron   Patron information returned by the patronLogin method.
      * @param array $holdInfo Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the pickup options
      * or may be ignored. The driver must not add new options to the return array
      * based on this data or other areas of VuFind may behave incorrectly.
-     * 
+     *
 	 * @return array        An array of associative arrays with locationID and locationDisplay keys
 	 */
 	public function getPickUpLocations($patron, $holdInfo = null) {
