@@ -960,6 +960,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 
 	
 	public function placeHold($details) {
+	    
 	    // Check for title or item level request
 	    //$level = $details['level'] ?? 'item'; // This would be the default vufind way, but we use a setting in Alma.ini
 	    $isAlmaTitleLevelHolds = (isset($this->config['Holds']['titleLevelHolds']))
@@ -992,7 +993,9 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	    $body->addChild('pickup_location_type', 'LIBRARY');
 	    $body->addChild('pickup_location_library', $pickupLocation);
 	    $body->addChild('last_interest_date', $requiredBy);
-	    $body->addChild('comment', $comment);
+	    if ($comment) {
+	       $body->addChild('comment', $comment);
+	    }
 
 	    if ($isAlmaTitleLevelHolds == true) {
 	        // Place title level hold request
@@ -1000,15 +1003,15 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	        if ($description) {
 	           $body->addChild('description', $description);
 	        }
+	        
 	        $body = $body->asXML();
 	        $result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
-	    
-	    } else {
 	        
+	    } else {
 	        // Place item level hold request
 	        $holdingId = $details['holding_id'];
 	        $itemId = $details['item_id'];
-
+	        
 	        $body = $body->asXML();
 	        $result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
 	    }
