@@ -78,7 +78,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$this->dbTableManager = $dbTableManager;
 		$this->userTable = $dbTableManager->get('user');
 		$this->httpService = $httpService;
-		
 	}
 	
 	
@@ -166,7 +165,6 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			return $this->httpResponse;
 		}
 		*/
-		
 		
 		// Set some default values that will be overwritten if appropriate
 		$password = null;
@@ -391,7 +389,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				if ($userAuthSystem == 'Aleph') {
 					$httpResponse = $this->userAuthAleph($requestMethod, $this->host, $this->database, $username, $password);
 				} else if ($userAuthSystem == 'Database') {
-					$httpResponse = $this->userAuthDatabase($requestMethod, $username, $password);
+					$httpResponse = $this->userAuthDatabase($request, $username, $password);
 				}
 				
 				return $httpResponse;
@@ -406,15 +404,21 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	}
 	
 	
-	private function userAuthDatabase($requestMethod, $username, $password, $returnFormat = 'json') {
+	private function userAuthDatabase(\Zend\Http\Request $authRequest, $username, $password, $returnFormat = 'json') {
+		// Get request method (GET, POST, ...)
+		$authRequestMethod = $authRequest->getMethod();
+
+		// Get authentication mode
+		$authMode = $authRequest->getQuery('mode', 'akw');
+		
 		// Only POST requests are allowed
-		if ($requestMethod != 'POST') {
+		if ($authRequestMethod != 'POST') {
 			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
 			$this->httpResponse->setContent('Only POST requests are allowed.');
 			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 			return $this->httpResponse; // Stop code execution here if request method is not POST
 		}
-		
+
 		// Default values for return array
 		$isValid = 'U'; // U = Unknown (Default) - we don't know yet if the user credentials are valid or not
 		$userExists = 'U'; // U = Unknown (Default) - we don't know yet if the user credentials really exists or not
@@ -426,12 +430,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$blocks = null; // null. We use null because we can easily remove null values from the return array. Blocks should only be shown when there really are blocks.
 		$hasError = null; // null = There is no error. We use null because we can easily remove null values from the return array. Errors should only be shown when there really are errors.
 		$errorMsg = null; // null = There is no error message.
-		
-		// Return variables
-		$returnFormat = strtolower($returnFormat);
-		$returnArray = [];
-		$returnJson = null;
-		
+
 		// Create request for \AkSearch\Auth\Database::authenticate
 		$request = new Request();
 		$request->setMethod(Request::METHOD_POST);
@@ -527,7 +526,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				// Credentials are invalid
 				$isValid = 'N';
 				$userExists = 'U';
-				$this->httpResponse->setStatusCode(401); // Unauthorized				
+				$this->httpResponse->setStatusCode(401); // Unauthorized
 			} else if ($authException->getMessage() == 'authentication_error_otp') {
 				// Password is OTP
 				$isValid = 'N';
@@ -546,30 +545,58 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			$this->httpResponse->setStatusCode(500); // Internal Server Error (500)
 		}
 		
-		// Create the return array
-		$returnArray['user']['isValid'] = $isValid;
-		$returnArray['user']['exists'] = $userExists;
-		$returnArray['expired']['isExpired'] = $isExpired;
-		if ($expired) { $returnArray['expired']['date'] = $expired; }
-		$returnArray['blocks']['isBlocked'] = $isBlocked;
-		if ($blocks) { $returnArray['blocks']['reasons'] = $blocks; }
-		if ($hasError) { $returnArray['request']['hasError'] = $hasError; }
-		if ($errorMsg) { $returnArray['request']['errorMsg'] = $errorMsg; } // The error message from the database or ILS
-		$returnArray= array_filter($returnArray); // Remove null from array
-		$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+		switch ($authMode) {
+			case 'apa':
+				// Create the return XML
+				$xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><response/>');
+				
+				$status = '-1'; // Username or password wrong
+				if ($isValid === 'Y') {
+					$status = 3; // User is allowed to authenticate
+				} else if ($isBlocked === 'Y' || $isExpired === 'Y') {
+					$status = 1; // User blocked from access
+				}
+				
+				$xml->addChild('status', $status);
+				$xml->addChild('userid', $username);
+
+				$this->httpHeaders->addHeaderLine('Content-type', 'text/xml');
+				$this->httpResponse->setContent($xml->asXML());
+			break;
+			
+			case 'akw': // Skip to default, so we don't break here
+			default:
+				// Initialize return variables
+				$returnFormat = strtolower($returnFormat);
+				$returnArray = [];
+				$returnJson = null;
 		
-		// Return XML
-		if ($returnFormat == 'xml') {
-			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-			$this->httpResponse->setContent('Only "json" response is supported at the moment!');
-			// $headers->addHeaderLine('Content-type', 'text/xml');
-			// $this->response->setContent($XML);
-		} else if ($returnFormat == 'json') {
-			// Return JSON (Default)
-			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-			$this->httpResponse->setContent($returnJson);
-		} else {
-			$this->httpResponse->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+				// Create the return array
+				$returnArray['user']['isValid'] = $isValid;
+				$returnArray['user']['exists'] = $userExists;
+				$returnArray['expired']['isExpired'] = $isExpired;
+				if ($expired) { $returnArray['expired']['date'] = $expired; }
+				$returnArray['blocks']['isBlocked'] = $isBlocked;
+				if ($blocks) { $returnArray['blocks']['reasons'] = $blocks; }
+				if ($hasError) { $returnArray['request']['hasError'] = $hasError; }
+				if ($errorMsg) { $returnArray['request']['errorMsg'] = $errorMsg; } // The error message from the database or ILS
+				$returnArray= array_filter($returnArray); // Remove null from array
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				
+				// Return XML
+				if ($returnFormat == 'xml') {
+					$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+					$this->httpResponse->setContent('Only "json" response is supported at the moment!');
+					// $this->httpHeaders->addHeaderLine('Content-type', 'text/xml');
+					// $this->httpResponse->setContent($XML);
+				} else if ($returnFormat == 'json') {
+					// Return JSON (Default)
+					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+					$this->httpResponse->setContent($returnJson);
+				} else {
+					$this->httpResponse->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+				}
+			break;
 		}
 		
 		return $this->httpResponse;
@@ -620,7 +647,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Check for error
 		if ($errorMsg) {
-			$isValid = 'N'; // N = No. User is not valid			
+			$isValid = 'N'; // N = No. User is not valid
 			$hasError = 'Y'; // Y = Yes. There is an error
 			$this->httpResponse->setStatusCode(500); // Default HTTP return status code: Internal Server Error (500)
 			
@@ -635,7 +662,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			
 			$userExists= 'Y'; // Y = Yes. The user credentials exists.
 			$isExpired = 'N'; // Default
-			$isBlocked = 'N'; // Default			
+			$isBlocked = 'N'; // Default
 			
 			// Check if user account is expired
 			$expiryDate = (string) $userXml->{'z305'}->{'z305-expiry-date'};
