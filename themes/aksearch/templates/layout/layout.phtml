@@ -97,7 +97,7 @@ JS;
       // 2. It was set to false; we should display nothing
       // 3. It is set to a custom string; we should display the provided version
       // Set up default search box if no data was provided from the template;
-      // this covers case 1.  Cases 2 and 3 are then covered by logic below.		
+      // this covers case 1.  Cases 2 and 3 are then covered by logic below.
       if (!isset($this->layout()->searchbox)) {
         $this->layout()->searchbox = $this->render('search/searchbox.phtml');
       }
@@ -105,11 +105,11 @@ JS;
     <header role="banner" class="hidden-print">
       
       <div class="container navbar">
-        <a class="sr-only" href="#content"><?=$this->transEsc('Skip to content') ?></a>  
+        <a class="sr-only" href="#content"><?=$this->transEsc('Skip to content') ?></a>
         <?=$this->render('header.phtml')?>
       </div>
       
-      <?php 
+      <?php
           if ($this->ils()->getOfflineMode() == "ils-offline") {
 			echo '<div class="alert alert-warning">';
 			echo '<h2>' . $this->transEsc('ils_offline_title') . '</h2>';
@@ -180,7 +180,7 @@ JS;
                     '<a href="https://wien.arbeiterkammer.at/service/bibliothek/systemumstieg.html" target="_blank">Weitere Infos hier</a>!'.
                 '</div>';*/
         
-    } else {		
+    } else {
         /*echo	'<div id="systemChangeAlert2">'.
                     '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>&nbsp;'.
                     'Einschränkung wegen Systemumstieg, 22.12.17 - 7.1.18: '.
@@ -198,7 +198,7 @@ JS;
     <?php
 		if ($this->layout()->templateDir == 'search' && $this->layout()->templateName == 'home') {
 
-			echo '<a href="https://www.wie-soll-arbeit.at" target="_blank"><div id="wiesollarbeit"></div></a>'; // Wie soll Arbeit - Logo and Link
+			//echo '<a href="https://www.wie-soll-arbeit.at" target="_blank"><div id="wiesollarbeit"></div></a>'; // Wie soll Arbeit - Logo and Link
 			
 			if ($this->layout()->userLang == 'de') { // German version
 				echo '<div class="akFeatureIntro">';
