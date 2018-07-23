@@ -416,10 +416,11 @@
 	    	foreach ($attachments as $otherEdition) {
 	    		$otherEditionTitle = $otherEdition['title'];
 	    		$otherEditionType = ($otherEdition['type'] != 'NoOtherEditionType') ? preg_replace('/\s*-+>/', '', $otherEdition['type']).': ' : null;
+	    		$otherEditionComment = ($otherEdition['comment'] != 'NoOtherEditionComment') ? ' ('.$otherEdition['comment'].')' : null;
 	    		$otherEditionSys = ($otherEdition['solrId'] != 'NoOtherEditionSys') ? $otherEdition['solrId'] : null;
 	    		
 	    		if ($otherEditionSys != null) {
-	    			echo '<a href="'.$this->recordLink()->getUrl(null).$otherEditionSys.'">'.$otherEditionType.$this->escapeHtml($otherEditionTitle).'</a><br/>';
+	    			echo '<a href="'.$this->recordLink()->getUrl(null).$otherEditionSys.'">'.$otherEditionType.$this->escapeHtml($otherEditionTitle).'</a>'.(($otherEditionComment != null) ? $otherEditionComment : '').'<br/>';
 	    		} else {
 	    			echo $otherEditionType.$this->escapeHtml($otherEditionTitle).'<br/>';
 	    		}
