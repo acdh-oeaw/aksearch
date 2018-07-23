@@ -144,7 +144,7 @@ $isbn = $this->driver->getCleanISBN();
 				$attachmentSys = ($attachment['solrId'] != 'NoAttachmentSys') ? $attachment['solrId'] : null;
 				
 				if ($attachmentSys != null) {
-					echo '<a href="' . $this->recordLink()->getUrl() . $attachmentSys . '">' . $attachmentType . $this->escapeHtml($attachmentTitle) . '</a><br/>';
+					echo '<a href="' . $this->recordLink()->getUrl(null) . $attachmentSys . '">' . $attachmentType . $this->escapeHtml($attachmentTitle) . '</a><br/>';
 				} else {
 					echo $attachmentType . $this->escapeHtml($attachmentTitle) . '<br/>';
 				}
@@ -166,7 +166,7 @@ $isbn = $this->driver->getCleanISBN();
 				$attachmentToType = ($attachmentTo['type'] != 'NoAttachmentToType' && preg_match('/^Beil. zu\s*$/', $attachmentTo['type']) != 1) ? preg_replace('/\s*-+>/', '', trim($attachmentTo['type'])) . ': ' : null;
 				$attachmentToSys = ($attachmentTo['solrId'] != 'NoAttachmentToSys') ? $attachmentTo['solrId'] : null;
 				if ($attachmentToSys != null) {
-					echo '<a href="' . $this->recordLink()->getUrl() . $attachmentToSys . '">' . $attachmentToType . $this->escapeHtml($attachmentToTitle) . '</a><br/>';
+					echo '<a href="' . $this->recordLink()->getUrl(null) . $attachmentToSys . '">' . $attachmentToType . $this->escapeHtml($attachmentToTitle) . '</a><br/>';
 				} else {
 					echo $attachmentToType . $this->escapeHtml($attachmentToTitle) . '<br/>';
 				}
@@ -190,7 +190,7 @@ $isbn = $this->driver->getCleanISBN();
 				echo '<div class="akTableInnerRow">';
 				echo $this->escapeHtml($otherRelationType);
 				if ($otherRelationSys!= null) {
-					echo '<a href="' . $this->recordLink()->getUrl() . $otherRelationSys. '">' . $this->escapeHtml($otherRelationTitle) . '</a>';
+					echo '<a href="' . $this->recordLink()->getUrl(null) . $otherRelationSys. '">' . $this->escapeHtml($otherRelationTitle) . '</a>';
 				} else {
 					echo $this->escapeHtml($otherRelationTitle);
 				}

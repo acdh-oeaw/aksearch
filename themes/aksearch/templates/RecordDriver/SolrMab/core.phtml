@@ -85,7 +85,7 @@
     
     
     <!-- If it's an article or essay which is contained in another work (journal or book): -->
-    <?php   
+    <?php
     $isArticle = $this->driver->tryMethod('isArticle');
     $isChildVolume = $this->driver->tryMethod('isChildVolume');
     
@@ -102,7 +102,7 @@
 		 		echo '<td>';
 		 			if ($articleParentSYS != null) {
 		    			//echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings#journalholding">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
-		 				echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+		 				echo '<a href="'.$this->recordLink()->getUrl(null).$articleParentSYS.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			} else {
 		 				echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			}
@@ -198,7 +198,7 @@
 							echo '</a>';
 
 							// Entity Facts via PHP curl (Zend Http Object)
-							// See also AkSearch\Controller\AkAjaxController and aksearch.js in folder "themes/aksearch/js" 
+							// See also AkSearch\Controller\AkAjaxController and aksearch.js in folder "themes/aksearch/js"
 							if (isset($gnd) &&
 								!empty($gnd) &&
 								$gnd != 'NoGndId' &&
@@ -212,7 +212,7 @@
 							echo '<br/>';
 						}
 					echo '</td>';
-	        	echo '</tr>';	        	
+	        	echo '</tr>';
 			}
 		}
 		?>
@@ -308,7 +308,7 @@
 				$predecessorSys = ($predecessor['solrId'] != 'NoPredecessorId') ? $predecessor['solrId'] : null;
 				echo '<div class="akTableInnerRow">';
 				if ($predecessorSys != null) {
-					echo '<a href="' . $this->recordLink()->getUrl() . $predecessorSys. '">' . $this->escapeHtml($predecessorTitle) . '</a>';
+					echo '<a href="' . $this->recordLink()->getUrl(null) . $predecessorSys. '">' . $this->escapeHtml($predecessorTitle) . '</a>';
 				} else {
 					echo $this->escapeHtml($predecessorTitle);
 				}
@@ -329,7 +329,7 @@
 				$successorSys = ($successor['solrId'] != 'NoSuccessorId') ? $successor['solrId'] : null;
 				echo '<div class="akTableInnerRow">';
 				if ($successorSys != null) {
-					echo '<a href="' . $this->recordLink()->getUrl() . $successorSys. '">' . $this->escapeHtml($successorTitle) . '</a>';
+					echo '<a href="' . $this->recordLink()->getUrl(null) . $successorSys. '">' . $this->escapeHtml($successorTitle) . '</a>';
 				} else {
 					echo $this->escapeHtml($successorTitle);
 				}
@@ -419,7 +419,7 @@
 	    		$otherEditionSys = ($otherEdition['solrId'] != 'NoOtherEditionSys') ? $otherEdition['solrId'] : null;
 	    		
 	    		if ($otherEditionSys != null) {
-	    			echo '<a href="'.$this->recordLink()->getUrl().$otherEditionSys.'">'.$otherEditionType.$this->escapeHtml($otherEditionTitle).'</a><br/>';
+	    			echo '<a href="'.$this->recordLink()->getUrl(null).$otherEditionSys.'">'.$otherEditionType.$this->escapeHtml($otherEditionTitle).'</a><br/>';
 	    		} else {
 	    			echo $otherEditionType.$this->escapeHtml($otherEditionTitle).'<br/>';
 	    		}
@@ -565,7 +565,7 @@
       </tr>
       <? endif; ?>
 */
-?>      
+?>
 
 
       <? $childRecordCount = $this->driver->tryMethod('getChildRecordCount'); if ($childRecordCount): ?>

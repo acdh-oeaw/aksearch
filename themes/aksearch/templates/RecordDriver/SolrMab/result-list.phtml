@@ -59,7 +59,7 @@
 						echo '<span><i>'.$volumeNo.'</i></span>';
 					echo '</span>';
 
-					// Show parent titles and link them if possible 
+					// Show parent titles and link them if possible
 					if ($parentTitles != null && $parentSYSs != null && count($parentTitles) == count($parentSYSs)) {
 						// Get all parent titles and Sys-Nos. as links and put them into an array.
 						$parents = [];
@@ -83,7 +83,7 @@
 				
 				<div class="akResultListSeparator"></div>
 
-		<div>        
+		<div>
 	        <? if($this->driver->isCollection()): ?>
 	          <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
 	        <? else: ?>
@@ -92,7 +92,7 @@
 	          <!-- Participants (all persons: Authors, Editors, etc.) -->
 	          <div class="akEllipsis">
 	          <?php
-	          $participants = $this->driver->getParticipants();	          	
+	          $participants = $this->driver->getParticipants();
 	          if (isset($participants) && !empty($participants)) {
 	          	$participantLinks= [];
 	          	foreach ($participants as $role => $participant) {
@@ -168,7 +168,7 @@
 				echo '<span class="akResultListCaption">'.$this->transEsc('Published in').':</span> ';
 				//echo '<span title="'.$articleParentTitle.'">'.$articleParentTitle.'</span>';
 				if ($articleParentSYS != null) {
-					echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+					echo '<a href="'.$this->recordLink()->getUrl(null).$articleParentSYS.'/Holdings" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 				} else {
 					echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 				}
