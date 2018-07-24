@@ -76,7 +76,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Constructor
-     * 
+     *
      * Geting values from AKsearch.ini
      */
     public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null, $dateConverter = null) {
@@ -99,7 +99,7 @@ class SolrMab extends SolrDefault  {
      * and title because they are already covered by displayed fields; we exclude
      * spelling because it contains lots of fields jammed together and may cause
      * glitchy output; we exclude ID because random numbers are not helpful).
-     * 
+     *
      * Addition for AkSearch: we exclude title_de, title_wildcard, author_de, author_wildcard
      * and some others too.
      *
@@ -118,7 +118,7 @@ class SolrMab extends SolrDefault  {
 
 	/**
 	 * Get the config values from AKsearch.ini
-	 * 
+	 *
 	 * @return NULL|string
 	 */
     public function getAkConfig() {
@@ -134,7 +134,7 @@ class SolrMab extends SolrDefault  {
      * with 'snippet' and 'caption' keys.
      */
     public function getHighlightedSnippet()
-    {    	
+    {
     	// Only process snippets if the setting is enabled:
     	if ($this->snippet) {
     		// First check for preferred fields:
@@ -229,7 +229,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Getting raw solr field for staff view ... but first apply masking.
-     * 
+     *
      * {@inheritDoc}
      * @see \VuFind\RecordDriver\AbstractBase::getRawData()
      */
@@ -294,9 +294,9 @@ class SolrMab extends SolrDefault  {
     
 	/**
 	 * Get Solrfield shelfmark_txt_mv (shelfmarks [Signaturen])
-	 * 
+	 *
 	 * @return array or null if empty
-	 */  
+	 */
 	public function getShelfMarks() {
 		return isset($this->fields['shelfmark_txt_mv']) ? $this->fields['shelfmark_txt_mv'] : null;
 	}
@@ -331,7 +331,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Getting the cover or icon (according to format and/or publication type)
-	 * 
+	 *
 	 * {@inheritDoc}
 	 * @see \VuFind\RecordDriver\SolrDefault::getThumbnail()
 	 */
@@ -352,7 +352,7 @@ class SolrMab extends SolrDefault  {
 			$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
 			
 			// Get 008 field as string
-			$marc008 = (array_key_exists('marc008_str', $this->fields)) ? $this->fields['marc008_str'] : null;			
+			$marc008 = (array_key_exists('marc008_str', $this->fields)) ? $this->fields['marc008_str'] : null;
 			
 			if (isset($formats)) {
 				if (in_array('electronic', $formats)) {
@@ -433,13 +433,15 @@ class SolrMab extends SolrDefault  {
 					$format = 'map';
 				} else if (in_array('ebook', $formats)) {
 					$format = 'ebook';
+				} else if (in_array('eaudiobook', $formats)) {
+					$format = 'eaudiobook';
 				} else {
 					$format = 'unknown';
 				}
 			} else {
 				// Default format. Overwrite below if other format is available.
 				$format = 'book';
-				if (isset($publicationType)) {					
+				if (isset($publicationType)) {
 					if ($publicationType == 'Monographisch') {
 						$format = 'book';
 					} else if ($publicationType == 'Mehrbändig') {
@@ -648,7 +650,7 @@ class SolrMab extends SolrDefault  {
 			$moduloCounter = 0;
 			$attachmentCounter = 0;
 			
-			foreach ($attachmentsRaw as $attachmentEntry) {	
+			foreach ($attachmentsRaw as $attachmentEntry) {
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$attachments[$attachmentCounter]['title'] = $attachmentEntry;
 				}
@@ -943,7 +945,7 @@ class SolrMab extends SolrDefault  {
 					'volumeNo' => $childVolumeNo,
 					'volumeTitle' => $childTitle,
 					'volumePublishDate' => $childPublishDate,
-					'volumeEdition' => $childEdition); 
+					'volumeEdition' => $childEdition);
 		}
 
 		// Create array for sorting
@@ -980,7 +982,7 @@ class SolrMab extends SolrDefault  {
 	 *
 	 * TODO: Ambiguous function name because this does not only check for volumes of
 	 * multi-volume-works, but also for articles, serialvolumes and possible other child records.
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function isMultiVolumeWork() {
@@ -1011,7 +1013,7 @@ class SolrMab extends SolrDefault  {
 			return $seriesVolumeNo;
 		} else {
 			return null;
-		}		
+		}
 	}
 	
 	
@@ -1185,7 +1187,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get all relevant information about serial volumes
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getSerialVolumes() {
@@ -1224,7 +1226,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Check if record is a parent series record
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function isSeries() {
@@ -1254,7 +1256,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get ZSL Nos. (Zeitschriften-Ablage-Nr.)
-	 * 
+	 *
 	 * @return array or null
 	 */
 	public function getZsl() {
@@ -1330,7 +1332,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get Solrfield articleParentIssue_str (issue. no. of parent record of the article)
-	 * 
+	 *
 	 * @return string or null if empty
 	 */
 	public function getArticleParentIssueNo() {
@@ -1339,7 +1341,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get first page of article
-	 * 
+	 *
 	 * @return NULL|string
 	 */
 	public function getArticlePageFrom() {
@@ -1381,15 +1383,15 @@ class SolrMab extends SolrDefault  {
 	
 	/*
 	// TODO: What if not field 525 is used instead of 599?
-	public function getArticleParentDetails() {	
+	public function getArticleParentDetails() {
 		$returnValue = null;
 		if ($this->getArticleParentAC() != null) { // It's an article or essay. (MAB field 599$-*$*)
 			if ($this->getParentSYSs() != null) { // We have at least one SYS-No to which we can link
 				// Get the titel of the parent record
 				$parentTitle = (isset($this->getArticleParentTitle())) ? $this->getArticleParentTitle() : "k. A.";
-				$parentVolumeNo = (isset($this->getArticleParentVolumeNo())) ? $this->getArticleParentVolumeNo() : null;				
+				$parentVolumeNo = (isset($this->getArticleParentVolumeNo())) ? $this->getArticleParentVolumeNo() : null;
 				$returnValue = (isset($parentVolumeNo)) ? $parentTitle.' ('.$parentVolumeNo.')' : $parentTitle;
-			} else { // We have 
+			} else { // We have
 				
 			}
 		} else if (isset()) { //  MAB field 525$**$a
@@ -1550,7 +1552,7 @@ class SolrMab extends SolrDefault  {
 	 * Get type of publication by publication type code (first character of field 051 or 052)
 	 *
 	 * TODO: Check if this function is still needed.
-	 * 
+	 *
 	 * @return string or null if empty
 	 */
 	public function getPublicationTypeFromCode() {
@@ -1620,7 +1622,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get the location of the record. This is the value of the field "location_txtF_mv".
-	 * 
+	 *
 	 * @return NULL|array	Array of location(s) or null
 	 */
 	public function getLocation() {
@@ -1756,10 +1758,10 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get Solrfield dateSpan (e. g. publish dates [from - to] of a journal)
-	 * 
+	 *
 	 * TODO: Check if this function is necessary (we already have a similar one with getFirstLastDatePublished())
 	 *       This function works with the original VuFind Solrfield "dateSpan".
-	 *       
+	 *
 	 * @return array or null if empty
 	 */
 	public function getPublicationHistory() {
@@ -1820,7 +1822,7 @@ class SolrMab extends SolrDefault  {
 
 	/**
 	 * Get Solrfield title_alt (alternative title)
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getFurtherTitles() {
@@ -1830,11 +1832,11 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get all abstracts of a record.
-	 * 
+	 *
 	 * @return NULL|array
 	 */
 	public function getAbstract() {
-		return isset($this->fields['abstract_txt_mv']) ? $this->fields['abstract_txt_mv'] : null;	
+		return isset($this->fields['abstract_txt_mv']) ? $this->fields['abstract_txt_mv'] : null;
 	}
 	
 	
@@ -1850,7 +1852,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get Solrfield author
-	 * 
+	 *
 	 * @param Set to false if responsibility note should not be given back if no other authors were found. Default is true.
 	 * @return string
 	 */
@@ -1930,7 +1932,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get all all involved / participants incl. their role and authoirty no.
-	 * 
+	 *
 	 *  @return array or null if empty
 	 */
 	public function getParticipants() {
@@ -2051,7 +2053,7 @@ class SolrMab extends SolrDefault  {
 	 *
 	 * @return array
 	 */
-	public function getAllSubjectHeadings() {		
+	public function getAllSubjectHeadings() {
 		
 		$headings = [];
 		foreach (['topic', 'authHeadingSubject_txt_mv', 'authUseForSubject_txt_mv', 'geographic', 'authHeadingGeographic_txt_mv', 'authUseForGeographic_txt_mv', 'authHeadingCongress_txt_mv', 'authUseForCongress_txt_mv', 'authHeadingWork_txt_mv', 'authUseForWork_txt_mv', 'genre', 'era'] as $field) {
@@ -2073,7 +2075,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get all keyword chains
-	 * 
+	 *
 	 * @return array or null
 	 */
 	public function getAllKeywordChains() {
@@ -2096,7 +2098,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get all keywords that are used in keyword chains as an array. Duplicates are removed.
-	 * 
+	 *
 	 * @return NULL|array
 	 */
 	public function getUniqueKeywordChainKeywords() {
@@ -2118,7 +2120,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get a keyword chain by it's number
-	 * 
+	 *
 	 * @param string $no	The number (with leading zero) of the keyword chain. Possible are values from 01 to 10.
 	 * @return array		Array of all values of the keyword chain or null if the keyword chain does not exist.
 	 */
@@ -2172,7 +2174,7 @@ class SolrMab extends SolrDefault  {
 	
 	/**
 	 * Get AK subjects from subjectAk_txt_mv field
-	 * 
+	 *
 	 * @return array		Array of all AK subject values or null if none exists
 	 */
 	public function getAkSubjects() {
@@ -2203,7 +2205,7 @@ class SolrMab extends SolrDefault  {
 
 	/**
 	 * Get contens from notes field.
-	 * 
+	 *
 	 * @return array or null
 	 */
 	public function getNotes() {
@@ -2240,7 +2242,7 @@ class SolrMab extends SolrDefault  {
 							$apiUrl = $almaConfig['API']['url'];
 							$apiKey = $almaConfig['API']['key'];
 
-							$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?limit=100&apikey='.$apiKey, 'GET');							
+							$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?limit=100&apikey='.$apiKey, 'GET');
 							$items = $itemResult['xml']->item;
 							foreach($items as $item) {
 								$enumerationA = $item->item_data->enumeration_a;
@@ -2293,7 +2295,7 @@ class SolrMab extends SolrDefault  {
 						foreach ($avaBibIds as $avaBibId) {
 							foreach($avaHolIds as $avaHolId) {
 								
-								$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?limit=100&apikey='.$apiKey, 'GET');							
+								$itemResult = $alma->doHTTPRequest($apiUrl.'bibs/'.$avaBibId.'/holdings/'.$avaHolId.'/items?limit=100&apikey='.$apiKey, 'GET');
 								$items = $itemResult['xml']->item;
 								
 								foreach($items as $item) {
@@ -2323,9 +2325,9 @@ class SolrMab extends SolrDefault  {
 	
 	/**
      * Attach an ILS connection and related logic to the driver
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @param \VuFind\ILS\Connection       $ils            ILS connection
      * @param \AkSearch\ILS\Logic\Holds    $holdLogic      Hold logic handler
      * @param \VuFind\ILS\Logic\TitleHolds $titleHoldLogic Title hold logic handler
@@ -2341,9 +2343,9 @@ class SolrMab extends SolrDefault  {
 
     /**
      * Do we have an attached ILS connection?
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return bool
      */
     public function hasILS() {
@@ -2353,9 +2355,9 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Get the bibliographic level of the current record.
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return string
      */
     public function getBibliographicLevel() {
@@ -2384,9 +2386,9 @@ class SolrMab extends SolrDefault  {
     /**
      * Get an array of information about record holdings, obtained in real-time from the ILS.
      * Mask call nos and collections if value set in AKsearch.ini
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return array
      */
     public function getRealTimeHoldings() {
@@ -2442,7 +2444,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Masking values according to AKsearch.ini
-     * 
+     *
      * @param unknown $stringToMask
      * @param string $mode
      * @return unknown|string|mixed
@@ -2485,9 +2487,9 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Get an array of information about record history, obtained in real-time from the ILS.
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return array
      */
     public function getRealTimeHistory() {
@@ -2505,9 +2507,9 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Get a link for placing a title level hold.
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     *  
+     *
      * @return mixed A url if a hold is possible, boolean false if not
      */
     public function getRealTimeTitleHold() {
@@ -2525,7 +2527,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Check if we have to show a "load more" link/button for items list in the holdings tab.
-     * 
+     *
      * @var int $noOfTotalItems		No of totel items
      * @return boolean				true if the link/button should be displayed, false otherwise
      */
@@ -2537,7 +2539,7 @@ class SolrMab extends SolrDefault  {
     /**
      * Gets the status of the record (available or unavailable) from the ILS driver.
      * See also getStatus() function in \VuFind\ILS\Driver\Aleph
-     * 
+     *
      * @param string $id The record id to retrieve the holdings for
      *
      * @throws ILSException
@@ -2553,7 +2555,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Gets the Aleph or Alma journal holdings
-     * 
+     *
      * @return array
      */
     public function getJournalHoldings() {
@@ -2645,7 +2647,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Gets the sublibrary name by sublibrary code
-     * 
+     *
      * @return string
      */
     public function getSubLibraryName($subLibCode) {
@@ -2691,7 +2693,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Check if the BIB record has holdings (= items).
-     * 
+     *
      * @return boolean	true if at least one holding (item) exists, false otherwise.
      */
     public function hasIlsHoldings() {
@@ -2712,7 +2714,7 @@ class SolrMab extends SolrDefault  {
     
     /**
      * Check if the BIB record has journal holdings.
-     * 
+     *
      * @return boolean	true if at least one journal holding exists, false otherwise.
      */
     public function hasJournalHoldings() {
