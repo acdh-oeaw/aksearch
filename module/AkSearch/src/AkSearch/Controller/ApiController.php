@@ -10,7 +10,6 @@ use Zend\Mail as Mail;
 use AkSearch\View\Helper\Root\Auth;
 use Zend\Http\Request;
 
-
 // Hide all PHP errors and warnings as this could brake the JSON and/or XML output
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
@@ -372,13 +371,23 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Request from external
 		$request = $this->getRequest();
-		
+	    
 		// Get request method (GET, POST, ...)
 		$requestMethod = $request->getMethod();
 		
-		// Get request body
-		$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
+		// Get authentication mode. 'akw' is default. 'apa' is also possible.
+		$authMode = $request->getQuery('mode', 'akw');
 		
+		// Get request body dependent on authMode ('akw' or 'apa'). APA sends content type as application/x-www-form-urlencoded ($request->getHeaders()->get('Content-Type')->getFieldValue())
+		$requestBodyArray = null;
+		if ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') {
+    		if ($authMode == 'apa') {
+    		    mb_parse_str($request->getContent(), $requestBodyArray);
+    		} else {
+    		    $requestBodyArray = json_decode($request->getContent(), true);
+    		}
+		}
+
 		// Perform user-api action
 		switch ($apiUserAction) {
 			case 'Auth':
