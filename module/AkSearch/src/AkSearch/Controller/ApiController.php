@@ -420,6 +420,10 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Get authentication mode
 		$authMode = $authRequest->getQuery('mode', 'akw');
 		
+		// HTTP status codes are dependent from auth mode. If "apa", we always have to return 200
+		$forbidden403 = ($authMode == 'apa') ? 200 : 403;
+		$unauthorized401 = ($authMode == 'apa') ? 200 : 401;
+		
 		// Only POST requests are allowed
 		if ($authRequestMethod != 'POST') {
 			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
@@ -461,7 +465,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				$isBlocked = 'Y';
 				$blocks[0]['code'] = '01';
 				$blocks[0]['note'] = 'Systemwechsel: Bitte in aksearch.arbeiterkammer.at einloggen und Konto aktivieren! System change: log-in at aksearch.arbeiterkammer.at to activate account!';
-				$this->httpResponse->setStatusCode(403); // Forbidden
+				$this->httpResponse->setStatusCode($forbidden403); // Forbidden
 			} else {
 				// Check also if user exists in Alma via API
 				// TODO: Should already be done in \AkSearch\Auth\Database.php
@@ -480,7 +484,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 						$almaErrorCode = (isset($error->errorCode)) ? (string)$error->errorCode : null;
 						$almaErrorCodeMsg = ($almaErrorCode != null) ? ' (Alma error code: '.$almaErrorCode.')' : '';
 						$errorMsg = $almaErrorMsg.$almaErrorCodeMsg;
-						$this->httpResponse->setStatusCode(401); // Unauthorized
+						$this->httpResponse->setStatusCode($unauthorized401); // Unauthorized
 						
 						if ($almaErrorCode = '401861' || $almaErrorCode = '401890' || $almaErrorCode = '4019990' || $almaErrorCode = '4019998') {
 							$isValid = 'N';
@@ -523,7 +527,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 					
 					if ($isBlocked == 'Y' || $isExpired == 'Y') {
 						$isValid = 'N';
-						$this->httpResponse->setStatusCode(403); // Forbidden
+						$this->httpResponse->setStatusCode($forbidden403); // Forbidden
 					} else {
 						$isValid = 'Y';
 						$this->httpResponse->setStatusCode(200); // OK
@@ -535,7 +539,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				// Credentials are invalid
 				$isValid = 'N';
 				$userExists = 'U';
-				$this->httpResponse->setStatusCode(401); // Unauthorized
+				$this->httpResponse->setStatusCode($unauthorized401); // Unauthorized
 			} else if ($authException->getMessage() == 'authentication_error_otp') {
 				// Password is OTP
 				$isValid = 'N';
@@ -543,12 +547,12 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				$isBlocked = 'Y';
 				$blocks[0]['code'] = '02';
 				$blocks[0]['note'] = 'Kein Log-in mit Einmal-Passwort. Neues Passwort auf aksearch.arbeiterkammer.at setzen! No log-in with one-time-password. Set new password at aksearch.arbeiterkammer.at!';
-				$this->httpResponse->setStatusCode(403); // Forbidden
+				$this->httpResponse->setStatusCode($forbidden403); // Forbidden
 			} else if ($authException->getMessage() == 'authentication_error_blank') {
 				// Blank credentials
 				$isValid = 'N';
 				$userExists = 'N';
-				$this->httpResponse->setStatusCode(401); // Unauthorized
+				$this->httpResponse->setStatusCode($unauthorized401); // Unauthorized
 			}
 		} catch (\Exception $ex) {
 			$this->httpResponse->setStatusCode(500); // Internal Server Error (500)
