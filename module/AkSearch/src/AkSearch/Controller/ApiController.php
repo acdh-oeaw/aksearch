@@ -375,30 +375,30 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Get request method (GET, POST, ...)
 		$requestMethod = $request->getMethod();
 		
-		// Get authentication mode. 'akw' is default. 'apa' is also possible.
-		$authMode = $request->getQuery('mode', 'akw');
-		
-		// Get request body dependent on authMode ('akw' or 'apa'). APA sends content type as application/x-www-form-urlencoded ($request->getHeaders()->get('Content-Type')->getFieldValue())
-		$requestBodyArray = null;
-		if ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') {
-    		if ($authMode == 'apa') {
-    		    mb_parse_str($request->getContent(), $requestBodyArray);
-    		} else {
-    		    $requestBodyArray = json_decode($request->getContent(), true);
-    		}
-		}
-
 		// Perform user-api action
 		switch ($apiUserAction) {
 			case 'Auth':
 				$userAuthSystem = (isset($this->configAKsearch->API->userAuthSystem)) ? $this->configAKsearch->API->userAuthSystem : 'Database';
+				
+				$requestBodyArray = null;
+				$authMode = null;
+				if ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') {
+				    mb_parse_str($request->getContent(), $requestBodyArray);
+				    $authMode = 'akw'; // Default
+				    if (!$requestBodyArray || !isset($requestBodyArray['mode']) || $requestBodyArray['mode'] != 'apa') {
+				        $requestBodyArray = json_decode($request->getContent(), true);
+				    } else if (isset($requestBodyArray['mode']) && $requestBodyArray['mode'] == 'apa') {
+				        $authMode = 'apa';
+				    }
+				}
+				
 				$username = $requestBodyArray['username'];
 				$password = $requestBodyArray['password'];
 				
 				if ($userAuthSystem == 'Aleph') {
 					$httpResponse = $this->userAuthAleph($requestMethod, $this->host, $this->database, $username, $password);
 				} else if ($userAuthSystem == 'Database') {
-					$httpResponse = $this->userAuthDatabase($request, $username, $password);
+				    $httpResponse = $this->userAuthDatabase($request, $authMode, $username, $password);
 				}
 				
 				return $httpResponse;
@@ -413,12 +413,9 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	}
 	
 	
-	private function userAuthDatabase(\Zend\Http\Request $authRequest, $username, $password, $returnFormat = 'json') {
+	private function userAuthDatabase(\Zend\Http\Request $authRequest, $authMode, $username, $password, $returnFormat = 'json') {
 		// Get request method (GET, POST, ...)
 		$authRequestMethod = $authRequest->getMethod();
-
-		// Get authentication mode
-		$authMode = $authRequest->getQuery('mode', 'akw');
 		
 		// HTTP status codes are dependent from auth mode. If "apa", we always have to return 200
 		$forbidden403 = ($authMode == 'apa') ? 200 : 403;
