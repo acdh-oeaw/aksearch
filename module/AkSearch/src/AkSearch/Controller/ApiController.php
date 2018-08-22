@@ -392,8 +392,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				    }
 				}
 				
-				$username = $requestBodyArray['username'];
-				$password = $requestBodyArray['password'];
+				$username = urldecode($requestBodyArray['username']);
+				$password = urldecode($requestBodyArray['password']);
 				
 				if ($userAuthSystem == 'Aleph') {
 					$httpResponse = $this->userAuthAleph($requestMethod, $this->host, $this->database, $username, $password);
