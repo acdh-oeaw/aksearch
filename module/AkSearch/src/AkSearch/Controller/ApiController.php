@@ -440,6 +440,9 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$blocks = null; // null. We use null because we can easily remove null values from the return array. Blocks should only be shown when there really are blocks.
 		$hasError = null; // null = There is no error. We use null because we can easily remove null values from the return array. Errors should only be shown when there really are errors.
 		$errorMsg = null; // null = There is no error message.
+		
+		$userGroupCode = null;
+		$userGroupDesc = null;
 
 		// Create request for \AkSearch\Auth\Database::authenticate
 		$request = new Request();
@@ -529,6 +532,13 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 						$isValid = 'Y';
 						$this->httpResponse->setStatusCode(200); // OK
 					}
+					
+					// Get user group and description
+					if (isset($almaUserObject->user_group) && !empty($almaUserObject->user_group)) {
+					    $userGroupCode = (string)$almaUserObject->user_group;
+					    $userGroupDesc = (string)$almaUserObject->user_group['desc'];
+					}
+					
 				}
 			}
 		} catch (\VuFind\Exception\Auth $authException) {
@@ -584,6 +594,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				// Create the return array
 				$returnArray['user']['isValid'] = $isValid;
 				$returnArray['user']['exists'] = $userExists;
+				if ($userGroupDesc) { $returnArray['user']['group']['desc'] = $userGroupDesc; };
+				if ($userGroupCode) { $returnArray['user']['group']['code'] = $userGroupCode; };
 				$returnArray['expired']['isExpired'] = $isExpired;
 				if ($expired) { $returnArray['expired']['date'] = $expired; }
 				$returnArray['blocks']['isBlocked'] = $isBlocked;
