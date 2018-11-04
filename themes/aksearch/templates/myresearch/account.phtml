@@ -22,8 +22,8 @@ if ($offlineMode == "ils-offline") {
 	return;
 }
 ?>
-
-<form method="post" name="accountForm" id="accountForm" class="form-horizontal" data-toggle="validator" role="form">
+<!-- For uploading files with a form we need: enctype="multipart/form-data" -->
+<form method="post" name="accountForm" id="accountForm" class="form-horizontal" data-toggle="validator" role="form" enctype="multipart/form-data">
   <?=$this->auth()->getCreateFields()?>
   <?=$this->recaptcha()->html($this->useRecaptcha) ?>
   <div class="form-group">

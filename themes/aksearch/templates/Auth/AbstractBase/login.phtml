@@ -10,15 +10,17 @@ $offlineMode = $this->ils()->getOfflineMode();
     <div class="form-group">
     <?php
     $loginFormLink = isset($this->addLink['text']) && (isset($this->addLink['url'])); // AKsearch specific
+    $residenceRegistrationCardSending = (isset($this->residenceRegistrationCardSending)) ? $this->residenceRegistrationCardSending : false; // AKsearch specific. If true, remove "createAccountLink" below because this opens the registration form in the modal dialog. That causes problems when sending an attachment (the residence registration form) with the registration form.
     $creationLink = $account->supportsCreation(); // VuFind specific
     $recoveryLink = $account->supportsRecovery(); // VuFind specific
+    
     if ($loginFormLink || $creationLink || $recoveryLink) {
         echo '<div class="col-sm-offset-3 col-sm-4">';
         if ($loginFormLink && $offlineMode != 'ils-offline') {
             echo '<a class="btn btn-primary" href="'.$this->addLink['url'].'" target="'.$target.'">'.$this->transEsc($this->addLink['text']).'</a>';
         }
         if ($creationLink && $offlineMode != 'ils-offline') {
-            echo '<a class="btn btn-link createAccountLink" href="'.$this->url('myresearch-account').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Create New Account').'</a>';
+            echo '<a class="btn btn-link'.(($residenceRegistrationCardSending) ? '' : ' createAccountLink').'" href="'.$this->url('myresearch-account').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Create New Account').'</a>';
         }
         if ($recoveryLink && $offlineMode != 'ils-offline') {
             echo '<a class="btn btn-link" href="'.$this->url('myresearch-recover').'?auth_method='.$account->getAuthMethod().'">'.$this->transEsc('Forgot Password').'</a>';

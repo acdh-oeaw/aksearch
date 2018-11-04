@@ -24,6 +24,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 	 */
 	public function loginAction() {
 		$configAkSearch = $this->getConfig('AKsearch');
+		$configAlma = $this->getConfig('Alma');
         
 		// If this authentication method doesn't use a VuFind-generated login
 		// form, force it through:
@@ -48,6 +49,10 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 		$view = $this->createViewModel();
 		$view->request = $this->getRequest()->getPost();
 		$view->addLink = (isset($configAkSearch->User->login_form_link)) ? $configAkSearch->User->login_form_link->toArray() : null; // Check if we should add a link to an external registration form
+		
+		// Check if an attachment (the residence registration form) should be sent with the registration form. If yes, open the page with the registration form on a new page instead of in the modal dialog,
+		// because there are problems sending an attachment (the residence registration form) from the modal dialog.
+		$view->residenceRegistrationCardSending = (isset($configAlma->Users->residenceRegistrationCardSending)) ? $configAlma->Users->residenceRegistrationCardSending : false;
 		return $view;
 	}
 	
@@ -209,7 +214,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
             return $this->forwardTo('Search', 'History');
         }
         return $this->forwardTo('MyResearch', $page);
-    }
+    }    
     
     
     /**
@@ -268,6 +273,10 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     	
     	// Pass the jobs from Alma.ini to the view
     	$view->jobs = (isset($configAlma->Users->jobs)) ? $configAlma->Users->jobs->toArray() : array();
+    	
+    	// Check if sending of residence registration card should be activated and pass value to form
+    	$residenceRegistrationCardSending = (isset($configAlma->Users->residenceRegistrationCardSending)) ? $configAlma->Users->residenceRegistrationCardSending : false;
+    	$view->residenceRegistrationCardSending = $residenceRegistrationCardSending;
     	
     	// Pass the requirede fields array from Alma.ini to the view
     	$requiredFields = (isset($configAlma->Users->newUserRequired)) ? $configAlma->Users->newUserRequired->toArray() : array();
@@ -330,6 +339,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		$job = $this->params()->fromPost('job');
     		$password = $this->params()->fromPost('password');
     		$passwordConfirm = $this->params()->fromPost('passwordConfirm');
+    		$residenceRegistrationCard = $this->params()->fromFiles('residenceRegistrationCard');
     		$dataProcessing = ($this->params()->fromPost('dataProcessing')) ? true : false;
     		$loanHistory = ($this->params()->fromPost('loanHistory')) ? true : false;
     		$houseAndUsageRules = ($this->params()->fromPost('houseAndUsageRules')) ? true : false;
@@ -339,9 +349,10 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		$captchaCode = $this->params()->fromPost('captchaCode');
     		$dateExpiryConfig = (isset($configAlma->Users->expiryDate)) ? $configAlma->Users->expiryDate->toArray() : ['scope' => 'Y', 'add' => 1];
     		$dateExpiryScope = (isset($dateExpiryConfig['scope'])) ? $dateExpiryConfig['scope'] : 'Y';
-    		$dateExpiryAdd = (isset($dateExpiryConfig['add'])) ? $dateExpiryConfig['add'] : 1;
-    		
+    		$dateExpiryAdd = (isset($dateExpiryConfig['add'])) ? $dateExpiryConfig['add'] : 1;    		
+
     		/*
+    		// NOT IN USE YET
     		$jobsDateExpiryConfig = (isset($configAlma->Users->jobsSpecialExpiryDate)) ? $configAlma->Users->jobsSpecialExpiryDate->toArray() : ['scope' => 'Y', 'add' => 1];
     		$jobsDateExpiryScope = (isset($jobsDateExpiryConfig['scope'])) ? $jobsDateExpiryConfig['scope'] : 'Y';
     		$jobsDateExpiryAdd = (isset($jobsDateExpiryConfig['add'])) ? $jobsDateExpiryConfig['add'] : 1;
@@ -409,6 +420,25 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     			$formError = true;
     		}
     		
+    		// Check if residence registration card is a correct file (if the form field is activated and a file was chosen)
+    		if ($residenceRegistrationCardSending && !empty($residenceRegistrationCard['name'])) {
+    		    $mimeTypeValidator = new \Zend\Validator\File\MimeType(
+    		        array(
+    		            'image/jpg',
+    		            'image/jpeg',
+    		            'image/png',
+    		            'image/tiff',
+    		            'image/tif',
+    		            'image/bmp',
+    		            'application/pdf'
+    		        ));
+    		    
+    		    if (!$mimeTypeValidator->isValid($residenceRegistrationCard['tmp_name'])) {
+    		        $errorMsg[] = $this->translate('residenceRegistrationCardError');
+    		        $formError = true;
+    		    }
+    		}
+    		
     		// Check if captcha code is correct:
     		include_once 'vendor/securimage/securimage.php';
     		$securimage = new \Securimage();
@@ -423,7 +453,39 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     				$this->flashMessenger()->addMessage($errorMessage, 'error');
     			}
     		} else {
-    			
+    		    // Create an empty block XML variable for adding to the XML further down.
+    		    $blockXml = '';
+    		    
+    		    // Check if the newly registered user should be blocked
+    		    $blockUser = (isset($configAlma->Users->blockUser) && !empty($configAlma->Users->blockUser)) ? $configAlma->Users->blockUser : false;
+    		    
+    		    // If the new user should be blocked, create an XML for the Alma API
+    		    if ($blockUser) {
+    		        $blockTypeCode = (isset($configAlma->Users->blockTypeCode) && !empty($configAlma->Users->blockTypeCode)) ? $configAlma->Users->blockTypeCode : null;
+    		        $blockTypeDesc = (isset($configAlma->Users->blockTypeDesc) && !empty($configAlma->Users->blockTypeDesc)) ? $configAlma->Users->blockTypeDesc : null;
+    		        $blockDescriptionCode = (isset($configAlma->Users->blockDescriptionCode) && !empty($configAlma->Users->blockDescriptionCode)) ? $configAlma->Users->blockDescriptionCode : null;
+    		        $blockDescriptionDesc = (isset($configAlma->Users->blockDescriptionDesc) && !empty($configAlma->Users->blockDescriptionDesc)) ? $configAlma->Users->blockDescriptionDesc : null;
+    		        $blockStatus = (isset($configAlma->Users->blockStatus) && !empty($configAlma->Users->blockStatus)) ? $configAlma->Users->blockStatus : 'ACTIVE';
+    		        $blockNote = (isset($configAlma->Users->blockNote) && !empty($configAlma->Users->blockNote)) ? $configAlma->Users->blockNote : '';
+    		        $blockCreatedBy = (isset($configAlma->Users->blockCreatedBy) && !empty($configAlma->Users->blockCreatedBy)) ? $configAlma->Users->blockCreatedBy : 'AKsearch';
+    		        $blockCreatedDate = date('Y-m-d\TH:i:s\Z'); // Date in Alma Format
+    		        
+    		        // Make sure all necessary fields are set
+    		        if ($blockTypeCode != null && $blockTypeDesc != null && $blockDescriptionCode != null && $blockDescriptionDesc != null) {
+    		            // Create XML for Alma API
+    		            $blockXml = '<user_blocks>'.
+                                        '<user_block segment_type="Internal">'.
+                                            '<block_type desc="'.$blockTypeDesc.'">'.$blockTypeCode.'</block_type>'.
+                                            '<block_description desc="'.$blockDescriptionDesc.'">'.$blockDescriptionCode.'</block_description>'.
+                                            '<block_status>'.$blockStatus.'</block_status>'.
+                                            '<block_note>'.$blockNote.'</block_note>'.
+                                            '<created_by>'.$blockCreatedBy.'</created_by>'.
+                                            '<created_date>'.$blockCreatedDate.'</created_date>'.
+                                        '</user_block>'.
+                                    '</user_blocks>';
+    		        }
+    		    }
+    		    
     			// Generate a barcode. We use it as an additional user identifier in Alma.
     			$stringForHash = $firstName . $lastName . $birthdayTs . $email . time();
     			$barcode = $this->akSearch()->generateBarcode($stringForHash);
@@ -478,13 +540,14 @@ class MyResearchController extends DefaultMyResearchController implements Transl
 								<id_type>01</id_type>
 								<value>'.$barcode.'</value>
 							</user_identifier>
-						  </user_identifiers>
-						</user>';
+						  </user_identifiers>'.
+						  $blockXml.
+						'</user>';
     			
     			// Remove whitespaces from XML string:
     			$xml_string = preg_replace("/\n/i", "", $xml_string);
     			$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
-
+    			
     			// Create user in Alma
     			$almaReturn = $this->akSearch()->doHTTPRequest($configAlma->API->url.'users/?&apikey='.$configAlma->API->key, 'POST', $xml_string, ['Content-Type' => 'application/xml']);
 
@@ -511,7 +574,7 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     					$toLibrary = $configAlma->Users->emailLibrary;
     					
     					$sentEmailToPatron = $this->sendEmailToNewPatron($gender, $job, $jobsSpecialEmailText, $firstName, $lastName, $barcode, $dateExpiryTS, $displayDateFormat, $email, $from, $replyTo, $bcc);
-    					$sentEmailToLibrary = $this->sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $from, $replyTo, $toLibrary);
+    					$sentEmailToLibrary = $this->sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $residenceRegistrationCard, $from, $replyTo, $toLibrary);
     					
     					if ($sentEmailToPatron && $sentEmailToLibrary) {
     						$view->setTemplate('aksites/createsuccess');
@@ -525,10 +588,10 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     				$this->flashMessenger()->addMessage($this->translate('newUserIlsError'), 'error');
     				$errorMessage = $almaReturn['xml']->errorList->error->errorMessage;
     				error_log('[Alma] MyResearchController -> accountAction(). Error (HTTP code '.$almaReturn['status'].') when adding new user account in Alma via API: '.$errorMessage);
-    			}
+    			}	
     		}
     	}
-    	
+    	    	
     	return $view;
     }
 
@@ -623,56 +686,75 @@ class MyResearchController extends DefaultMyResearchController implements Transl
      * 
      * @return boolean true if eMail was sent successfully, false otherwise
      */
-    private function sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $from, $replyTo, $toLibrary) {
-    	$success = false;
-    	$dateExpiryString = date($displayDateFormat, $dateExpiryTS);
-    	$tokens = [
-    			'_firstName_' => $firstName,
-    			'_lastName_' => $lastName,
-    			'_address_' => $street.', '.$zip.' '.$city,
-    			'_email_' => $email,
-    			'_phone_' => $phone,
-    			'_job_' => $job,
-    			'_birthday_' => $birthday,
-    			'_gender_' => (($gender == 'FEMALE') ? $this->translate('female') : $this->translate('male')),
-    			'_barcode_' => $barcode,
-    			'_dateExpiry_' => $dateExpiryString,
-    			'_acceptedDataProcessing_' => (($dataProcessing == true) ? $this->translate('yes') : $this->translate('no')),
-    			'_acceptedLoanHistory_' => (($loanHistory == true) ? $this->translate('yes') : $this->translate('no')),
-    			'_acceptedHouseAndUsageRules_' => (($houseAndUsageRules == true) ? $this->translate('yes') : $this->translate('no')),
-    	];
-    	$emailText = $this->translate('eMailToLibraryText', $tokens);
-    	$subject = $this->translate('eMailToLibrarySubject', ['_firstName_' => $firstName, '_lastName_' => $lastName]);
-
-    	// This sets up the email to be sent
-    	$mail = new Mail\Message();
-    	$headers = $mail->getHeaders();
-    	$headers->removeHeader('Content-Type');
-    	$headers->addHeaderLine('Content-Type', 'text/html;charset=UTF-8');
-    	$mail->addTo($toLibrary);
-    	$mail->setFrom($from);
-    	$mail->setReplyTo($replyTo);
-    	$mail->setSubject($subject);
-    	
-    	// Prepare HTML for eMail
-    	$html = new \Zend\Mime\Part($emailText);
-    	$html->type = 'text/html';
-    	$html->setCharset('UTF-8');
-    	$body = new \Zend\Mime\Message();
-    	$body->setParts(array($html));
-    	
-    	// Add html to eMail body
-    	$mail->setBody($body);
-    	
-    	try {
-    		// Send eMail
-    		$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
-    		$success = true;
-    	} catch (MailException $mex) {
-    		error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
-    	}
-    	
-    	return $success;
+    private function sendEmailToLibrary($firstName, $lastName, $street, $zip, $city, $phone, $job, $birthday, $gender, $barcode, $dateExpiryTS, $displayDateFormat, $email, $dataProcessing, $loanHistory, $houseAndUsageRules, $residenceRegistrationCard, $from, $replyTo, $toLibrary) {
+    	        
+        $success = false;
+        $dateExpiryString = date($displayDateFormat, $dateExpiryTS);
+        $tokens = [
+            '_firstName_' => $firstName,
+            '_lastName_' => $lastName,
+            '_address_' => $street.', '.$zip.' '.$city,
+            '_email_' => $email,
+            '_phone_' => $phone,
+            '_job_' => $job,
+            '_birthday_' => $birthday,
+            '_gender_' => (($gender == 'FEMALE') ? $this->translate('female') : $this->translate('male')),
+            '_barcode_' => $barcode,
+            '_dateExpiry_' => $dateExpiryString,
+            '_acceptedDataProcessing_' => (($dataProcessing == true) ? $this->translate('yes') : $this->translate('no')),
+            '_acceptedLoanHistory_' => (($loanHistory == true) ? $this->translate('yes') : $this->translate('no')),
+            '_acceptedHouseAndUsageRules_' => (($houseAndUsageRules == true) ? $this->translate('yes') : $this->translate('no')),
+        ];
+        $emailText = $this->translate('eMailToLibraryText', $tokens);
+        $subject = $this->translate('eMailToLibrarySubject', ['_firstName_' => $firstName, '_lastName_' => $lastName]);
+        
+        // Text/HTML part
+        $html = new \Zend\Mime\Part($emailText);
+        $html->type = \Zend\Mime\Mime::TYPE_HTML;
+        $html->charset = 'utf-8';
+        
+        // Create MIME message with parts
+        $mimeMessage = new \Zend\Mime\Message();
+        
+        // Check if sending of residence registration card is activated. If yes, add the attachment to the eMail.
+        $configAlma = $this->getConfig('Alma');
+        $residenceRegistrationCardSending = (isset($configAlma->Users->residenceRegistrationCardSending)) ? $configAlma->Users->residenceRegistrationCardSending : false;
+        if ($residenceRegistrationCardSending && !empty($residenceRegistrationCard['name'])) {
+            // File part (attachment)
+            $fileContents = fopen($residenceRegistrationCard['tmp_name'], 'r');
+            $attachment = new \Zend\Mime\Part($fileContents);
+            $attachment->type = $residenceRegistrationCard['type'];
+            $attachment->filename = $residenceRegistrationCard['name'];
+            $attachment->disposition = \Zend\Mime\Mime::DISPOSITION_ATTACHMENT;
+            $attachment->encoding = \Zend\Mime\Mime::ENCODING_BASE64;
+            
+            // Add text/HTML and attachment
+            $mimeMessage->setParts(array($html, $attachment));
+        } else {
+            // Add text/HTML only
+            $mimeMessage->setParts(array($html));
+        }
+        
+        // Create eMail message, adjust headers and set some configs
+        $mail = new Mail\Message();
+        $headers = $mail->getHeaders();
+        $headers->removeHeader('Content-Type');
+        $headers->addHeaderLine('Content-Type', 'text/html;charset=UTF-8');
+        $mail->addTo($toLibrary);
+        $mail->setFrom($from);
+        $mail->setReplyTo($replyTo);
+        $mail->setSubject($subject);
+        $mail->setBody($mimeMessage);
+        
+        try {
+            // Send eMail
+            $this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
+            $success = true;
+        } catch (MailException $mex) {
+            error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
+        }
+        
+        return $success;
     }
     
     

@@ -1,4 +1,5 @@
 <?php
+
 $requiredFields = $this->required;
 
 $salutationRequired = in_array('salutation', $requiredFields);
@@ -13,6 +14,7 @@ $birthdayRequired = in_array('birthday', $requiredFields);
 $jobRequired = in_array('job', $requiredFields);
 $passwordRequired = in_array('password', $requiredFields);
 $passwordConfirmRequired = in_array('passwordConfirm', $requiredFields);
+$residenceRegistrationCardRequired = in_array('residenceRegistrationCard', $requiredFields);
 $dataProcessingRequired = in_array('dataProcessing', $requiredFields);
 $loanHistoryRequired = in_array('loanHistory', $requiredFields);
 $houseAndUsageRulesRequired = in_array('houseAndUsageRules', $requiredFields);
@@ -30,6 +32,8 @@ foreach ($jobs as $job) {
     $jobSelect .= '<option value="'.$this->escapeHtmlAttr($this->transEsc($job)).'" '.($jobFromRequest == $this->escapeHtmlAttr($this->transEsc($job))? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc($job)).'</option>';
 }
 $jobSelect .= '</select>';
+
+$residenceRegistrationCardSending = $this->residenceRegistrationCardSending;
 
 //Check for "aksearch" in URL. We use the result for the captcha path further down. This is mainly necessary for test installations.
 $requestUri = preg_replace('/^\//','', $_SERVER['REQUEST_URI']);
@@ -129,6 +133,25 @@ $captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '/aksearch' : '';
 			<div class="help-block with-errors"></div>	
 		</td>
 	</tr>
+	
+	<?php
+	
+	if ($residenceRegistrationCardSending) {
+	    echo '<tr>';
+	    echo '<td>';
+	    echo $this->transEsc('residenceRegistrationCard').(($residenceRegistrationCardRequired) ? ' *' : '');
+	    echo '</td>';
+	    echo '<td class="form-group" colspan="2">';
+	    echo '<input type="file" name="residenceRegistrationCard" id="residenceRegistrationCard" ';
+	    echo (($residenceRegistrationCardRequired) ? 'required aria-required="true"' : '');
+	    echo ' />&nbsp';
+	    echo '<div class="help-block with-errors"></div>';
+	    echo '</td>';
+	    echo '</tr>';
+	}
+	
+	?>
+
 	<tr class="form-group">
 		<td><?=$this->transEsc('dataProcessing').(($dataProcessingRequired) ? ' *' : '')?></td>
 		<td>
@@ -182,4 +205,3 @@ $captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '/aksearch' : '';
 	</tr>
 </table>
 <p>* = <?=$this->translate('This field is required')?></p>
-
