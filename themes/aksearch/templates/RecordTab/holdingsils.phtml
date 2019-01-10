@@ -242,8 +242,8 @@ if (! empty($holdings)) {
 					}
 					echo '</td>';
 					echo '<td>';
-					echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
-					/*
+					//echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
+					
 					if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
 						if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
 							if (!$user) {
@@ -279,7 +279,7 @@ if (! empty($holdings)) {
 							echo $this->transEsc('login_disabled');
 						}
 					}
-					*/
+					
 					echo '</td>';
 					echo '</tr>';
 					
