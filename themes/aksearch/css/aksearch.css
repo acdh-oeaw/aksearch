@@ -152,12 +152,14 @@ a {
 
 /* Search-Bar and Breadcrumbs */
 .navbar-brand {
-	float: left;
-	font-size: 18px;
-	line-height: 20px;
-	background:url("../images/akwien/akwien_logo.png") no-repeat scroll left center transparent;
-	height:65px;
-    width:130px;
+    float: left;
+    font-size: 18px;
+    line-height: 20px;
+    background: url("../images/akwien/oeaw_logo.png");
+    height: 65px;
+    width: 130px;
+    background-repeat: no-repeat;
+    background-size: contain;
     margin-top: 15px;
 }
 
@@ -342,7 +344,7 @@ a.list-group-item:hover, a.list-group-item:focus {
 }
 
 .akSearchbox {
-	background: none repeat scroll 0 0 #be0021;
+	background: none repeat scroll 0 0 #2856a3;
 }
 
 .akSearchbox button {
