@@ -96,7 +96,7 @@
 					$col1a = ($hasPublishDate && $childRecord['articlePublishDate'] != null && $childRecord['articlePublishDate'] != '0') ? $childRecord['articlePublishDate'] : $this->transEsc('n. A.');
 					$col1b = ($hasVolumeNo && $childRecord['articleVolume'] != null && $childRecord['articleVolume'] != '0') ? $childRecord['articleVolume'] : $this->transEsc('n. A.');
 					$col1c = ($hasIssueNo && $childRecord['articleIssue'] != null && $childRecord['articleIssue'] != '0') ? $childRecord['articleIssue'] : $this->transEsc('n. A.');
-					$articleLevel = ($childRecord['articleLevel'] != null) ? $childRecord['articleLevel'] : 0;
+					$articleLevel = (isset($childRecord['articleLevel']) && $childRecord['articleLevel'] != null) ? $childRecord['articleLevel'] : 0;
 					//$levelPadding = ($articleLevel > 0) ? 'padding-left: '.($articleLevel*20).'px;' : '';
 					$levelPadding = ''; // TODO: Level padding only for elements that have parents displayed before them in the tab.
 				}

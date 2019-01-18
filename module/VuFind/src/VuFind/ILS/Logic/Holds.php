@@ -238,6 +238,8 @@ class Holds
                 $show = !in_array($copy['location'], $this->hideHoldings);
                 if ($show) {
                     if ($holdConfig) {
+                        
+                        //$copy['addLink'] = true;
                         // Is this copy holdable / linkable
                         if (isset($copy['addLink']) && $copy['addLink']) {
                             // If the hold is blocked, link to an error page
@@ -291,7 +293,7 @@ class Holds
                     }
                 }
             }
-
+            
             if ($holdConfig && is_array($holdings)) {
                 // Generate Links
                 // Loop through each holding
@@ -302,7 +304,7 @@ class Holds
                         $currentType
                             = ($holds_override && isset($copy['holdOverride']))
                             ? $copy['holdOverride'] : $type;
-
+                        
                         switch($currentType) {
                         case "all":
                             $addlink = true; // always provide link
@@ -321,6 +323,7 @@ class Holds
                             $addlink = false;
                             break;
                         }
+                        
                         // If a valid holdable status has been set, use it to
                         // determine if a hold link is created
                         $addlink = isset($copy['is_holdable'])

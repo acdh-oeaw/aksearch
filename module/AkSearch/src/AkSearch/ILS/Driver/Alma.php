@@ -31,99 +31,100 @@
 namespace AkSearch\ILS\Driver;
 use VuFind\ILS\Driver\AbstractBase as AbstractBase;
 use VuFind\Exception\ILS as ILSException;
+
 class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFindHttp\HttpServiceAwareInterface {
 
-	use \VuFind\Log\LoggerAwareTrait;
+    use \VuFind\Log\LoggerAwareTrait;
     use \VuFindHttp\HttpServiceAwareTrait;
     
-	/**
-	 * API key of Alma API
-	 * 
-	 * @var String
-	 */
-	protected $apiKey;
-	
-	/**
-	 * URL to Alma API
-	 *
-	 * @var String
-	 */
-	protected $apiUrl;
-	
-	/**
-	 * Date converter object
-	 *
-	 * @var \VuFind\Date\Converter
-	 */
-	protected $dateConverter = null;
-	
-	/**
-	 * AKsearch config
-	 * 
-	 * @var unknown
-	 */
-	protected $akConfig = null;
-	
-	/**
-	 * Constructor
-	 *
-	 * @param \VuFind\Date\Converter $dateConverter Date converter
-	 */
-	public function __construct(\VuFind\Date\Converter $dateConverter, $akConfig = null) {
-		$this->dateConverter = $dateConverter;
-		$this->akConfig = $akConfig;
-	}
+    /**
+     * API key of Alma API
+     * 
+     * @var String
+     */
+    protected $apiKey;
 
-	
-	/**
-	 * {@inheritDoc}
-	 * Get API data from Alma.ini file.
-	 * 
-	 * @see \VuFind\ILS\Driver\DriverInterface::init()
-	 */
-	public function init() {
-		// Get settings
-		$this->apiKey = $this->config['API']['key'];
-		$this->apiUrl = $this->config['API']['url'];
-		$this->debug_enabled = isset($this->config['Catalog']['debug']) ? $this->config['Catalog']['debug'] : false;
-	}
+    /**
+     * URL to Alma API
+     *
+     * @var String
+     */
+    protected $apiUrl;
 
-	
-	/**
-	 * {@inheritDoc}
-	 * @see \VuFind\ILS\Driver\DriverInterface::getStatus()
-	 */
-	public function getStatus($id) {
-		// TODO: Auto-generated method stub
-		/*
-		$returnArray = [];
-		$status = [];
-		$status['id'] = '991063820000541';
-		$status['status'] = 'Item Status';
-		$status['location'] = 'main';
-		$status['reserve'] = 'N';
-		$status['callnumber'] = 'B123456 Status';
-		$status['availability'] = false;
-		$status['use_unknown_message'] = true;
-		//$status['services'] = ;
-		$returnArray[] = $status;
-		return $returnArray;
-		*/
-	}
+    /**
+     * Date converter object
+     *
+     * @var \VuFind\Date\Converter
+     */
+    protected $dateConverter = null;
 
-	
-	/**
-	 * {@inheritDoc}
-	 * @see \VuFind\ILS\Driver\DriverInterface::getStatuses()
-	 */
-	public function getStatuses($ids) {
-		// TODO: Auto-generated method stub
-		/*
-		$returnArray = [];
-		$returnArray = $this->getStatus('991063820000541');
-		return $returnArray;
-		*/
-	}
+    /**
+     * AKsearch config
+     * 
+     * @var unknown
+     */
+    protected $akConfig = null;
+
+    /**
+     * Constructor
+     *
+     * @param \VuFind\Date\Converter $dateConverter Date converter
+     */
+    public function __construct(\VuFind\Date\Converter $dateConverter, $akConfig = null) {
+            $this->dateConverter = $dateConverter;
+            $this->akConfig = $akConfig;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * Get API data from Alma.ini file.
+     * 
+     * @see \VuFind\ILS\Driver\DriverInterface::init()
+     */
+    public function init() {
+        // Get settings
+        $this->apiKey = $this->config['API']['key'];
+        $this->apiUrl = $this->config['API']['url'];
+        $this->debug_enabled = isset($this->config['Catalog']['debug']) ? $this->config['Catalog']['debug'] : false;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @see \VuFind\ILS\Driver\DriverInterface::getStatus()
+     */
+    public function getStatus($id) {
+            // TODO: Auto-generated method stub
+            /*
+            $returnArray = [];
+            $status = [];
+            $status['id'] = '991063820000541';
+            $status['status'] = 'Item Status';
+            $status['location'] = 'main';
+            $status['reserve'] = 'N';
+            $status['callnumber'] = 'B123456 Status';
+            $status['availability'] = false;
+            $status['use_unknown_message'] = true;
+            //$status['services'] = ;
+            $returnArray[] = $status;
+            return $returnArray;
+            */
+    }
+
+
+    /**
+     * {@inheritDoc}
+     * @see \VuFind\ILS\Driver\DriverInterface::getStatuses()
+     */
+    public function getStatuses($ids) {
+            // TODO: Auto-generated method stub
+            /*
+            $returnArray = [];
+            $returnArray = $this->getStatus('991063820000541');
+            return $returnArray;
+            */
+    }
 	
 	
 	/**
@@ -132,195 +133,208 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 	 */
 	public function getHolding($mmsId, array $patron = null, array $holIds = null) {
 				
-		// Variable for return value:
-		$returnValue = [];
-		
-		// Max. returned items per holding - defined in AKsearch.ini:
-		$maxItemsLoad= ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
-		
-		// Get config data:
-		$fulfillementUnits = $this->config['FulfillmentUnits'];
-		$requestableConfig = $this->config['Requestable'];
-		$defaultPolicies = $this->config['DefaultPolicies'];
-		
-		// Check if we already get holding IDs from the data in Solr. If not, use the API.
-		if ($holIds == null) {
-			// Get holdings from API as we do not get them from the data in Sorl:
-			$holdings = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings?apikey='.$this->apiKey, 'GET');
-			// Iterate over holdings and get IDs:
-			$holIds = []; // Create empty array
-			foreach ($holdings['xml']->holding as $holding) {
-				$holIds[] = (string)$holding->holding_id; // Add each ID to the array
-			}
-		}
-		
-		// Get items for each holding ID
-		$itemsAll = [];
-		if (!empty($holIds)) {
-			foreach ($holIds as $holId) {
-				$itemsForHolding = [];
-				$itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items?limit='.$maxItemsLoad.'&offset=0&apikey='.$this->apiKey, 'GET');
-				$totalRecordCount = (string)$itemList['xml']['total_record_count'];
+            // Variable for return value:
+            $returnValue = [];
 
-				foreach ($itemList['xml'] as $item) {
-					$item->holding_data->addChild('no_of_items', $totalRecordCount); // Add no of total items per holding to the SimpleXMLElement
-					$itemsForHolding[] = $item;
-				}
-				
-				// If more items exist and the user want's to display them, page through the items and load them
-				if (key_exists('loadAll', $_GET) && $totalRecordCount > $maxItemsLoad) {
-					$offset = ($maxItemsLoad > ($totalRecordCount-1)) ? ($totalRecordCount-1) : $maxItemsLoad;
-					$itemsForHolding = $this->getMoreItems($mmsId, $holId, $maxItemsLoad, $offset, $totalRecordCount, $itemsForHolding);
-				}
-				
-				$itemsAll = array_merge($itemsAll, $itemsForHolding);
-			}
-		}
-		
-		
-		// Iterate over items, get available information and add it to an array as described in the VuFind Wiki at:
-		// https://vufind.org/wiki/development:plugins:ils_drivers#getholding
-		foreach ($itemsAll as $key => $item) {
-			$id									= $mmsId;
-			$availability						= ((string)$item->item_data->base_status == '1') ? true : false;
-			$status								= null; // We calculate the status below based on [DefaultPolicies] in Alma.ini and the item execption status (if set for the item)
-			$baseStatus							= (string)$item->item_data->base_status->attributes()->desc; // The Alma base status for the item.
-			$libraryCode						= (string)$item->item_data->library;
-			$libraryName						= (string)$item->item_data->library->attributes()->desc;
-			$locationCode						= (string)$item->item_data->location;
-			$locationName						= (string)$item->item_data->location->attributes()->desc;
-			$locationHref						= null; // We don't link the location name
-			$reserve							= 'N'; // Always N. Is this something like booking or is it "requested"? Befor, we had this code, which lead do misleading notes to the user: ((string)$item->item_data->requested == 'false') ? 'N' : 'Y';
-			$callnumber							= (string)$item->holding_data->call_number;
-			$duedate							= null; // Additional API call - see below
-			$returnDate							= null; // We don't use returnDate
-			$number								= $key;
-			$requestsPlaced						= null; // We don't use this functionality
-			$barcode							= (string)$item->item_data->barcode;
-			$public_note						= (string)$item->item_data->public_note; // = Not in item, not holding!
-			$notes								= null; // We don't use notes in holdings, just item notes (see above). Deprecated in VuFind 3.0 in favor of holdings_notes
-			$holdingsNotes						= null; // // We don't use notes in holdings, just item notes (see above).New in VuFind 3.0
-			$item_notes							= ($public_note == null) ? null : [$public_note]; // New in VuFind 3.0
-			$summary							= null; // We don't use summary information in holdings.
-			$supplements						= null; // We don't use supplement information in holdings.
-			$indexes							= null; // We don't use index information in holdings.
-			$is_holdable						= false; // Additional checks necessary - see below
-			$holdtype							= ''; // Additional checks necessary - see below
-			$addLink							= false; // Additional checks necessary - see below
-			$item_id							= (string)$item->item_data->pid;
-			$holId								= (string)$item->holding_data->holding_id;
-			$holdOverride						= false; // We don't override the holds mode
-			$addStorageRetrievalRequestLink		= false; // We don't use storage retreival requests at the moment
-			$addILLRequestLink					= false; // We don't use ILL requests over AKsearch and Alma at the moment
-			$source								= null; // We don't set anything here! If we do, we break the "record -> hold" route in the theme.
-			$use_unknown_message				= false;
-			$services							= null; // We don't use this functionality
-			$description						= (string)$item->item_data->description;
-			$callnumber_second					= (string)$item->item_data->alternative_call_number;
-			$requested							= ((string)$item->item_data->requested == 'false') ? false : true; //((string)$item->item_data->requested == 'false') ? false : 'Requested';
-			$process_type						= (string)$item->item_data->process_type;
-			$process_type_desc					= (string)$item->item_data->process_type->attributes()->desc;
-			$policyCode							= (string)$item->item_data->policy;
-			$policyName							= (string)$item->item_data->policy->attributes()->desc;
-			$totalNoOfItems						= (string)$item->holding_data->no_of_items; // This is necessary for paging (load more items)!!!
-			
-			// Get the fulfillment unit for the item. We need it for some other calculations.
-			$itemFulfillmentUnit = $this->getFulfillmentUnitByLocation($locationCode, $fulfillementUnits);
-			
-			// Check if item is holdable
-			$patronGroupCode = $patron['group_code'];
-			if (($itemFulfillmentUnit != null && !empty($itemFulfillmentUnit)) && ($patronGroupCode!= null && !empty($patronGroupCode))) {
-				$is_holdable = ($requestableConfig[$itemFulfillmentUnit][$patronGroupCode] == 'Y') ? true : false;
-				$holdtype = ($is_holdable) ? 'hold' : '';
-				$addLink = ($is_holdable) ? true : false;
-			} else {
-				//throw new \Exception('Either fulfillment units or user groups are not set correctly in Alma.ini. See sections [FulfillmentUnits] and [Requestable] there and check that all values correspond to existing values in Alma configuration.');
-			}
-			
-			// For some data we need to do additional API calls due to the Alma API architecture
-			if ($process_type == 'LOAN') {
-				$loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
-				$loan = $loanData['xml']->item_loan;
-				$duedate = (string)$loan->due_date;
-				$duedate = $this->parseDate($duedate);
-				$holdtype = ($is_holdable) ? 'reserve' : '';
-				$addLink = ($is_holdable) ? true : false;
-			}
-			
-			if ($requested) {
-				$duedate = ($duedate == null) ? 'requested' : $duedate;
-				$holdtype = ($is_holdable) ? 'reserve' : '';
-				$addLink = ($is_holdable) ? true : false;
-				$availability = false;
-			}
-			
-			if ($policyCode == null || empty($policyCode)) {
-				// There is no exection policy set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
-				$status = $defaultPolicies[$itemFulfillmentUnit];
-			} else {
-				// There is an exceptional item policy set. We use the API to get the description and display it to the user
-				$result = $this->doHTTPRequest($this->apiUrl.'conf/code-tables/ItemPolicy?apikey='.$this->apiKey, 'GET');
-				$itemPolicies = $result['xml']->rows->row;
-				foreach ($itemPolicies as $key => $itemPolicy) {
-					$itemPolicyCode = $itemPolicy->code;
-					if ($itemPolicyCode == $policyCode) {
-						$status = $itemPolicyCode;
-						break;
-					}
-				}
-			}
-			
-			$returnValue[] = [
-					// Array fields described on VuFind ILS page:
-					'id'								=> $id,
-					'availability'						=> $availability,
-					'status'							=> $status,
-					'location'							=> $locationCode,
-					'locationhref'						=> $locationHref,
-					'reserve'							=> $reserve,
-					'callnumber'						=> $callnumber,
-					'duedate'							=> $duedate,
-					'returnDate'						=> $returnDate,
-					'number'							=> $number,
-					'requests_placed'					=> $requestsPlaced,
-					'barcode'							=> $barcode,
-					'notes'								=> $notes,
-					'holdings_notes'					=> $holdingsNotes,
-					'item_notes'						=> $item_notes,
-					'summary'							=> $summary,
-					'supplements'						=> $supplements,
-					'indexes'							=> $indexes,
-					'is_holdable'						=> $is_holdable,
-					'holdtype'							=> $holdtype,
-					'addLink'							=> $addLink,
-					'item_id'							=> $item_id,
-					'holdOverride'						=> $holdOverride,
-					'addStorageRetrievalRequestLink'	=> $addStorageRetrievalRequestLink,
-					'addILLRequestLink'					=> $addILLRequestLink,
-					'source' 							=> $source,
-					'use_unknown_message'				=> $use_unknown_message,
-					'services'							=> $services,
-					
-					// Array fields not described in VuFind ILS driver documentation at: https://vufind.org/wiki/development:plugins:ils_drivers#getholding
-					'holding_id'						=> $holId,
-					'description'						=> $description,
-					'callnumber_second'					=> $callnumber_second,
-					'libraryCode'						=> $libraryCode,
-					'libraryName'						=> $libraryName,
-					'locationName'						=> $locationName,
-					'baseStatus'						=> $baseStatus,
-					'requested'							=> $requested,
-					'process_type'						=> $process_type,
-					'process_type_desc'					=> $process_type_desc,
-					'collection'						=> $locationCode,
-					'collection_desc'					=> $locationName,
-					'policyCode'						=> $policyCode,
-					'policyName'						=> $policyName,
-					'totalNoOfItems'					=> $totalNoOfItems, // This is necessary for paging (load more items)!!!
-			];
-		}
-		
-		return $returnValue;
+            // Max. returned items per holding - defined in AKsearch.ini:
+            $maxItemsLoad= ($this->akConfig->MaxItemsLoad->maxItemsLoad) ? $this->akConfig->MaxItemsLoad->maxItemsLoad : 10;
+
+            // Get config data:
+            $fulfillementUnits = $this->config['FulfillmentUnits'];
+            $requestableConfig = $this->config['Requestable'];
+            $defaultPolicies = $this->config['DefaultPolicies'];
+
+            // Check if we already get holding IDs from the data in Solr. If not, use the API.
+            if ($holIds == null) {
+                // Get holdings from API as we do not get them from the data in Sorl:
+                $holdings = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings?apikey='.$this->apiKey, 'GET');
+                // Iterate over holdings and get IDs:
+                $holIds = []; // Create empty array
+                foreach ($holdings['xml']->holding as $holding) {
+                    $holIds[] = (string)$holding->holding_id; // Add each ID to the array
+                }
+            }
+
+            // Get items for each holding ID
+            $itemsAll = [];
+            if (!empty($holIds)) {
+                foreach ($holIds as $holId) {
+                    $itemsForHolding = [];
+                    $itemList = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items?limit='.$maxItemsLoad.'&offset=0&apikey='.$this->apiKey, 'GET');
+                    $totalRecordCount = (string)$itemList['xml']['total_record_count'];
+                    
+                    foreach ($itemList['xml'] as $item) {
+                        $item->holding_data->addChild('no_of_items', $totalRecordCount); // Add no of total items per holding to the SimpleXMLElement
+                        $itemsForHolding[] = $item;
+                    }
+
+                    // If more items exist and the user want's to display them, page through the items and load them
+                    if (key_exists('loadAll', $_GET) && $totalRecordCount > $maxItemsLoad) {
+                        $offset = ($maxItemsLoad > ($totalRecordCount-1)) ? ($totalRecordCount-1) : $maxItemsLoad;
+                        $itemsForHolding = $this->getMoreItems($mmsId, $holId, $maxItemsLoad, $offset, $totalRecordCount, $itemsForHolding);
+                    }
+
+                    $itemsAll = array_merge($itemsAll, $itemsForHolding);
+                }
+            }
+           
+            // Iterate over items, get available information and add it to an array as described in the VuFind Wiki at:
+            // https://vufind.org/wiki/development:plugins:ils_drivers#getholding
+            foreach ($itemsAll as $key => $item) {
+                $id									= $mmsId;
+                $availability						= ((string)$item->item_data->base_status == '1') ? true : false;
+                $status								= null; // We calculate the status below based on [DefaultPolicies] in Alma.ini and the item execption status (if set for the item)
+                $baseStatus							= (string)$item->item_data->base_status->attributes()->desc; // The Alma base status for the item.
+                $libraryCode						= (string)$item->item_data->library;
+                $libraryName						= (string)$item->item_data->library->attributes()->desc;
+                $locationCode						= (string)$item->item_data->location;
+                $locationName						= (string)$item->item_data->location->attributes()->desc;
+                $locationHref						= null; // We don't link the location name
+                $reserve							= 'N'; // Always N. Is this something like booking or is it "requested"? Befor, we had this code, which lead do misleading notes to the user: ((string)$item->item_data->requested == 'false') ? 'N' : 'Y';
+                $callnumber							= (string)$item->holding_data->call_number;
+                $duedate							= null; // Additional API call - see below
+                $returnDate							= null; // We don't use returnDate
+                $number								= $key;
+                $requestsPlaced						= null; // We don't use this functionality
+                $barcode							= (string)$item->item_data->barcode;
+                $public_note						= (string)$item->item_data->public_note; // = Not in item, not holding!
+                $notes								= null; // We don't use notes in holdings, just item notes (see above). Deprecated in VuFind 3.0 in favor of holdings_notes
+                $holdingsNotes						= null; // // We don't use notes in holdings, just item notes (see above).New in VuFind 3.0
+                $item_notes							= ($public_note == null) ? null : [$public_note]; // New in VuFind 3.0
+                $summary							= null; // We don't use summary information in holdings.
+                $supplements						= null; // We don't use supplement information in holdings.
+                $indexes							= null; // We don't use index information in holdings.
+                $is_holdable						= false; // Additional checks necessary - see below
+                $holdtype							= ''; // Additional checks necessary - see below
+                $addLink							= false; // Additional checks necessary - see below
+                $item_id							= (string)$item->item_data->pid;
+                $holId								= (string)$item->holding_data->holding_id;
+                $holdOverride						= false; // We don't override the holds mode
+                $addStorageRetrievalRequestLink		= false; // We don't use storage retreival requests at the moment
+                $addILLRequestLink					= false; // We don't use ILL requests over AKsearch and Alma at the moment
+                $source								= null; // We don't set anything here! If we do, we break the "record -> hold" route in the theme.
+                $use_unknown_message				= false;
+                $services							= null; // We don't use this functionality
+                $description						= (string)$item->item_data->description;
+                $callnumber_second					= (string)$item->item_data->alternative_call_number;
+                $requested							= ((string)$item->item_data->requested == 'false') ? false : true; //((string)$item->item_data->requested == 'false') ? false : 'Requested';
+                $process_type						= (string)$item->item_data->process_type;
+                $process_type_desc					= (string)$item->item_data->process_type->attributes()->desc;
+                $policyCode							= (string)$item->item_data->policy;
+                $policyName							= (string)$item->item_data->policy->attributes()->desc;
+                $totalNoOfItems						= (string)$item->holding_data->no_of_items; // This is necessary for paging (load more items)!!!
+
+                // Get the fulfillment unit for the item. We need it for some other calculations.
+                $itemFulfillmentUnit = $this->getFulfillmentUnitByLocation($locationCode, $fulfillementUnits);
+                
+                // Check if item is holdable
+                $patronGroupCode = $patron['group_code'];
+                if (($itemFulfillmentUnit != null && !empty($itemFulfillmentUnit)) && ($patronGroupCode!= null && !empty($patronGroupCode))) {
+                    $is_holdable = ($requestableConfig[$itemFulfillmentUnit][$patronGroupCode] == 'Y') ? true : false;
+                    $holdtype = ($is_holdable) ? 'hold' : '';
+                    $addLink = ($is_holdable) ? true : false;
+                } else {
+                    //throw new \Exception('Either fulfillment units or user groups are not set correctly in Alma.ini. See sections [FulfillmentUnits] and [Requestable] there and check that all values correspond to existing values in Alma configuration.');
+                }
+                
+                /**
+                 * UPDATE 14.01.2019 ACDH
+                 * Holdable is based on the availability
+                 */
+                if($availability && $requested === false) {
+                    $is_holdable = true;
+                    $addLink = ($is_holdable) ? true : false;
+                } else if($availability && $requested === true) {
+                    $is_holdable = true;
+                    $addLink = true;
+                } 
+                
+                //$addLink = true;
+                // For some data we need to do additional API calls due to the Alma API architecture
+                if ($process_type == 'LOAN') {
+                    $loanData = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holId.'/items/'.$item_id.'/loans?apikey='.$this->apiKey, 'GET');
+                    $loan = $loanData['xml']->item_loan;
+                    $duedate = (string)$loan->due_date;
+                    $duedate = $this->parseDate($duedate);
+                    $holdtype = ($is_holdable) ? 'reserve' : '';
+                    $addLink = ($is_holdable) ? true : false;
+                }
+
+                if ($requested) {
+                    $duedate = ($duedate == null) ? 'requested' : $duedate;
+                    $holdtype = ($is_holdable) ? 'reserve' : '';
+                    $addLink = ($is_holdable) ? true : false;
+                    $availability = false;
+                }
+
+                if ($policyCode == null || empty($policyCode)) {
+                    // There is no exection policy set in the item. We use the default policy (see section [DefaultPolicies]) from Alma.ini
+                    $status = $defaultPolicies[$itemFulfillmentUnit];
+                } else {
+                    
+                    // There is an exceptional item policy set. We use the API to get the description and display it to the user
+                    $result = $this->doHTTPRequest($this->apiUrl.'conf/code-tables/ItemPolicy?apikey='.$this->apiKey, 'GET');
+                    $itemPolicies = $result['xml']->rows->row;
+                    foreach ($itemPolicies as $key => $itemPolicy) {
+                        $itemPolicyCode = $itemPolicy->code;
+                        if ($itemPolicyCode == $policyCode) {
+                            $status = $itemPolicyCode;
+                            break;
+                        }
+                    }
+                }
+                
+
+                $returnValue[] = [
+                    // Array fields described on VuFind ILS page:
+                    'id'								=> $id,
+                    'availability'						=> $availability,
+                    'status'							=> $status,
+                    'location'							=> $locationCode,
+                    'locationhref'						=> $locationHref,
+                    'reserve'							=> $reserve,
+                    'callnumber'						=> $callnumber,
+                    'duedate'							=> $duedate,
+                    'returnDate'						=> $returnDate,
+                    'number'							=> $number,
+                    'requests_placed'					=> $requestsPlaced,
+                    'barcode'							=> $barcode,
+                    'notes'								=> $notes,
+                    'holdings_notes'					=> $holdingsNotes,
+                    'item_notes'						=> $item_notes,
+                    'summary'							=> $summary,
+                    'supplements'						=> $supplements,
+                    'indexes'							=> $indexes,
+                    'is_holdable'						=> $is_holdable,
+                    'holdtype'							=> $holdtype,
+                    'addLink'							=> $addLink,
+                    'item_id'							=> $item_id,
+                    'holdOverride'						=> $holdOverride,
+                    'addStorageRetrievalRequestLink'	=> $addStorageRetrievalRequestLink,
+                    'addILLRequestLink'					=> $addILLRequestLink,
+                    'source' 							=> $source,
+                    'use_unknown_message'				=> $use_unknown_message,
+                    'services'							=> $services,
+
+                    // Array fields not described in VuFind ILS driver documentation at: https://vufind.org/wiki/development:plugins:ils_drivers#getholding
+                    'holding_id'						=> $holId,
+                    'description'						=> $description,
+                    'callnumber_second'					=> $callnumber_second,
+                    'libraryCode'						=> $libraryCode,
+                    'libraryName'						=> $libraryName,
+                    'locationName'						=> $locationName,
+                    'baseStatus'						=> $baseStatus,
+                    'requested'							=> $requested,
+                    'process_type'						=> $process_type,
+                    'process_type_desc'					=> $process_type_desc,
+                    'collection'						=> $locationCode,
+                    'collection_desc'					=> $locationName,
+                    'policyCode'						=> $policyCode,
+                    'policyName'						=> $policyName,
+                    'totalNoOfItems'					=> $totalNoOfItems, // This is necessary for paging (load more items)!!!
+                ];
+            }
+            return $returnValue;
 	}
 	
 	
@@ -394,7 +408,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		try {
 			$client = $this->httpService->createClient($url);
 			$client->setMethod($method);
-
+                        $client->setOptions(array('timeout' => 30, 'sslverifypeer' => false));
 			if (isset($rawBody)) {
 				$client->setRawBody($rawBody);
 			}
@@ -774,58 +788,58 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		}
 	}
 
-	
+	/**
+         * The Place a Request function
+         * @param type $details
+         * @return type
+         */
 	public function placeHold($details) {
-		
-		$mmsId = $details['id'];
-		$holdingId = $details['holding_id'];
-		$itemId = $details['item_id'];
-		$patronId = $details['patron']['id'];
-				
-		$pickupLocation = $details['pickUpLocation'];
-		if (!$pickupLocation) {
-			$pickupLocation = $this->getDefaultPickUpLocation($patron, $details);
-		}
-		$comment = $details['comment'];
-		try {
-			$requiredBy = $this->dateConverter->convertFromDisplayDate('Y-m-d', $details['requiredBy']).'Z';
-		} catch (DateException $de) {
-			return [
-					'success'    => false,
-					'sysMessage' => 'hold_date_invalid'
-			];
-		}
-		
-		$body = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><user_request></user_request>');
-		$body->addChild('request_type', 'HOLD');
-		$body->addChild('pickup_location_type', 'LIBRARY');
-		$body->addChild('pickup_location_library', $pickupLocation);
-		$body->addChild('last_interest_date', $requiredBy);
-		$body->addChild('comment', $comment);
-		$body = $body->asXML();
-		
-		$result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
-		
-		if ($result) {
-			$httpReturnCode = $result['status'];
-			
-			if ($httpReturnCode == 200) {
-				return ['success' => true];
-			} else {
-				$almaErrorCode = $result['xml']->errorList->error->errorCode;
-				// TODO: Alma error code 401136 are also user blocks, not only "similar item" error!
-				return [
-						'success' => false,
-						'sysMessage' => 'almaErrorCode'.$almaErrorCode // Translation of sysMessage in language files!
-				];
-			}
-		} else {
-			return [
-					'success' => false,
-					'sysMessage' => "Bestellung konnte nicht abgesendet werden. Hold could not be placed."
-			];
-		}
+            $mmsId = $details['id'];
+            $holdingId = $details['holding_id'];
+            $itemId = $details['item_id'];
+            $patronId = $details['patron']['id'];
+            $pickupLocation = $details['pickUpLocation'];
+            if (!$pickupLocation) {
+                $pickupLocation = $this->getDefaultPickUpLocation($patron, $details);
+            }
+            $comment = $details['comment'];
+            try {
+                $requiredBy = $this->dateConverter->convertFromDisplayDate('Y-m-d', $details['requiredBy']).'Z';
+            } catch (DateException $de) {
+                return [
+                    'success'    => false,
+                    'sysMessage' => 'hold_date_invalid'
+                ];
+            }
 
+            $body = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><user_request></user_request>');
+            $body->addChild('request_type', 'HOLD');
+            $body->addChild('pickup_location_type', 'LIBRARY');
+            $body->addChild('pickup_location_library', $pickupLocation);
+            $body->addChild('last_interest_date', $requiredBy);
+            $body->addChild('comment', $comment);
+            $body = $body->asXML();
+            $result = $this->doHTTPRequest($this->apiUrl.'bibs/'.$mmsId.'/holdings/'.$holdingId.'/items/'.$itemId.'/requests/?user_id='.$patronId.'&apikey='.$this->apiKey, 'POST', $body, ['Content-type' => 'application/xml']);
+            
+            if ($result) {
+                $httpReturnCode = $result['status'];
+                if ($httpReturnCode == 200) {
+                    return ['success' => true];
+                } else {
+                    $almaErrorCode = $result['xml']->errorList->error->errorCode;
+                    $almaErrorMsg = $result['xml']->errorList->error->errorMessage;
+                    // TODO: Alma error code 401136 are also user blocks, not only "similar item" error!
+                    return [
+                        'success' => false,
+                        'sysMessage' => 'alma Error Code:'.$almaErrorCode.'.  Alma Error Message: '.$almaErrorMsg // Translation of sysMessage in language files!
+                    ];
+                }
+            } else {
+                return [
+                    'success' => false,
+                    'sysMessage' => "Bestellung konnte nicht abgesendet werden. Hold could not be placed."
+                ];
+            }
 	}
 	
 	

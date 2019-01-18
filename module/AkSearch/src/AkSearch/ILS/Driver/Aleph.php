@@ -220,7 +220,7 @@ class Aleph extends AlephDefault {
 	 *         duedate, number, barcode.
 	 */
 	public function getHolding($id, array $patron = null) {
-
+            error_log("aleph getholdings()");
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;
@@ -787,50 +787,50 @@ class Aleph extends AlephDefault {
 	 * @return array
 	 */
 	public function getJournalHoldings($id) {
-		$arrReturnValue = null;
-		
-		// Get XML from API
-		$bibId = $this->bib[0] . $id;
-		$params = array('view' => 'full');
-		$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'), $params);
-		
-		// Iterate over holding entries
-		$counter = 0;
-		foreach ($xml->{'holdings'}->{'holding'} as $holding) {
-			
-			// Get 200 fields of holding
-			$xml200Fields = $holding->xpath('datafield[@tag="200"]');
-			
-			// If at least one 200-field exists, go on and get the appropriate values.
-			// Info: A correct holding only contains one 200 field!
-			if (! empty($xml200Fields)) {
-				
-				foreach ($xml200Fields as $key200Field => $xml200Field) {
-					$counter++;
-					
-					// Get values from XML as arrays and glue together the array items to a string (separated by comma)
-					$sublibrary = implode(', ', $xml200Field->xpath('subfield[@code="2"]/text()'));
-					$holdingSummary = implode(', ', $xml200Field->xpath('subfield[@code="b"]/text()'));
-					$gaps = implode(', ', $xml200Field->xpath('subfield[@code="c"]/text()'));
-					$shelfMark = implode(', ', $xml200Field->xpath('subfield[@code="f"]/text()'));
-					$location = implode(', ', $xml200Field->xpath('subfield[@code="g"]/text()'));
-					$locationShelfMark = implode(', ', $xml200Field->xpath('subfield[@code="h"]/text()'));
-					$comment = implode(', ', $xml200Field->xpath('subfield[@code="e"]/text()'));
-					
-					// Add values to array
-					$arrReturnValue[$counter]['sublib'] = $sublibrary;
-					$arrReturnValue[$counter]['holding'] = $holdingSummary;
-					$arrReturnValue[$counter]['gaps'] = $gaps;
-					$arrReturnValue[$counter]['shelfmark'] = $shelfMark;
-					$arrReturnValue[$counter]['location'] = $location;
-					$arrReturnValue[$counter]['locationshelfmark'] = $locationShelfMark;
-					$arrReturnValue[$counter]['comment'] = $comment;
+            $arrReturnValue = null;
 
-				}
-			}
-		}
-		
-		return $arrReturnValue;
+            // Get XML from API
+            $bibId = $this->bib[0] . $id;
+            $params = array('view' => 'full');
+            $xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'), $params);
+
+            // Iterate over holding entries
+            $counter = 0;
+            foreach ($xml->{'holdings'}->{'holding'} as $holding) {
+
+                // Get 200 fields of holding
+                $xml200Fields = $holding->xpath('datafield[@tag="200"]');
+
+                // If at least one 200-field exists, go on and get the appropriate values.
+                // Info: A correct holding only contains one 200 field!
+                if (! empty($xml200Fields)) {
+
+                    foreach ($xml200Fields as $key200Field => $xml200Field) {
+                        $counter++;
+
+                        // Get values from XML as arrays and glue together the array items to a string (separated by comma)
+                        $sublibrary = implode(', ', $xml200Field->xpath('subfield[@code="2"]/text()'));
+                        $holdingSummary = implode(', ', $xml200Field->xpath('subfield[@code="b"]/text()'));
+                        $gaps = implode(', ', $xml200Field->xpath('subfield[@code="c"]/text()'));
+                        $shelfMark = implode(', ', $xml200Field->xpath('subfield[@code="f"]/text()'));
+                        $location = implode(', ', $xml200Field->xpath('subfield[@code="g"]/text()'));
+                        $locationShelfMark = implode(', ', $xml200Field->xpath('subfield[@code="h"]/text()'));
+                        $comment = implode(', ', $xml200Field->xpath('subfield[@code="e"]/text()'));
+
+                        // Add values to array
+                        $arrReturnValue[$counter]['sublib'] = $sublibrary;
+                        $arrReturnValue[$counter]['holding'] = $holdingSummary;
+                        $arrReturnValue[$counter]['gaps'] = $gaps;
+                        $arrReturnValue[$counter]['shelfmark'] = $shelfMark;
+                        $arrReturnValue[$counter]['location'] = $location;
+                        $arrReturnValue[$counter]['locationshelfmark'] = $locationShelfMark;
+                        $arrReturnValue[$counter]['comment'] = $comment;
+
+                    }
+                }
+            }
+
+            return $arrReturnValue;
 	}
 	
 	
