@@ -10,7 +10,7 @@ now=`date +'%Y-%m-%d'`
 start=`date +'%s'`
 count=`find /var/alma/* -maxdepth 0 -print| wc -l`
 
-# just in case it's still there... 
+# just in case it's still there...
 rm -r /var/www/akimporter/data_unpacked
 mkdir /var/www/akimporter/data_unpacked
 
@@ -32,10 +32,9 @@ chmod -R 755 /var/www/akimporter/data_unpacked
 #  + Stp 2: run AkImporter
 # cd /var/www/akimporter/
 # [[ $count > 0 ]] && java -jar AkImporter.jar -R -v -o
+# [[ $count > 0 ]] && java -jar AkImporter.jar -u -v -o
+
 
 #  + Stp 3: clean Up
 # rm -r /var/www/akimporter/data_unpacked
 # rm -r /var/alma/*
-
-
-

@@ -57,7 +57,7 @@
           );
         }
         $this->headScript()->appendScript($this->jsTranslations()->getScript());
-        
+
         // Added by AK Bibliothek Wien
         $this->headScript()->appendScript(
         	'var userIsLoggedIn = ' . ($this->auth()->isLoggedIn() ? 'true' : 'false') . ';'
@@ -82,16 +82,16 @@ VuFind.addTranslations({$translations});
 JS;
       $this->headScript()->appendScript($setupJS);
     ?>
-    
+
     <?=$this->headScript()?>
-    
+
   </head>
   <body>
-  
-  
-  
 
-  
+
+
+
+
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box
       // 2. It was set to false; we should display nothing
@@ -103,12 +103,12 @@ JS;
       }
     ?>
     <header role="banner" class="hidden-print">
-      
+
       <div class="container navbar">
-        <a class="sr-only" href="#content"><?=$this->transEsc('Skip to content') ?></a>  
+        <a class="sr-only" href="#content"><?=$this->transEsc('Skip to content') ?></a>
         <?=$this->render('header.phtml')?>
       </div>
-      
+
     		<?php
     		echo '<section class="visible-lg">';
     			echo $this->layout()->searchbox;
@@ -118,7 +118,7 @@ JS;
 	          <?=$this->layout()->searchbox ?>
 	    	</nav>
 
-        
+
         <? if((!isset($this->layout()->showBreadcrumbs) || $this->layout()->showBreadcrumbs == true)
           && !empty($this->layout()->breadcrumbs)
           && $this->layout()->breadcrumbs !== false
@@ -147,7 +147,7 @@ JS;
         <? endif; ?>
 
     </header>
-    
+
     <div role="main" class="main">
 
     <?php
@@ -178,16 +178,16 @@ JS;
 
     </div>
     <div>
-    
+
     <?php
 		if ($this->layout()->templateDir == 'search' && $this->layout()->templateName == 'home') {
 
 			if ($this->layout()->userLang == 'de') { // German version
 				echo '<div class="akFeatureIntro">';
-					
+
 				//echo '<div id="akFeatureIntroHeader" class="akFeatureIntroHideRight">AKsearch</div>';
-				echo '<div id="akFeatureIntroSubHeader" class="akFeatureIntroHideRight">Neue Suchmaschine der AK Bibliothek Wien</div>';
-					
+				echo '<div id="akFeatureIntroSubHeader" class="akFeatureIntroHideRight">Neue Suchmaschine der BAS:IS ÖAW</div>';
+
 				echo '<div id="akFeatureIntroContentBox1" class="akFeatureIntroHideLeft akFeatureIntroContentBox">';
 				echo '<div class="akFeatureIntroContentBoxHeader akTextAlignRight">';
 				echo 'Moderne Suchoberfläche <i class="fa fa-chevron-down" aria-hidden="true"></i>';
@@ -197,12 +197,12 @@ JS;
 				echo '<li>Zeitgemäßes Layout</li>';
 				echo '<li>Auf mobilen Endgeräten verwendbar</li>';
 				echo '<li>Erhöhte Benutzerfreundlichkeit</li>';
-				echo '<li><a href="https://github.com/AKBibliothekWien/aksearch" target="_blank">Open Source Software</a></li>';
+				echo '<li><a href="https://github.com/acdh-oeaw/" target="_blank">Open Source Software</a></li>';
 				echo '</ul>';
 				echo '</div>';
 				echo '<div class="akClearer"></div>';
 				echo '</div>';
-				
+
 				echo '<div id="akFeatureIntroContentBox2" class="akFeatureIntroHideRight akFeatureIntroContentBox">';
 				echo '<div class="akFeatureIntroContentBoxHeader">';
 				echo '<i class="fa fa-chevron-down" aria-hidden="true"></i> Erweiterte Suchmöglichkeiten';
@@ -217,46 +217,16 @@ JS;
 				echo '</div>';
 				echo '<div class="akClearer"></div>';
 				echo '</div>';
-				
-				echo '<div id="akFeatureIntroContentBox3" class="akFeatureIntroHideLeft akFeatureIntroContentBox">';
-				echo '<div class="akFeatureIntroContentBoxHeader akTextAlignRight">';
-				echo 'Mehrere Quellen durchsuchen <i class="fa fa-chevron-down" aria-hidden="true"></i>';
+
 				echo '</div>';
-				echo '<div class="akFeatureIntroContentBoxText akRight">';
-				echo '<p style="text-align: right;">Duchsuchen Sie neben unserem Bibliotheksbestand zusätzliche Quellen.<br />Sie finden sogar unselbständig erschienene Texte (einzelne Zeitschriftenartikel und Buchkapitel).</p>';
-				echo '<ul class="akRight">';
-				echo '<li>Komplettes <a href="http://www.ssoar.info/" target="_blank">SSOAR</a> (Social Science Open Access Repository)</a></li>';
-				echo '<li>Themenrelevante Inhalte des <a href="https://doaj.org/" target="_blank">DOAJ</a> (Directory of Open Access Journals)</li>';
-				echo '<li><a href="https://emedien.arbeiterkammer.at/" target="_blank">eMedien der AK Wien</a></li>';
-				echo '<li>Weitere Quellen werden folgen ...</li>';
-				echo '</ul>';
-				echo '</div>';
-				echo '<div class="akClearer"></div>';
-				echo '</div>';
-				
-				echo '<div id="akFeatureIntroContentBox4" class="akFeatureIntroHideRight akFeatureIntroContentBox">';
-				echo '<div class="akFeatureIntroContentBoxHeader">';
-				echo '<i class="fa fa-chevron-down" aria-hidden="true"></i> Ersatz für alten Katalog';
-				echo '</div>';
-				echo '<div class="akFeatureIntroContentBoxText">';
-				echo '<ul>';
-				echo '<li>AKsearch ersetzt unseren alten <a href="https://aleph22-prod-sh2.obvsg.at/F?func=find-b-0&CON_LNG=ger&local_base=akw01" target="_blank">Katalog (OPAC)</a></li>';
-				echo '<li>Ab Anfang 2018 wird der OPAC durch einen Softwareumstieg abgestellt</li>';
-				echo '<li>Parallelbetrieb von AKsearch und OPAC bis Ende 2017</li>';
-				echo '</ul>';
-				echo '</div>';
-				echo '<div class="akClearer"></div>';
-				echo '</div>';
-				
-				echo '</div>';
-					
+
 				echo '<hr/>';
 			} else { // All other languages
 				echo '<div class="akFeatureIntro">';
-					
+
 				//echo '<div id="akFeatureIntroHeader" class="akFeatureIntroHideRight">AKsearch</div>';
-				echo '<div id="akFeatureIntroSubHeader" class="akFeatureIntroHideRight">New search engine of the AK Library of Vienna</div>';
-					
+				echo '<div id="akFeatureIntroSubHeader" class="akFeatureIntroHideRight">New search engine of the BAS:IS ÖAW</div>';
+
 				echo '<div id="akFeatureIntroContentBox1" class="akFeatureIntroHideLeft akFeatureIntroContentBox">';
 				echo '<div class="akFeatureIntroContentBoxHeader akTextAlignRight">';
 				echo 'Modern user interface<i class="fa fa-chevron-down" aria-hidden="true"></i>';
@@ -266,12 +236,12 @@ JS;
 				echo '<li>Contemporary layout</li>';
 				echo '<li>Usable on mobile devices</li>';
 				echo '<li>Better overall usability</li>';
-				echo '<li><a href="https://github.com/AKBibliothekWien/aksearch" target="_blank">Open Source Software</a></li>';
+				echo '<li><a href="https://github.com/acdh-oeaw/" target="_blank">Open Source Software</a></li>';
 				echo '</ul>';
 				echo '</div>';
 				echo '<div class="akClearer"></div>';
 				echo '</div>';
-				
+
 				echo '<div id="akFeatureIntroContentBox2" class="akFeatureIntroHideRight akFeatureIntroContentBox">';
 				echo '<div class="akFeatureIntroContentBoxHeader">';
 				echo '<i class="fa fa-chevron-down" aria-hidden="true"></i> Additional search possibilities';
@@ -286,46 +256,16 @@ JS;
 				echo '</div>';
 				echo '<div class="akClearer"></div>';
 				echo '</div>';
-				
-				echo '<div id="akFeatureIntroContentBox3" class="akFeatureIntroHideLeft akFeatureIntroContentBox">';
-				echo '<div class="akFeatureIntroContentBoxHeader akTextAlignRight">';
-				echo 'Search multiple sources <i class="fa fa-chevron-down" aria-hidden="true"></i>';
+
 				echo '</div>';
-				echo '<div class="akFeatureIntroContentBoxText akRight">';
-				echo '<p style="text-align: right;">Besides our library collection, you can search in multiple other sources.<br />You are also able to find single journal articles and book chapters.</p>';
-				echo '<ul class="akRight">';
-				echo '<li>Complete <a href="http://www.ssoar.info/" target="_blank">SSOAR</a> (Social Science Open Access Repository)</a></li>';
-				echo '<li>Relevant contents of <a href="https://doaj.org/" target="_blank">DOAJ</a> (Directory of Open Access Journals)</li>';
-				echo '<li><a href="https://emedien.arbeiterkammer.at/" target="_blank">eMedia of the Chamber of Labour of Vienna</a></li>';
-				echo '<li>More sources will be added ...</li>';
-				echo '</ul>';
-				echo '</div>';
-				echo '<div class="akClearer"></div>';
-				echo '</div>';
-				
-				echo '<div id="akFeatureIntroContentBox4" class="akFeatureIntroHideRight akFeatureIntroContentBox">';
-				echo '<div class="akFeatureIntroContentBoxHeader">';
-				echo '<i class="fa fa-chevron-down" aria-hidden="true"></i> Replacement for old catalog';
-				echo '</div>';
-				echo '<div class="akFeatureIntroContentBoxText">';
-				echo '<ul>';
-				echo '<li>AKsearch will replace our <a href="https://aleph22-prod-sh2.obvsg.at/F?func=find-b-0&CON_LNG=ger&local_base=akw01" target="_blank">catalog (OPAC)</a></li>';
-				echo '<li>Due to a new software the OPAC will be discontinued in early 2018</li>';
-				echo '<li>Parallel operation of AKsearch and OPAC until the end of 2017</li>';
-				echo '</ul>';
-				echo '</div>';
-				echo '<div class="akClearer"></div>';
-				echo '</div>';
-				
-				echo '</div>';
-					
+
 				echo '<hr/>';
 			}
 		}
 	?>
 	</div>
-	
-	
+
+
     <footer role="contentinfo" class="hidden-print">
       <div class="container">
         <?=$this->render('footer.phtml')?>
@@ -346,18 +286,18 @@ JS;
     </div>
     <?=$this->googleanalytics()?>
     <?=$this->piwik()?>
-    
-    
+
+
 	<?php
-	
+
 		/*
 		if ($this->layout()->templateDir == 'search' && $this->layout()->templateName == 'home') {
 			echo '<div class="akFeatureIntro">';
-			
+
 			//echo '<div id="akFeatureIntroHeader" class="akFeatureIntroHideRight">AKsearch</div>';
 			echo '<div id="akFeatureIntroSubHeader" class="akFeatureIntroHideRight">Features: neue Suchmaschine der AK Bibliothek Wien</div>';
-			
-			
+
+
 			echo '<div id="akFeatureIntroContentBox1" class="akFeatureIntroHideLeft akFeatureIntroContentBox">';
 				echo '<div class="akFeatureIntroContentBoxHeader akTextAlignRight">';
           			echo 'Moderne Suchoberfläche <i class="fa fa-chevron-down" aria-hidden="true"></i>';
@@ -371,7 +311,7 @@ JS;
 					echo '</ul>';
     			echo '</div>';
       		echo '</div>';
-      		
+
       		echo '<div id="akFeatureIntroContentBox2" class="akFeatureIntroHideRight akFeatureIntroContentBox">';
 	      		echo '<div class="akFeatureIntroContentBoxHeader">';
             		echo '<i class="fa fa-chevron-down" aria-hidden="true"></i> Erweiterte Suchmöglichkeiten';
@@ -385,7 +325,7 @@ JS;
 		      		echo '</ul>';
 	      		echo '</div>';
       		echo '</div>';
-      		
+
       		echo '<div id="akFeatureIntroContentBox3" class="akFeatureIntroHideLeft akFeatureIntroContentBox">';
 	      		echo '<div class="akFeatureIntroContentBoxHeader akTextAlignRight">';
 	      			echo 'Mehrere Quellen durchsuchen <i class="fa fa-chevron-down" aria-hidden="true"></i>';
@@ -400,7 +340,7 @@ JS;
 		      		echo '</ul>';
 	      		echo '</div>';
       		echo '</div>';
-      		
+
       		echo '<div id="akFeatureIntroContentBox4" class="akFeatureIntroHideRight akFeatureIntroContentBox">';
 	      		echo '<div class="akFeatureIntroContentBoxHeader">';
 	      			echo '<i class="fa fa-chevron-down" aria-hidden="true"></i> Ersatz für alten Katalog';
@@ -413,11 +353,11 @@ JS;
 		      		echo '</ul>';
 	      		echo '</div>';
       		echo '</div>';
-				
+
 			echo '</div>';
 		}
 		*/
 	?>
-    
+
   </body>
 </html>
