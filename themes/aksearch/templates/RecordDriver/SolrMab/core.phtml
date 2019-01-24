@@ -6,7 +6,7 @@
   } else {
     $user_id = false;
   }
-  
+
 
   // Test entity facts via PHP
   //$this->driver->getEntityFact('118540238');
@@ -45,11 +45,11 @@
   <? endif; ?>
 
 	<?php
-	$mainTitle = $this->escapeHtml(str_replace(array('<', '>'), '', $this->driver->getShortTitle()));
+	$mainTitle = trim(str_replace(array('&lt;', '&gt;'), '', $this->record($this->driver)->getTitleHtml()));
 	$subseriesTitle = ($this->driver->tryMethod('getSubseries')) ? $this->escapeHtml(str_replace(array('<', '>'), '', implode(', ', $this->driver->tryMethod('getSubseries')))) : null;
 	$subTitle = $this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle())) . ' ' . str_replace(array('<', '>'), '', $this->driver->getTitleSection()));
 	$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
-    
+
 	// Title
 	echo '<h1 class="akH1">';
     	echo $mainTitle;
@@ -57,14 +57,14 @@
     		echo ': '.$subseriesTitle;
     	}
     echo '</h1>';
-    
+
     // Subtitle
     echo '<h2 class="akH2">'.$subTitle.'</h2>';
     if ($volumeNo != null) {
     	echo '<h2 class="akH2">'.$this->transEsc('volume').': '.$volumeNo.'</h2>';
     }
     ?>
-    
+
     <? $summary = $this->driver->getSummary(); $summary = isset($summary[0]) ? $this->escapeHtml($summary[0]) : false; ?>
     <? if ($summary): ?>
       <p><?=$this->truncate($summary, 300)?></p>
@@ -82,19 +82,19 @@
 
     <?/* Display Main Details */?>
     <table class="table table-striped" summary="<?=$this->transEsc('Bibliographic Details')?>">
-    
-    
+
+
     <!-- If it's an article or essay which is contained in another work (journal or book): -->
-    <?php   
+    <?php
     $isArticle = $this->driver->tryMethod('isArticle');
     $isChildVolume = $this->driver->tryMethod('isChildVolume');
-    
+
     if (isset($isArticle) && $isArticle == true) { // It's an article (Unselbstständig)
-    	 
+
     	$arrArticleParentSYSs = $this->driver->tryMethod('getParentSYSs');
     	$articleParentSYS = (isset($arrArticleParentSYSs)) ? $arrArticleParentSYSs[0] : null; // There should only be 1 parentSYS for an article
 	    $articleParentTitle = $this->driver->tryMethod('getArticleParentTitle');
-	    
+
 	    if ($articleParentTitle != null) {
 	    	$articleParentTitle = str_replace(array('<', '>'), '', $articleParentTitle);
 	    	echo '<tr valign="top">';
@@ -106,7 +106,7 @@
 		 			} else {
 		 				echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
 		 			}
-		    		
+
 		    	echo '</td>';
 	    	echo '</tr>';
 	    }
@@ -152,7 +152,7 @@
 		}
     }
     ?>
-    
+
     <!-- // PARTICIPANTS (with role and authority info) -->
     <?php
       /*
@@ -171,7 +171,7 @@
 
 		$participants = $this->driver->getParticipants();
 		if (isset($participants) && !empty($participants)) {
-			
+
 			// 'NoRole' is normally the same as 'Author' or 'VerfasserIn'. So if we have a record with persons that do have a role 'Author' and
 			// also persons that do not have a role (which gives us 'NoRole'), then we have to put 'NoRole' and 'Author' togehter into one row.
 			// Example: 000459783 / AC13391021
@@ -185,7 +185,7 @@
 				}
 			}
 			$participants = array_merge_recursive($participantsNoRole, $participantsTranslated);
-			
+
 			foreach ($participants as $role => $participant) {
 				echo '<tr>';
 					echo '<th>'.$this->transEsc($role).':</th>';
@@ -198,7 +198,7 @@
 							echo '</a>';
 
 							// Entity Facts via PHP curl (Zend Http Object)
-							// See also AkSearch\Controller\AkAjaxController and aksearch.js in folder "themes/aksearch/js" 
+							// See also AkSearch\Controller\AkAjaxController and aksearch.js in folder "themes/aksearch/js"
 							if (isset($gnd) &&
 								!empty($gnd) &&
 								$gnd != 'NoGndId' &&
@@ -212,12 +212,12 @@
 							echo '<br/>';
 						}
 					echo '</td>';
-	        	echo '</tr>';	        	
+	        	echo '</tr>';
 			}
 		}
 		?>
-		
-	
+
+
 	  <?php
 	  $publicationDetails = $this->driver->getPublicationDetails();
 	  $publisher = $publicationDetails['publisher'];
@@ -225,7 +225,7 @@
 	  $publicationYear = $publicationDetails['publishDate'];
 	  $publicationHistory = $this->driver->getPublicationHistory();
 
-	  
+
 	  // Publication date or history
 	  if (isset($publicationHistory) && !empty($publicationHistory)) {
 	  	echo '<tr>';
@@ -238,7 +238,7 @@
 	  	echo '<td><span property="publicationDate">'.$this->escapeHtml($publicationYear).'</span></td>';
 	  	echo '</tr>';
 	  }
-	  
+
 	  /*
 	  // Publication frequency - Is in "Description" tab!
 	  $pubFrequency = $this->driver->getPublicationFrequency();
@@ -249,7 +249,7 @@
 	  	echo '</tr>';
 	  }
 	  */
-	  
+
 	  // Publisher name and place
 	  if (isset($publisher)) {
 	  	echo '<tr>';
@@ -267,14 +267,14 @@
 	  	echo '</tr>';
 	  }
 	  ?>
-	  
+
 	  <? $edition = $this->driver->getEdition(); if (!empty($edition)): ?>
       <tr>
         <th><?=$this->transEsc('Edition')?>: </th>
         <td property="bookEdition"><?=$this->escapeHtml(str_replace(array('<', '>'), '', $edition))?></td>
       </tr>
       <? endif; ?>
-      
+
       <? $langs = $this->driver->getLanguages(); if (!empty($langs)): ?>
         <tr>
           <th><?=$this->transEsc('Language')?>: </th>
@@ -296,7 +296,7 @@
 
 
 		<?php
-		
+
 		// Predecessor title
 		$predecessors = $this->driver->tryMethod('getPredecessors');
 		if (isset($predecessors) && !empty($predecessors)) {
@@ -317,7 +317,7 @@
 			echo '</td>';
 			echo '</tr>';
 		}
-		
+
 		// Successor title
 		$successors = $this->driver->tryMethod('getSuccessors');
 		if (isset($successors) && !empty($successors)) {
@@ -338,7 +338,7 @@
 			echo '</td>';
 			echo '</tr>';
 		}
-		
+
 		/*
 		// ORIGINAL
       <? $nextTitles = $this->driver->getNewerTitles(); $prevTitles = $this->driver->getPreviousTitles(); ?>
@@ -365,8 +365,8 @@
       <? endif; ?>
       */
       ?>
-      
-      
+
+
 
        <?
         $openUrl = $this->openUrl($this->driver, 'record');
@@ -387,8 +387,8 @@
         </td>
       </tr>
       <? endif; ?>
-      
-      
+
+
 	    <?php
 	    /*
 	    // Publication type and format - Is in "Description" tab!
@@ -406,7 +406,7 @@
 	    echo '</td>';
 	    echo '</tr>';
 	    */
-	    
+
 	    // Other editions
 	    $attachments = $this->driver->tryMethod('getOtherEditions');
 	    if (isset($attachments) && !empty($attachments)) {
@@ -417,7 +417,7 @@
 	    		$otherEditionTitle = $otherEdition['title'];
 	    		$otherEditionType = ($otherEdition['type'] != 'NoOtherEditionType') ? preg_replace('/\s*-+>/', '', $otherEdition['type']).': ' : null;
 	    		$otherEditionSys = ($otherEdition['solrId'] != 'NoOtherEditionSys') ? $otherEdition['solrId'] : null;
-	    		
+
 	    		if ($otherEditionSys != null) {
 	    			echo '<a href="'.$this->recordLink()->getUrl().$otherEditionSys.'">'.$otherEditionType.$this->escapeHtml($otherEditionTitle).'</a><br/>';
 	    		} else {
@@ -426,9 +426,9 @@
 	    	}
 	    	echo '</td>';
 	    	echo '</tr>';
-	    	
+
 	    }
-	    
+
 	    /*
 	    // ZSL (Zeitschriften-Ablage-Nr.)
 	    $zsl = $this->driver->tryMethod('getZsl');
@@ -441,7 +441,7 @@
 	    	echo '</tr>';
 	    }
 	    */
-	    
+
 	    // Dewey Decimal Classifications (DDCs)
 	    $ddcs = $this->driver->tryMethod('getDDCs');
 	    if (isset($ddcs) && !empty($ddcs)) {
@@ -456,7 +456,7 @@
 	    	echo '</td>';
 	    	echo '</tr>';
 	    }
-	    
+
 	    // AK subjects
 	    $akSubjects = $this->driver->tryMethod('getAkSubjects');
 	    if (isset($akSubjects) && !empty($akSubjects)) {
@@ -474,14 +474,14 @@
 	    	echo '</td>';
 	    	echo '</tr>';
 	    }
-	    
+
 	    // Keyword chains
 	    $allKeywordChains = $this->driver->tryMethod('getAllKeywordChains');
 	    if (!empty($allKeywordChains)) {
 	    	echo '<tr>';
 	    	echo '<td colspan="2">';
 	    	echo '<b>'.$this->transEsc('keyword_chains').'</b> <span class="akInfoTooltipOpener" data-aktooltiptitle="'.$this->transEsc('akTtKeywordChainTitle').'" data-aktooltiptext="'.$this->transEsc('akTtKeywordChainText').'"><i class="fa fa-info-circle akInfoTooltipInfo" aria-hidden="true"></i></span>';
-	    
+
 	    	foreach ($allKeywordChains as $keywordChain) {
 	    		// Get the array key of last element in a keyword chain
 	    		$arrayKeys = array_keys($keywordChain);
@@ -499,31 +499,31 @@
 	    	echo '</tr>';
 
 	    }
-	    
-	    
+
+
 	    ?>
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
     <?php
     #######################################################################
     // TODO: Kontrolle weiter ab hier!!!
     #######################################################################
     ?>
 
-    
-    
-	
-     
-     
+
+
+
+
+
 	 <? $corporateAuthors = $this->driver->getCorporateAuthors(); if (!empty($corporateAuthors)): ?>
       <tr>
       	<th><?=$this->transEsc('Corporate Author')?>: </th>
@@ -534,15 +534,15 @@
         </td>
       </tr>
       <? endif; ?>
-      
 
-      
 
-      
-            
-      
 
-      
+
+
+
+
+
+
 
 <?php
 /*
@@ -565,7 +565,7 @@
       </tr>
       <? endif; ?>
 */
-?>      
+?>
 
 
       <? $childRecordCount = $this->driver->tryMethod('getChildRecordCount'); if ($childRecordCount): ?>
@@ -577,7 +577,7 @@
       </tr>
       <? endif; ?>
 
-     
+
 
       <? $recordLinks = $this->driver->getAllRecordLinks(); ?>
       <? if(!empty($recordLinks)): ?>
