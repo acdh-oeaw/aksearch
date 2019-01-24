@@ -101,7 +101,7 @@ class SolrMab extends SolrDefault  {
 
     /**
     * Get the config values from AKsearch.ini
-    * 
+    *
     * @return NULL|string
     */
     public function getAkConfig() {
@@ -1714,6 +1714,23 @@ class SolrMab extends SolrDefault  {
 
 	}
 
+  /**
+   * Get Solrfield hol866aZsfBestandsangabe_txt_mv (e. g. array of Bestandsangaben)
+   *
+   * @return array
+   */
+  public function getLocalInventory() {
+    return isset($this->fields['hol866aZsfBestandsangabe_txt_mv']) ? $this->fields['hol866aZsfBestandsangabe_txt_mv'] : array();
+  }
+
+  /**
+   * Get Solrfield hol866zLuecken_txt_mv (e. g. gaps in the array of Bestandsangaben)
+   *
+   * @return array
+   */
+  public function getLocalInventoryGaps() {
+    return isset($this->fields['hol866zLuecken_txt_mv']) ? $this->fields['hol866zLuecken_txt_mv'] : array();
+  }
 
 
 
@@ -1790,7 +1807,7 @@ class SolrMab extends SolrDefault  {
      * @return array
      */
     public function getRealTimeHoldings() {
-        
+
     	// Get real time holdings
     	if (!$this->hasILS()) {
             return array();

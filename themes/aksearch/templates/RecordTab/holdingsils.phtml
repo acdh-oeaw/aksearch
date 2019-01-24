@@ -123,24 +123,25 @@ usleep(500000);
 // Get item holdings from API
 $holdings = $this->driver->getRealTimeHoldings();
 
-
 if (! empty($holdings)) {
-        
+
     $showLoadMore = false;
     $noOfItemsToLoad = ($this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad) ? $this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad : 10;
-    
+
     foreach ($holdings as $location => $holdingsOfLocation) {
 
         // Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
         // of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
         // we will display a "show more" button.
         $noOfCurrentIlsHoldings = count($holdingsOfLocation['items']);
-        if ($noOfCurrentIlsHoldings == $noOfItemsToLoad) {			
+        if ($noOfCurrentIlsHoldings == $noOfItemsToLoad) {
             $noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
             $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
         }
 
         echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $this->transEsc($location) . '</h3><br />';
+        echo '(Bestand: '. $this->driver->getLocalInventory()[0] . ')<br />';
+        echo '(Lücken: '. $this->driver->getLocalInventoryGaps()[0] . ')<br />';
 
         // Check for second call number (for label in table heading) and some other values
         $hasSecondCallNo = false;
@@ -195,7 +196,7 @@ if (! empty($holdings)) {
                     if ($holdingOfLocation['availability']) {
                         echo '<div>';
                         echo '<span class="available">' . $this->transEsc("Available") . '</span> ';
-                        
+
                         /*
                         // Link for placing a hold
                         if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
@@ -244,7 +245,7 @@ if (! empty($holdings)) {
                     echo '</td>';
                     echo '<td>';
                     //echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
-                    
+
                     if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
                         if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
                             if (!$user) {
@@ -254,9 +255,9 @@ if (! empty($holdings)) {
                                 echo $this->translate("hold_profile_html", array('%%url%%' => $this->currentPath() . '?catalogLogin=true'));
                             } else {
                                 // Link for placing a hold
-                                
+
                                 if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
-                                    // Use this if we check if the request is valid in checkRequestIsValidAjax (PHP class AkSearch\Controller\AkAjaxController and JS checkRequestIsValid in record.aksearch.js) 
+                                    // Use this if we check if the request is valid in checkRequestIsValidAjax (PHP class AkSearch\Controller\AkAjaxController and JS checkRequestIsValid in record.aksearch.js)
                                     //$checkClass = $check ? ' checkRequest' : '';
                                     //$checkText = $check ? 'Check Hold' : 'Place a Hold';
                                     //echo '<a class="btn btn-default clear-btn holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
@@ -280,7 +281,7 @@ if (! empty($holdings)) {
                             echo $this->transEsc('login_disabled');
                         }
                     }
-                    
+
                     echo '</td>';
                     echo '</tr>';
 
@@ -315,4 +316,3 @@ if (empty($holdings) && empty($journalHoldings) && empty($urls)) {
   <? endforeach; ?>
 </ul>
 <? endif; ?>
-
