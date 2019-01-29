@@ -26,15 +26,14 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://wien.arbeiterkammer.at/service/bibliothek/
  */
- 
+
 namespace AkSearch\RecordDriver;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\RecordDriver\SolrDefault as SolrDefault;
 use ProxyManagerTestAsset\EmptyClass;
-use VuFind\Exception\Date as DateException;
 
 class SolrMab extends SolrDefault  {
-	
+
 
 
      /**
@@ -43,56 +42,49 @@ class SolrMab extends SolrDefault  {
      * @var \VuFind\ILS\Connection
      */
     protected $ils = null;
-    
+
     /**
      * Hold logic
      *
-     * @var \AkSearch\ILS\Logic\Holds
+     * @var \VuFind\ILS\Logic\Holds
      */
     protected $holdLogic;
-    
+
     /**
      * Title hold logic
      *
      * @var \VuFind\ILS\Logic\TitleHolds
      */
     protected $titleHoldLogic;
-    
+
     /**
      * AKsearch.ini configuration
      */
     protected $akConfig;
-    
-    /**
-     * DateConverter from VuFind
-     */
-    protected $dateConverter;
 
-    
+
     /**
      * Constructor
-     * 
+     *
      * Geting values from AKsearch.ini
      */
-    public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null, $dateConverter = null) {
-    	
+    public function __construct($mainConfig = null, $recordConfig = null, $searchSettings = null, $akConfig = null) {
+
     	// Get AKsearch.ini config
     	// See 4th parameter for "new SolrMab(...)" in method "getSolrMab()" of class "AkSearch\RecordDriver\Factory"
     	$this->akConfig = (isset($akConfig)) ? $akConfig : null;
-    	
-    	$this->dateConverter = $dateConverter;
-    	
+
     	// Call parent constructor
     	parent::__construct($mainConfig, $recordConfig, $searchSettings);
     }
-    
-    
+
+
     /**
      * These Solr fields should NEVER be used for snippets.  (We exclude author
      * and title because they are already covered by displayed fields; we exclude
      * spelling because it contains lots of fields jammed together and may cause
      * glitchy output; we exclude ID because random numbers are not helpful).
-     * 
+     *
      * Addition for AkSearch: we exclude title_de, title_wildcard, author_de, author_wildcard
      * and some others too.
      *
@@ -106,20 +98,18 @@ class SolrMab extends SolrDefault  {
     		/*'corporateAuthorName_txt', 'corporateAuthor2Name_txt_mv',
     		'corporateAuthor2NameGnd_txt_mv'*/
     ];
-    
-    
 
-	/**
-	 * Get the config values from AKsearch.ini
-	 * 
-	 * @return NULL|string
-	 */
+    /**
+    * Get the config values from AKsearch.ini
+    *
+    * @return NULL|string
+    */
     public function getAkConfig() {
     	$akConfig = ($this->akConfig) ? $this->akConfig : null;
     	return $akConfig;
     }
-    
-    
+
+
     /**
      * Pick one line from the highlighted text (if any) to use as a snippet.
      *
@@ -127,7 +117,7 @@ class SolrMab extends SolrDefault  {
      * with 'snippet' and 'caption' keys.
      */
     public function getHighlightedSnippet()
-    {    	
+    {
     	// Only process snippets if the setting is enabled:
     	if ($this->snippet) {
     		// First check for preferred fields:
@@ -139,7 +129,7 @@ class SolrMab extends SolrDefault  {
     				];
     			}
     		}
-    
+
     		// No preferred field found, so try for a non-forbidden field:
     		if (isset($this->highlightDetails)
     				&& is_array($this->highlightDetails)
@@ -154,25 +144,25 @@ class SolrMab extends SolrDefault  {
     					}
     				}
     	}
-    
+
     	// If we got this far, no snippet was found:
     	return false;
     }
-    
-    
+
+
     /**
      * Return an XML representation of the record.
      */
     public function getXML($format = null, $baseUrl = null, $recordLink = null) {
     	$xmlOrFullRecord = $this->fields['fullrecord'];
     	$simpleXML = simplexml_load_string($xmlOrFullRecord);
-    	
+
     	// Masking call nos. and collections
     	$strMarcFieldsForMasking = $this->akConfig->Masking->marcfields;
 
     	if (isset($strMarcFieldsForMasking) && !empty($strMarcFieldsForMasking)) {
     		$arrMarcFieldsForMasking = explode(',', $strMarcFieldsForMasking);
-    		
+
     		if ($simpleXML) {
 	    		foreach ($simpleXML->record->datafield as $datafield) {
 	    			foreach ($arrMarcFieldsForMasking as $marcFieldForMasking) {
@@ -187,11 +177,11 @@ class SolrMab extends SolrDefault  {
 	    				} else {
 	    					$mode = 'begins';
 	    				}
-	    				
+
 	    				$tag = $datafield->attributes()->tag;
 	    				$ind1 = $datafield->attributes()->ind1;
 	    				$ind2 = $datafield->attributes()->ind2;
-	    				 
+
 	    				if ($tag == $tagToMask) { // Check for tag
 	    					if ($ind1 == $ind1ToMask || $ind1ToMask == '*') { // Check for indicator 1
 	    						if ($ind2 == $ind2ToMask || $ind2ToMask == '*') { // Check for indicator 2
@@ -211,24 +201,24 @@ class SolrMab extends SolrDefault  {
 	    		}
     		}
     	}
-    	
+
     	$returnValue = '<noxml></noxml>'; // Fallback if $simpleXML is corrupted
     	if ($simpleXML) {
     		$returnValue = $simpleXML->asXML();
     	}
-    	
+
     	return $returnValue;
     }
-    
+
     /**
      * Getting raw solr field for staff view ... but first apply masking.
-     * 
+     *
      * {@inheritDoc}
      * @see \VuFind\RecordDriver\AbstractBase::getRawData()
      */
     public function getRawData() {
     	$raw = $this->fields;
-    	
+
     	// Masking solr fields
     	$strMaskingSolrFields = $this->akConfig->Masking->solrfields;
     	if (isset($strMaskingSolrFields) && !empty($strMaskingSolrFields)) {
@@ -267,32 +257,32 @@ class SolrMab extends SolrDefault  {
     				}
     			}
     		}
-    		
+
     	}
-    	
+
     	return $raw;
     }
-    
-    
+
+
     /**
      * Get text that can be displayed to represent this record in breadcrumbs.
      *
      * @return string: Breadcrumb text to represent this record.
      */
     public function getBreadcrumb() {
-    	return str_replace(array('<', '>'), '', $this->getShortTitle());
-    	
+    	//return str_replace(array("<", ">"), "", $this->getShortTitle());
+        return str_replace(array("<", ">"), "", $this->getTitle());
     }
-    
+
 	/**
 	 * Get Solrfield shelfmark_txt_mv (shelfmarks [Signaturen])
-	 * 
+	 *
 	 * @return array or null if empty
-	 */  
+	 */
 	public function getShelfMarks() {
 		return isset($this->fields['shelfmark_txt_mv']) ? $this->fields['shelfmark_txt_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield leader_str (Marc leader)
 	 *
@@ -301,7 +291,7 @@ class SolrMab extends SolrDefault  {
 	public function getLeader() {
 		return isset($this->fields['leader_str']) ? $this->fields['leader_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield sysNo_txt (SYS no. of Aleph)
 	 *
@@ -310,32 +300,23 @@ class SolrMab extends SolrDefault  {
 	public function getSysNo() {
 		return isset($this->fields['sysNo_txt']) ? $this->fields['sysNo_txt'] : null;
 	}
-	
-	/**
-	 * Get Solrfield holdingIds_str_mv (Holding IDs of Alma)
-	 *
-	 * @return array or null if empty
-	 */
-	public function getHolIds() {
-		return isset($this->fields['holdingIds_str_mv']) ? $this->fields['holdingIds_str_mv'] : null;
-	}
 
-	
+
 	/**
 	 * Getting the cover or icon (according to format and/or publication type)
-	 * 
+	 *
 	 * {@inheritDoc}
 	 * @see \VuFind\RecordDriver\SolrDefault::getThumbnail()
 	 */
 	public function getThumbnail($size = 'small') {
-		
+
 		if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
 			return $this->fields['thumbnail'];
 		}
-		
+
 		// Get publication type as string:
 		$publicationTypeCode = $this->getPublicationTypeCode();
-		
+
 		// Get formats as array:
 		$formats = (array_key_exists('format', $this->fields)) ? $this->fields['format'] : null;
 		$format = null;
@@ -343,7 +324,7 @@ class SolrMab extends SolrDefault  {
 			if (in_array('printed', $formats)) {
 				// Default for "printed" format. Overwrite below if other format is available.
 				$format = 'book';
-				
+
 				if (isset($publicationTypeCode)) {
 					if ($publicationTypeCode == 'm' || $publicationTypeCode == 's') {
 						$format = 'book';
@@ -415,7 +396,7 @@ class SolrMab extends SolrDefault  {
 				}
 			}
 		}
-		
+
 		// Preparing return array:
 		$arr = [
 				'contenttype'	=> $format,
@@ -436,7 +417,7 @@ class SolrMab extends SolrDefault  {
 		if ($upc = $this->getCleanUPC()) {
 			$arr['upc'] = $upc;
 		}
-		
+
 		// If an ILS driver has injected extra details, check for IDs in there to fill gaps:
 		if ($ilsDetails = $this->getExtraDetail('ils_details')) {
 			foreach (['isbn', 'issn', 'oclc', 'upc'] as $key) {
@@ -445,11 +426,11 @@ class SolrMab extends SolrDefault  {
 				}
 			}
 		}
-		
+
 		return $arr;
 	}
-	
-	
+
+
 	/**
 	 * Get Solrfield subSeriesTitle_txt_mv (title of a sub-series)
 	 *
@@ -458,7 +439,7 @@ class SolrMab extends SolrDefault  {
 	public function getSubseries() {
 		return isset($this->fields['subSeriesTitle_txt_mv']) ? $this->fields['subSeriesTitle_txt_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield otherEditionDisplay_str_mv (title, type, comment, id original, id solr record for linking)
 	 *
@@ -469,12 +450,13 @@ class SolrMab extends SolrDefault  {
 		$otherEditionsRaw = isset($this->fields['otherEditionDisplay_str_mv']) ? $this->fields['otherEditionDisplay_str_mv'] : null;
 
 		if ($otherEditionsRaw != null && isset($otherEditionsRaw)) {
-			
+
 			$otherEditions = [];
 			$moduloCounter = 0;
 			$editionCounter = 0;
-			
 			foreach ($otherEditionsRaw as $otherEditionEntry) {
+
+
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$otherEditions[$editionCounter]['title'] = $otherEditionEntry;
 				}
@@ -494,11 +476,11 @@ class SolrMab extends SolrDefault  {
 				$moduloCounter = $moduloCounter + 1;
 			}
 		}
-		
+
 		return $otherEditions;
 	}
-	
-	
+
+
 	/**
 	 * Get Solrfield attachmentDisplay_str_mv (title, type, comment, id original, id solr record for linking)
 	 *
@@ -507,14 +489,16 @@ class SolrMab extends SolrDefault  {
 	public function getAttachments() {
 		$attachments = null;
 		$attachmentsRaw = isset($this->fields['attachmentDisplay_str_mv']) ? $this->fields['attachmentDisplay_str_mv'] : null;
-	
+
+
 		if ($attachmentsRaw != null && isset($attachmentsRaw)) {
-				
+
 			$attachments = [];
 			$moduloCounter = 0;
 			$attachmentCounter = 0;
-			
-			foreach ($attachmentsRaw as $attachmentEntry) {	
+			foreach ($attachmentsRaw as $attachmentEntry) {
+
+
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$attachments[$attachmentCounter]['title'] = $attachmentEntry;
 				}
@@ -534,11 +518,11 @@ class SolrMab extends SolrDefault  {
 				$moduloCounter = $moduloCounter + 1;
 			}
 		}
-	
+
 		return $attachments;
 	}
-	
-	
+
+
 	/**
 	 * Get Solrfield attachmentToDisplay_str_mv (title, type, comment, id original, id solr record for linking)
 	 *
@@ -547,14 +531,15 @@ class SolrMab extends SolrDefault  {
 	public function getAttachmentsTo() {
 		$attachmentsTo = null;
 		$attachmentsToRaw = isset($this->fields['attachmentToDisplay_str_mv']) ? $this->fields['attachmentToDisplay_str_mv'] : null;
-	
+
 		if ($attachmentsToRaw != null && isset($attachmentsToRaw)) {
-	
+
 			$attachmentsTo = [];
 			$moduloCounter = 0;
 			$attachmentToCounter = 0;
-			
 			foreach ($attachmentsToRaw as $attachmentToEntry) {
+
+
 				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
 					$attachmentsTo[$attachmentToCounter]['title'] = $attachmentToEntry;
 				}
@@ -574,131 +559,12 @@ class SolrMab extends SolrDefault  {
 				$moduloCounter = $moduloCounter + 1;
 			}
 		}
-	
+
 		return $attachmentsTo;
 	}
-	
-	
-	/**
-	 * Get Solrfield otherRelationDisplay_txt_mv (title, type, comment, id original, id solr record for linking)
-	 *
-	 * @return array or null if empty
-	 */
-	public function getOtherRelations() {
-		$otherRelations = null;
-		$otherRelationsRaw = isset($this->fields['otherRelationDisplay_txt_mv']) ? $this->fields['otherRelationDisplay_txt_mv'] : null;
-		
-		if ($otherRelationsRaw != null && isset($otherRelationsRaw)) {
-			
-			$otherRelations = [];
-			$moduloCounter = 0;
-			$relationCounter = 0;
-			
-			foreach ($otherRelationsRaw as $otherRelationEntry) {
-				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
-					$otherRelations[$relationCounter]['title'] = $otherRelationEntry;
-				}
-				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
-					$otherRelations[$relationCounter]['type'] = $otherRelationEntry;
-				}
-				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
-					$otherRelations[$relationCounter]['comment'] = $otherRelationEntry;
-				}
-				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
-					$otherRelations[$relationCounter]['originalId'] = $otherRelationEntry;
-				}
-				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
-					$otherRelations[$relationCounter]['solrId'] = $otherRelationEntry;
-					$relationCounter = $relationCounter + 1;
-				}
-				$moduloCounter = $moduloCounter + 1;
-			}
-		}
-		
-		return $otherRelations;
-	}
-	
-	
-	/**
-	 * Get Solrfield predecessorDisplay_str_mv (title, type, comment, id original, id solr record for linking)
-	 *
-	 * @return array or null if empty
-	 */
-	public function getPredecessors() {
-		$predecessors = null;
-		$predecessorsRaw = isset($this->fields['predecessorDisplay_str_mv']) ? $this->fields['predecessorDisplay_str_mv'] : null;
-		
-		if ($predecessorsRaw != null && isset($predecessorsRaw)) {
-			
-			$predecessors = [];
-			$moduloCounter = 0;
-			$predecessorCounter = 0;
-			
-			foreach ($predecessorsRaw as $predecessorEntry) {
-				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
-					$predecessors[$predecessorCounter]['title'] = $predecessorEntry;
-				}
-				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
-					$predecessors[$predecessorCounter]['type'] = $predecessorEntry;
-				}
-				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
-					$predecessors[$predecessorCounter]['comment'] = $predecessorEntry;
-				}
-				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
-					$predecessors[$predecessorCounter]['originalId'] = $predecessorEntry;
-				}
-				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
-					$predecessors[$predecessorCounter]['solrId'] = $predecessorEntry;
-					$predecessorCounter = $predecessorCounter + 1;
-				}
-				$moduloCounter = $moduloCounter + 1;
-			}
-		}
-		
-		return $predecessors;
-	}
-	
-	
-	/**
-	 * Get Solrfield successorDisplay_str_mv (title, type, comment, id original, id solr record for linking)
-	 *
-	 * @return array or null if empty
-	 */
-	public function getSuccessors() {
-		$successors = null;
-		$successorsRaw = isset($this->fields['successorDisplay_str_mv']) ? $this->fields['successorDisplay_str_mv'] : null;
-		
-		if ($successorsRaw != null && isset($successorsRaw)) {
-			
-			$successors = [];
-			$moduloCounter = 0;
-			$successorCounter = 0;
-			
-			foreach ($successorsRaw as $successorEntry) {
-				if ($moduloCounter == 0 || ($moduloCounter % 5) == 0) {
-					$successors[$successorCounter]['title'] = $successorEntry;
-				}
-				if ($moduloCounter == 1 || ($moduloCounter % 5) == 1) {
-					$successors[$successorCounter]['type'] = $successorEntry;
-				}
-				if ($moduloCounter == 2 || ($moduloCounter % 5) == 2) {
-					$successors[$successorCounter]['comment'] = $successorEntry;
-				}
-				if ($moduloCounter == 3 || ($moduloCounter % 5) == 3) {
-					$successors[$successorCounter]['originalId'] = $successorEntry;
-				}
-				if ($moduloCounter == 4 || ($moduloCounter % 5) == 4) {
-					$successors[$successorCounter]['solrId'] = $successorEntry;
-					$successorCounter = $successorCounter + 1;
-				}
-				$moduloCounter = $moduloCounter + 1;
-			}
-		}
-		
-		return $successors;
-	}
-	
-	
+
+
+
 	// ######################################################################################
 	// ################################# MULTI VOLUME WORKS #################################
 	// ######################################################################################
@@ -710,7 +576,7 @@ class SolrMab extends SolrDefault  {
 	public function getParentRecordSYS() {
 		return isset($this->fields['parentSYS_str']) ? $this->fields['parentSYS_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield parentAC_str (AC no. of parent record)
 	 *
@@ -728,7 +594,7 @@ class SolrMab extends SolrDefault  {
 	public function getParentRecordTitle() {
 		return isset($this->fields['parentTitle_str']) ? $this->fields['parentTitle_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield childAC_str_mv (AC no(s). of all child records)
 	 *
@@ -737,7 +603,7 @@ class SolrMab extends SolrDefault  {
 	public function getChildRecordAC() {
 		return isset($this->fields['childAC_str_mv']) ? $this->fields['childAC_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield childSYS_str_mv (SYS no(s). of all child records)
 	 *
@@ -746,7 +612,7 @@ class SolrMab extends SolrDefault  {
 	public function getChildRecordSYS() {
 		return isset($this->fields['childSYS_str_mv']) ? $this->fields['childSYS_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield childTitle_str_mv (titles of all child records)
 	 *
@@ -782,7 +648,7 @@ class SolrMab extends SolrDefault  {
 	public function getChildEdition() {
 		return isset($this->fields['childEdition_str_mv']) ? $this->fields['childEdition_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get relevant information about all child records
 	 *
@@ -794,25 +660,25 @@ class SolrMab extends SolrDefault  {
 		$childVolumeNos = $this->getChildVolumeNo();
 		$childPublishDates = $this->getChildPublishDate();
 		$childEditions = $this->getChildEdition();
-		
+
 		$childRecords = null;
-		
+
 		foreach($childRecordSYSs as $key => $childRecordSYS) {
-			$childVolumeNo = ($childVolumeNos[$key] == null || $childVolumeNos[$key] == '0') ? null : $childVolumeNos[$key];
-			$childTitle = ($childRecordTitles[$key] == null || $childRecordTitles[$key] == '0') ? null : $childRecordTitles[$key];
-			$childPublishDate = ($childPublishDates[$key] == null || $childPublishDates[$key] == '0') ? null : $childPublishDates[$key];
-			$childEdition = ($childEditions[$key] == null || $childEditions[$key] == '0') ? null : $childEditions[$key];
+			$childVolumeNo = ($childVolumeNos[$key] == "0") ? null : $childVolumeNos[$key];
+			$childTitle = ($childRecordTitles[$key] == "0") ? null : $childRecordTitles[$key];
+			$childPublishDate = ($childPublishDates[$key] == "0") ? null : $childPublishDates[$key];
+			$childEdition = ($childEditions[$key] == "0") ? null : $childEditions[$key];
 
 			$childRecords[$childRecordSYS] = array(
-					'volumeNo' => $childVolumeNo,
-					'volumeTitle' => $childTitle,
-					'volumePublishDate' => $childPublishDate,
-					'volumeEdition' => $childEdition); 
+					"volumeNo" => $childVolumeNo,
+					"volumeTitle" => $childTitle,
+					"volumePublishDate" => $childPublishDate,
+					"volumeEdition" => $childEdition);
 		}
-		
+
 		// Create array for sorting
 		foreach ($childRecords as $key => $rowToSort) {
-			
+
 			// Volume No.
 			$volumeNoSort = 0;
 			$volumeNoRaw = $rowToSort['volumeNo'];
@@ -822,8 +688,8 @@ class SolrMab extends SolrDefault  {
 				$volumeNoSort = $resultVolumeNo[0];
 			}
 			$volumeNo[$key] = $volumeNoSort;
-			
-			
+
+
 			// Publish date
 			$publishDateSort = 0;
 			$publishDateRaw = $rowToSort['volumePublishDate'];
@@ -833,18 +699,18 @@ class SolrMab extends SolrDefault  {
 			}
 			$publishDate[$key] = $publishDateSort;
 		}
-		
+
 		array_multisort($publishDate, SORT_DESC, $volumeNo, SORT_DESC, $childRecords);
-		
+
 		return $childRecords;
 	}
-	
+
 	/**
 	 * Check if the current record is has child records
 	 *
 	 * TODO: Ambiguous function name because this does not only check for volumes of
 	 * multi-volume-works, but also for articles, serialvolumes and possible other child records.
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function isMultiVolumeWork() {
@@ -852,36 +718,36 @@ class SolrMab extends SolrDefault  {
 		$isMultiVolumeWork = ($childRecordSYSs == null) ?  false : true;
 		return $isMultiVolumeWork;
 	}
-	
+
 	public function getVolumeNo() {
-		
+
 		// Get volume display no
 		$multivolumeworkVolumeNo = isset($this->fields['multiVolumeNo_str']) ? $this->fields['multiVolumeNo_str'] : null;
 		// If display no is empty, get sort no instead
 		if ($multivolumeworkVolumeNo == null) {
 			$multivolumeworkVolumeNo = isset($this->fields['multiVolumeNoSort_str']) ? $this->fields['multiVolumeNoSort_str'] : null;
 		}
-		
+
 		// Get serial display no
 		$seriesVolumeNo = isset($this->fields['serialVolumeNo_str']) ? $this->fields['serialVolumeNo_str'] : null;
 		// If display no is empty, get sort no instead
 		if ($seriesVolumeNo == null) {
 			$seriesVolumeNo = isset($this->fields['serialVolumeNoSort_str']) ? $this->fields['serialVolumeNoSort_str'] : null;
 		}
-		
+
 		if ($multivolumeworkVolumeNo != null) {
 			return $multivolumeworkVolumeNo;
 		} else if ($seriesVolumeNo != null) {
 			return $seriesVolumeNo;
 		} else {
 			return null;
-		}		
+		}
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	// #######################################################################################
 	// ##################################### PARENT INFO #####################################
 	// #######################################################################################
@@ -893,7 +759,7 @@ class SolrMab extends SolrDefault  {
 	public function getChildTypes() {
 		return (isset($this->fields['childType_str_mv'])) ? $this->fields['childType_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Check if record is a parent record with childs of type volumes (mutlivolume, serialvolume).
 	 * Useful for displaying: volumes have different information (e. g. vol.-no., edition, etc) as articles.
@@ -901,7 +767,7 @@ class SolrMab extends SolrDefault  {
 	 * @return boolean
 	 */
 	public function isParentOfVolumes() {
-		
+
 		$isParentOfVolumes = false;
 		$arrChildTypes = $this->getChildTypes();
 		if ($arrChildTypes != null) {
@@ -909,7 +775,7 @@ class SolrMab extends SolrDefault  {
 		}
 		return $isParentOfVolumes;
 	}
-	
+
 	/**
 	 * Check if record is a parent record with childs of type "article"
 	 * Useful for displaying: articles have different information (e. g. page-nos., etc) as volumes.
@@ -924,8 +790,8 @@ class SolrMab extends SolrDefault  {
 		}
 		return $isParentOfArticles;
 	}
-	
-	
+
+
 	// ######################################################################################
 	// ##################################### CHILD INFO #####################################
 	// ######################################################################################
@@ -942,10 +808,10 @@ class SolrMab extends SolrDefault  {
 		if ($isArticle == false && $arrParentSYSs != null) {
 			$isChildVolume = true;
 		}
-		
+
 		return $isChildVolume;
 	}
-	
+
 	/**
 	 * Get Solrfield parentSYS_str_mv (Aleph SYS no. of parent record(s))
 	 *
@@ -954,7 +820,7 @@ class SolrMab extends SolrDefault  {
 	public function getParentSYSs() {
 		return isset($this->fields['parentSYS_str_mv']) ? $this->fields['parentSYS_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield parentTitle_str_mv (title of parent record(s))
 	 *
@@ -963,7 +829,7 @@ class SolrMab extends SolrDefault  {
 	public function getParentTitles() {
 		return isset($this->fields['parentTitle_str_mv']) ? $this->fields['parentTitle_str_mv'] : null;
 	}
-	
+
 
 	// ######################################################################################
 	// ################################### SERIAL VOLUMES ###################################
@@ -976,11 +842,11 @@ class SolrMab extends SolrDefault  {
 	public function getParentSeriesACs() {
 		return isset($this->fields['parentSeriesAC_str_mv']) ? $this->fields['parentSeriesAC_str_mv'] : null;
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	// #######################################################################################
 	// #################################### PARENT SERIES ####################################
 	// #######################################################################################
@@ -992,7 +858,7 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumeSYS() {
 		return isset($this->fields['serialvolumeSYS_str_mv']) ? $this->fields['serialvolumeSYS_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield serialvolumeAC_str_mv (AC no. of serial volume(s))
 	 *
@@ -1001,7 +867,7 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumeAC() {
 		return isset($this->fields['serialvolumeAC_str_mv']) ? $this->fields['serialvolumeAC_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield serialvolumeTitle_str_mv (title of serial volume(s))
 	 *
@@ -1010,7 +876,7 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumeTitle() {
 		return isset($this->fields['serialvolumeTitle_str_mv']) ? $this->fields['serialvolumeTitle_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield serialvolumeVolumeNo_str_mv (volume no. of serial volume(s))
 	 *
@@ -1019,7 +885,7 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumeVolumeNo() {
 		return isset($this->fields['serialvolumeVolumeNo_str_mv']) ? $this->fields['serialvolumeVolumeNo_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield serialvolumeVolumeNoSort_str_mv (volume no. for sorting of serial volume(s))
 	 *
@@ -1028,7 +894,7 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumeVolumeNoSort() {
 		return isset($this->fields['serialvolumeVolumeNoSort_str_mv']) ? $this->fields['serialvolumeVolumeNoSort_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield serialvolumeEdition_str_mv (edition (Auflage) of serial volume(s))
 	 *
@@ -1037,7 +903,7 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumeEdition() {
 		return isset($this->fields['serialvolumeEdition_str_mv']) ? $this->fields['serialvolumeEdition_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield serialvolumePublishDate_str_mv (publish date of serial volume(s))
 	 *
@@ -1046,10 +912,10 @@ class SolrMab extends SolrDefault  {
 	public function getSerialVolumePublishDate() {
 		return isset($this->fields['serialvolumePublishDate_str_mv']) ? $this->fields['serialvolumePublishDate_str_mv'] : null;
 	}
-	
+
 	/**
 	 * Get all relevant information about serial volumes
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getSerialVolumes() {
@@ -1058,22 +924,22 @@ class SolrMab extends SolrDefault  {
 		$serialVolumeNos = $this->getSerialVolumeVolumeNo();
 		$serialVolumePublishDates = $this->getSerialVolumePublishDate();
 		$serialVolumeEditions = $this->getSerialVolumeEdition();
-	
+
 		$serialVolumes = null;
-	
+
 		foreach($serialVolumeSYSs as $key => $serialVolumeSYS) {
 			$serialVolumeNo = ($serialVolumeNos[$key] == "0") ? null : $serialVolumeNos[$key];
 			$serialVolumeTitle = ($serialVolumeTitles[$key] == "0") ? null : $serialVolumeTitles[$key];
 			$serialVolumePublishDate = ($serialVolumePublishDates[$key] == "0") ? null : $serialVolumePublishDates[$key];
 			$serialVolumeEdition = ($serialVolumeEditions[$key] == "0") ? null : $serialVolumeEditions[$key];
-				
+
 			$serialVolumes[$serialVolumeSYS] = array(
 					"volumeNo" => $serialVolumeNo,
 					"volumeTitle" => $serialVolumeTitle,
 					"volumePublishDate" => $serialVolumePublishDate,
 					"volumeEdition" => $serialVolumeEdition);
 		}
-	
+
 		// Create array for sorting
 		foreach ($serialVolumes as $key => $rowToSort) {
 			$volumeNo[$key] = $rowToSort['volumeNo'];
@@ -1081,13 +947,13 @@ class SolrMab extends SolrDefault  {
 		}
 
 		array_multisort($volumeNo, SORT_DESC, $publishDate, SORT_DESC, $serialVolumes);
-		
+
 		return $serialVolumes;
 	}
-	
+
 	/**
 	 * Check if record is a parent series record
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function isSeries() {
@@ -1095,11 +961,11 @@ class SolrMab extends SolrDefault  {
 		$isSeries = ($serialVolumeSYSs == null) ? false : true;
 		return $isSeries;
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 	// ######################################################################################
 	// ###################################### JOURNALS ######################################
 	// ######################################################################################
@@ -1114,16 +980,16 @@ class SolrMab extends SolrDefault  {
 		$boolIsJournal = ($strFortlaufendesWerk == 'Zeitschrift') ? true : false;
 		return $boolIsJournal;
 	}
-	
+
 	/**
 	 * Get ZSL Nos. (Zeitschriften-Ablage-Nr.)
-	 * 
+	 *
 	 * @return array or null
 	 */
 	public function getZsl() {
 		return isset($this->fields['zslNo_txt_mv']) ? $this->fields['zslNo_txt_mv'] : null;
 	}
-	
+
 	// ######################################################################################
 	// ###################################### ARTICLES ######################################
 	// ######################################################################################
@@ -1136,7 +1002,7 @@ class SolrMab extends SolrDefault  {
 		$publicationTypeCode = $this->getPublicationTypeCode();
 		return (isset($publicationTypeCode) && $publicationTypeCode == 'a') ? true : false;
 	}
-	
+
 	/**
 	 * Get Solrfield articleParentAC_str (AC no. of parent record of the article)
 	 *
@@ -1145,7 +1011,7 @@ class SolrMab extends SolrDefault  {
 	public function getArticleParentAC() {
 		return isset($this->fields['articleParentAC_str']) ? $this->fields['articleParentAC_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield articleParentTitle_txt (title of parent record of the article)
 	 *
@@ -1153,7 +1019,7 @@ class SolrMab extends SolrDefault  {
 	 */
 	public function getArticleParentTitle() {
 		$articleParentTitle = isset($this->fields['articleParentTitle_txt']) ? $this->fields['articleParentTitle_txt'] : null;
-		
+
 		// Try to get parentTitle_str_mv if articleParentTitle_txt is empty
 		if (!isset($articleParentTitle) || empty($articleParentTitle)) {
 			$articleParentTitleArr = isset($this->fields['parentTitle_str_mv']) ? $this->fields['parentTitle_str_mv'] : null;
@@ -1163,7 +1029,7 @@ class SolrMab extends SolrDefault  {
 		}
 		return $articleParentTitle;
 	}
-	
+
 	/**
 	 * Get Solrfield articleParentYear_str (year of parent record of the article)
 	 *
@@ -1172,53 +1038,25 @@ class SolrMab extends SolrDefault  {
 	public function getArticleParentYear() {
 		return isset($this->fields['articleParentYear_str']) ? $this->fields['articleParentYear_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield articleParentVolumeNo_str (vol. no. of parent record of the article)
 	 *
 	 * @return string or null if empty
 	 */
 	public function getArticleParentVolumeNo() {
-		$volNo = isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
-		$year = $this->getArticleParentYear();
-		
-		if ($volNo != null && $year != null) {
-			if ($volNo == $year) {
-				return null;
-			}
-		}
-		return $volNo;
-		//return isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
+		return isset($this->fields['articleParentVolumeNo_str']) ? $this->fields['articleParentVolumeNo_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield articleParentIssue_str (issue. no. of parent record of the article)
-	 * 
+	 *
 	 * @return string or null if empty
 	 */
 	public function getArticleParentIssueNo() {
 		return isset($this->fields['articleParentIssue_str']) ? $this->fields['articleParentIssue_str'] : null;
 	}
-	
-	/**
-	 * Get first page of article
-	 * 
-	 * @return NULL|string
-	 */
-	public function getArticlePageFrom() {
-		return isset($this->fields['pageFrom_str']) ? $this->fields['pageFrom_str'] : null;
-	}
-	
-	/**
-	 * Get last page of article
-	 *
-	 * @return NULL|string
-	 */
-	public function getArticlePageTo() {
-		return isset($this->fields['pageTo_str']) ? $this->fields['pageTo_str'] : null;
-	}
-	
-	
+
 	/**
 	 * Get "from" and "to" pages of an article
 	 *
@@ -1226,10 +1064,10 @@ class SolrMab extends SolrDefault  {
 	 */
 	public function getArticlePages() {
 		$articlePages = null;
-		
+
 		$pageFrom = isset($this->fields['pageFrom_str']) ? $this->fields['pageFrom_str'] : null;
 		$pageTo = isset($this->fields['pageTo_str']) ? $this->fields['pageTo_str'] : null;
-		
+
 		if ($pageFrom == $pageTo) {
 			$articlePages = $pageFrom;
 		} else {
@@ -1238,119 +1076,97 @@ class SolrMab extends SolrDefault  {
 				$articlePages .= ' - '.$pageTo;
 			}
 		}
-		
+
 		return $articlePages;
 	}
-	
+
 	/*
 	// TODO: What if not field 525 is used instead of 599?
-	public function getArticleParentDetails() {	
+	public function getArticleParentDetails() {
 		$returnValue = null;
 		if ($this->getArticleParentAC() != null) { // It's an article or essay. (MAB field 599$-*$*)
 			if ($this->getParentSYSs() != null) { // We have at least one SYS-No to which we can link
 				// Get the titel of the parent record
 				$parentTitle = (isset($this->getArticleParentTitle())) ? $this->getArticleParentTitle() : "k. A.";
-				$parentVolumeNo = (isset($this->getArticleParentVolumeNo())) ? $this->getArticleParentVolumeNo() : null;				
+				$parentVolumeNo = (isset($this->getArticleParentVolumeNo())) ? $this->getArticleParentVolumeNo() : null;
 				$returnValue = (isset($parentVolumeNo)) ? $parentTitle.' ('.$parentVolumeNo.')' : $parentTitle;
-			} else { // We have 
-				
+			} else { // We have
+
 			}
 		} else if (isset()) { //  MAB field 525$**$a
 		}
 		return $returnValue;
 	}
 	*/
-	
-	
+
+
 	/**
 	 * Get all relevant information about articles
 	 *
 	 * @return array
 	 */
 	public function getArticleDetails() {
-		$articleDetails = null;
-		
-		$articleSYSs = isset($this->fields['childSYS_str_mv']) ? $this->fields['childSYS_str_mv'] : null;
-		$articleTitles = $this->getChildRecordTitle();
-		$articlePublishDates = isset($this->fields['childPublishDate_str_mv']) ? $this->fields['childPublishDate_str_mv'] : null;
-		$articleVolumes = isset($this->fields['childVolumeNo_str_mv']) ? $this->fields['childVolumeNo_str_mv'] : null;
-		$articleIssues = isset($this->fields['childIssueNo_str_mv']) ? $this->fields['childIssueNo_str_mv'] : null;
-		$articlePagesFrom = isset($this->fields['childPageFrom_str_mv']) ? $this->fields['childPageFrom_str_mv'] : null;
-		$articlePagesTo = isset($this->fields['childPageTo_str_mv']) ? $this->fields['childPageTo_str_mv'] : null;
-		$articleUrls = isset($this->fields['childUrl_str_mv']) ? $this->fields['childUrl_str_mv'] : null;
-		$articleLevels = isset($this->fields['childLevel_str_mv']) ? $this->fields['childLevel_str_mv'] : null;
-		$minArticleLevel = ($articleLevels != null) ? min($articleLevels) : '0';
-		$articleSortLogIds = isset($this->fields['childLogId_str_mv']) ? $this->fields['childLogId_str_mv'] : null;
-	
-		foreach($articleSYSs as $key => $articleSYS) {
-			$articleTitle = $articleTitles[$key];
-			$articlePublishDate = $articlePublishDates[$key];
-			$articleVolume = $articleVolumes[$key];
-			$articleIssue = $articleIssues[$key];
-			$articlePageFrom = $articlePagesFrom[$key];
-			$articlePageTo = $articlePagesTo[$key];
-			$articlePageFromTo = null;
-			if ($articlePageFrom == $articlePageTo) {
-				$articlePageFromTo = $articlePageFrom;
-			} else {
-				$articlePageFromTo = $articlePageFrom;
-				if ($articlePageTo != null && ! empty($articlePageTo)) {
-					$articlePageFromTo .= ' - ' . $articlePageTo;
-				}
-			}
-			$articleUrl = ($articleUrls[$key] == null) ? null : $articleUrls[$key];
-			$articleLevel = ($articleLevels[$key] == null) ? '0' : ($articleLevels[$key]-$minArticleLevel);
-			$articleSortLogId= ($articleSortLogIds[$key] == null) ? null : $articleSortLogIds[$key];
-			
-			// Get year out from a date like 24.12.2017
-			if (strlen($articlePublishDate) > 4) {
-				try {
-					$articlePublishDate = $this->dateConverter->convertFromDisplayDate('Y', $articlePublishDate);
-				} catch (DateException $e) {
-					// Do nothing. Fail through and show the original publish date
-				}
-			}
-			
-			// If the volume no. is the same as the year, set $articleVolume to null as this would just display two same values which is useless.
-			if ($articleVolume == $articlePublishDate) {
-				$articleVolume = null;
-			}
-			
-			$articleDetails[$articleSYS] = array(
-					'articleTitle' => $articleTitle,
-					'articlePublishDate' => $articlePublishDate,
-					'articleVolume' => $articleVolume,
-					'articleIssue' => $articleIssue,
-					'articlePageFrom' => $articlePageFrom,
-					'articlePageTo' => $articlePageTo,
-					'articlePageFromTo' => $articlePageFromTo,
-					'articleUrl' => $articleUrl,
-					'articleLevel' => $articleLevel,
-					'articleSortLogId' => $articleSortLogId
-			);
-		}
-	
-		// Create array for sorting
-		foreach ($articleDetails as $key => $rowToSort) {
-			$yr[$key] = $rowToSort['articlePublishDate'];
-			$vol[$key] = $rowToSort['articleVolume'];
-			$iss[$key] = $rowToSort['articleIssue'];
-			$pFrom[$key] = str_replace('[', '', $rowToSort['articlePageFrom']);
-			$logId[$key] = $rowToSort['articleSortLogId'];
-			//$pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
-		}
-	
-		//array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
-		array_multisort($yr, SORT_DESC, $vol, SORT_DESC, $iss, SORT_DESC, $logId, SORT_ASC, $pFrom, SORT_ASC, $articleDetails);
-	
-		return $articleDetails;
+            $articleDetails = null;
+
+            $articleSYSs = isset($this->fields['childSYS_str_mv']) ? $this->fields['childSYS_str_mv'] : null;
+            $articleTitles = $this->getChildRecordTitle();
+            $articlePublishDates = isset($this->fields['childPublishDate_str_mv']) ? $this->fields['childPublishDate_str_mv'] : null;
+            $articleVolumes = isset($this->fields['childVolumeNo_str_mv']) ? $this->fields['childVolumeNo_str_mv'] : null;
+            $articleIssues = isset($this->fields['childIssueNo_str_mv']) ? $this->fields['childIssueNo_str_mv'] : null;
+            $articlePagesFrom = isset($this->fields['childPageFrom_str_mv']) ? $this->fields['childPageFrom_str_mv'] : null;
+            $articlePagesTo = isset($this->fields['childPageTo_str_mv']) ? $this->fields['childPageTo_str_mv'] : null;
+            $articleUrls = isset($this->fields['childUrl_str_mv']) ? $this->fields['childUrl_str_mv'] : null;
+            
+            foreach($articleSYSs as $key => $articleSYS) {
+                $articleTitle = $articleTitles[$key];
+                $articlePublishDate = $articlePublishDates[$key];
+                $articleVolume = $articleVolumes[$key];
+                $articleIssue = $articleIssues[$key];
+                $articlePageFrom = $articlePagesFrom[$key];
+                $articlePageTo = $articlePagesTo[$key];
+                $articlePageFromTo = null;
+                if ($articlePageFrom == $articlePageTo) {
+                    $articlePageFromTo = $articlePageFrom;
+                } else {
+                    $articlePageFromTo = $articlePageFrom;
+                    if ($articlePageTo != null && ! empty($articlePageTo)) {
+                        $articlePageFromTo .= ' - ' . $articlePageTo;
+                    }
+                }
+                $articleUrl = ($articleUrls[$key] == null) ? null : $articleUrls[$key];
+
+                //added RecordId - 29.01.2019 - ACDH
+                $articleDetails[$articleSYS] = array(
+                    'articleTitle' => $articleTitle,
+                    'articlePublishDate' => $articlePublishDate,
+                    'articleVolume' => $articleVolume,
+                    'articleIssue' => $articleIssue,
+                    'articlePageFrom' => $articlePageFrom,
+                    'articlePageTo' => $articlePageTo,
+                    'articlePageFromTo' => $articlePageFromTo,
+                    'articleUrl' => $articleUrl,
+                    'recordID' =>($articleSYSs[$key] == null) ? null : $articleSYSs[$key]
+                );
+            }
+
+            // Create array for sorting
+            foreach ($articleDetails as $key => $rowToSort) {
+                $vol[$key] = $rowToSort['articleVolume'];
+                $iss[$key] = $rowToSort['articleIssue'];
+                $pFrom[$key] = str_replace('[', '', $rowToSort['articlePageFrom']);
+                $pTo[$key] = str_replace('[', '', $rowToSort['articlePageTo']);
+            }
+
+            array_multisort($vol, SORT_DESC, $iss, SORT_DESC, $pFrom, SORT_ASC, $pTo, SORT_ASC, $articleDetails);
+
+            return $articleDetails;
 	}
-	
-	
+
+
 	// #####################################################################################
 	// ################################# PUBLICATION TYPES #################################
 	// #####################################################################################
-	
+
 	/**
 	 * Get Solrfield begrenzteWerke_str (value of MAB field 051)
 	 *
@@ -1359,7 +1175,7 @@ class SolrMab extends SolrDefault  {
 	public function getBegrenzteWerke() {
 		return isset($this->fields['begrenzteWerke_str']) ? $this->fields['begrenzteWerke_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield fortlaufendeWerke_str (value of MAB field 052)
 	 *
@@ -1368,7 +1184,7 @@ class SolrMab extends SolrDefault  {
 	public function getFortlaufendeWerke() {
 		return isset($this->fields['fortlaufendeWerke_str']) ? $this->fields['fortlaufendeWerke_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield erscheinungsform_str (based on first character of fields 051 and 052)
 	 * The value of this field is generated while importing records with AkImporter.
@@ -1378,16 +1194,7 @@ class SolrMab extends SolrDefault  {
 	public function getPublicationTypeFromIndex() {
 		return isset($this->fields['erscheinungsform_str']) ? $this->fields['erscheinungsform_str'] : null;
 	}
-	
-	
-	/**
-	 * Gets the structure type of publication
-	 * @return NULL|string
-	 */
-	public function  getStructType() {
-		return isset($this->fields['structType_str']) ? $this->fields['structType_str'] : null;
-	}
-	
+
 	/**
 	 * Get publication type code (first character of field 051 or 052)
 	 *
@@ -1397,36 +1204,36 @@ class SolrMab extends SolrDefault  {
 		$publicationTypeCode = null;
 		$begrenztesWerk = $this->getBegrenzteWerke();
 		$fortlaufendesWerk = $this->getFortlaufendeWerke();
-		
+
 		if($begrenztesWerk != null) {
 			$publicationTypeCode = substr($begrenztesWerk[0], 0, 1); // Get first character of the string
 		}
-		
+
 		if($fortlaufendesWerk != null) {
 			$publicationTypeCode = substr($fortlaufendesWerk[0], 0, 1); // Get first character of the string
 		}
-		
+
 		return $publicationTypeCode;
 	}
-	
+
 	/**
 	 * Get type of publication by publication type code (first character of field 051 or 052)
 	 *
 	 * TODO: Check if this function is still needed.
-	 * 
+	 *
 	 * @return string or null if empty
 	 */
 	public function getPublicationTypeFromCode() {
 		$publicationType = null;
 		$begrenztesWerk = $this->getBegrenzteWerke();
 		$fortlaufendesWerk = $this->getFortlaufendeWerke();
-		
+
 		// Field 051
 		if($begrenztesWerk != null) {
-			
+
 			// Get first character of field 051:
 			$publicationTypeCode = substr($begrenztesWerk[0], 0, 1);
-			
+
 			switch ($publicationTypeCode) {
 				case 'a':
 					$publicationType['begrenztesWerk'] = 'unselbständig erschienenes Werk';
@@ -1448,13 +1255,13 @@ class SolrMab extends SolrDefault  {
 					break;
 			}
 		}
-		
+
 		// Field 052
 		if($fortlaufendesWerk != null) {
-			
+
 			// Get first character of field 052:
 			$fortlaufendesWerkCode = substr($fortlaufendesWerk[0], 0, 1);
-			
+
 			switch ($fortlaufendesWerkCode) {
 				case 'a':
 					$publicationType['fortlaufendesWerk'] = 'unselbständig erschienenes Werk';
@@ -1476,45 +1283,15 @@ class SolrMab extends SolrDefault  {
 					break;
 			}
 		}
-		
+
 		return $publicationType;
 	}
-	
-	
-	/**
-	 * Get the location of the record. This is the value of the field "location_txtF_mv".
-	 * 
-	 * @return NULL|array	Array of location(s) or null
-	 */
-	public function getLocation() {
-		return isset($this->fields['location_txtF_mv']) ? $this->fields['location_txtF_mv'] : null;
-	}
-	
-	
-	/**
-	 * Get the digital location of the record. This is the value of the field "locationDigital_txtF_mv".
-	 *
-	 * @return NULL|array	Array of digital location(s) or null
-	 */
-	public function getDigitalLocation() {
-		return isset($this->fields['locationDigital_txtF_mv']) ? $this->fields['locationDigital_txtF_mv'] : null;
-	}
-	
-	
-	/**
-	 * Get the physical location of the record. This is the value of the field "locationPhysical_txtF_mv".
-	 *
-	 * @return NULL|array	Array of physical location(s) or null
-	 */
-	public function getPhysicalLocation() {
-		return isset($this->fields['locationPhysical_txtF_mv']) ? $this->fields['locationPhysical_txtF_mv'] : null;
-	}
 
-	
+
 	// #######################################################################################
 	// ################################# PUBLICATION DETAILS #################################
 	// #######################################################################################
-	
+
 	/**
 	 * Gettin publication details (publisher, publish place, publish date) as array.<br><br>Original VuFind:&nbsp;
 	 * {@inheritDoc}
@@ -1523,15 +1300,15 @@ class SolrMab extends SolrDefault  {
 	 */
 	public function getPublicationDetails() {
 		$publicationDetails = [];
-		
+
 		$publisherNames = null;
 		$arrPublisherNames = $this->getPublisherNames();
 		if (!empty($arrPublisherNames)) {
 			$publisherNames = join(', ', $arrPublisherNames);
 		}
-		
+
 		$publicationPlace = $this->getPublicationPlace();
-		
+
 		$date = null;
 		$publishDate = $this->getPublishDate();
 		$dateFirstLastPublish = $this->getFirstLastDatePublished();
@@ -1540,15 +1317,15 @@ class SolrMab extends SolrDefault  {
 		} else {
 			$date = $dateFirstLastPublish;
 		}
-		
+
 		$publicationDetails['publisher'] = $publisherNames;
 		$publicationDetails['publishPlace'] = $publicationPlace;
 		$publicationDetails['publishDate'] = $date;
-		
+
 		return array_filter($publicationDetails);
 	}
-	
-	
+
+
 	/**
 	 * Get Solrfield publisher
 	 *
@@ -1557,7 +1334,7 @@ class SolrMab extends SolrDefault  {
 	public function getPublisherNames() {
 		return isset($this->fields['publisher']) ? $this->fields['publisher'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield publishDate or datePublishSort_str
 	 *
@@ -1566,7 +1343,7 @@ class SolrMab extends SolrDefault  {
 	public function getPublishDate() {
 		$arrPublishDates = isset($this->fields['publishDate']) ? $this->fields['publishDate'] : null;
 		$strPublishDateSort = isset($this->fields['datePublishSort_str']) ? $this->fields['datePublishSort_str'] : null;
-		
+
 		if ($arrPublishDates != null) {
 			$publishDates = implode(', ', $arrPublishDates);
 		} else if ($strPublishDateSort != null) {
@@ -1576,7 +1353,7 @@ class SolrMab extends SolrDefault  {
 		}
 		return $publishDates;
 	}
-	
+
 	/**
 	 * Get Solrfield datePublishFirst_str (e. g. first publish date of a journal)
 	 *
@@ -1585,7 +1362,7 @@ class SolrMab extends SolrDefault  {
 	public function getDateFirstPublished() {
 		return isset($this->fields['datePublishFirst_str']) ? $this->fields['datePublishFirst_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield datePublishLast_str (e. g. last publish date of a journal)
 	 *
@@ -1594,7 +1371,7 @@ class SolrMab extends SolrDefault  {
 	public function getDateLastPublished() {
 		return isset($this->fields['datePublishLast_str']) ? $this->fields['datePublishLast_str'] : null;
 	}
-	
+
 	/**
 	 * Get first and last date (if available) for displaying the publicaion span.
 	 * Examples:
@@ -1606,7 +1383,7 @@ class SolrMab extends SolrDefault  {
 	public function getFirstLastDatePublished() {
 		$dateFirst = $this->getDateFirstPublished();
 		$dateLast = $this->getDateLastPublished();
-		
+
 		if (isset($dateFirst) && isset($dateLast)) {
 			return $dateFirst.' - '.$dateLast;
 		} else if (isset($dateFirst)) {
@@ -1616,19 +1393,19 @@ class SolrMab extends SolrDefault  {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Get Solrfield dateSpan (e. g. publish dates [from - to] of a journal)
-	 * 
+	 *
 	 * TODO: Check if this function is necessary (we already have a similar one with getFirstLastDatePublished())
 	 *       This function works with the original VuFind Solrfield "dateSpan".
-	 *       
+	 *
 	 * @return array or null if empty
 	 */
 	public function getPublicationHistory() {
 		return isset($this->fields['dateSpan'][0]) ? $this->fields['dateSpan'][0] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield pubFrequency_str (e. g. weekly, monthly, etc.)
 	 *
@@ -1637,7 +1414,7 @@ class SolrMab extends SolrDefault  {
 	public function getPublicationFrequency() {
 		return isset($this->fields['pubFrequency_str']) ? $this->fields['pubFrequency_str'] : null;
 	}
-	
+
 	/**
 	 * Get Solrfield issn
 	 *
@@ -1655,22 +1432,7 @@ class SolrMab extends SolrDefault  {
 	public function getPublicationPlace() {
 		return isset($this->fields['publishPlace_txt']) ? $this->fields['publishPlace_txt'] : null;
 	}
-	
-	/**
-	 * Get the item's place of publication - this is for the citation dialog end export formats
-	 *
-	 * @return array
-	 */
-	public function getPlacesOfPublication() {
-		$pubPlaces = [];
-		$pubPlace = $this->fields['publishPlace_txt'];
-		if ($pubPlace != null && !empty($pubPlace)) {
-			$pubPlaces[] = $pubPlace;
-		}
-		return $pubPlaces;
-	}
-	
-	
+
 	/**
 	 * Get the full title of the record.
 	 *
@@ -1682,99 +1444,81 @@ class SolrMab extends SolrDefault  {
 
 	/**
 	 * Get Solrfield title_alt (alternative title)
-	 * 
+	 *
+	 * TODO: Check if we should return null if field is empty instead of an empty array.
+	 *
 	 * @return array
 	 */
 	public function getFurtherTitles() {
 		return isset($this->fields['title_alt']) ? $this->fields['title_alt'] : array();
 	}
-	
-	
-	/**
-	 * Get all abstracts of a record.
-	 * 
-	 * @return NULL|array
-	 */
-	public function getAbstract() {
-		return isset($this->fields['abstract_txt_mv']) ? $this->fields['abstract_txt_mv'] : null;	
-	}
-	
-	
-	/**
-	 * Get content summary of a record.
-	 *
-	 * @return NULL|array
-	 */
-	public function getContentSummary() {
-		return isset($this->fields['contentSummary_txt_mv']) ? $this->fields['contentSummary_txt_mv'] : null;
-	}
-	
-	
+
 	/**
 	 * Get Solrfield author
-	 * 
-	 * @param Set to false if responsibility note should not be given back if no other authors were found. Default is true.
+	 *
+	 * TODO: Check if we should return null if field is empty instead of an empty string.
+	 *
 	 * @return string
 	 */
-	public function getPrimaryAuthor($useResponsibilityNote = true) {
-		
+	public function getPrimaryAuthor() {
+
 		// Primary author is set
 		if (isset($this->fields['author'])) {
 			return $this->fields['author'];
 		}
-		
+
 		// If no primary author is set, check for "corporate author"
 		if (isset($this->fields['corporateAuthorName_txt'])) {
 			return $this->fields['corporateAuthorName_txt'];
 		}
-		
+		if (isset($this->fields['corporateAuthorName_txt'])) {
+			return $this->fields['corporateAuthorName_txt'];
+		}
+
 		// If no primary author is set, check for "responsability note"
-		if ($useResponsibilityNote == true && isset($this->fields['responsibilityNote_txt'])) {
+		if (isset($this->fields['responsibilityNote_txt'])) {
 			return $this->fields['responsibilityNote_txt'];
 		}
-		
+
 		// If we got this far, no apropriate author field is set
 		return '';
+
+		// Original:
+		//return (isset($this->fields['author'])) ? $this->fields['author'] : '';
 	}
-	
-	
+
+
 	/**
 	 * Get Solrfield author2 (secondary authors)
+	 *
+	 * TODO: Check if we should return null if field is empty instead of an empty array.
 	 *
 	 * @return array
 	 */
 	public function getSecondaryAuthors() {
-		
+
 		// Field author2 author is set
 		if (isset($this->fields['author2'])) {
 			return $this->fields['author2'];
 		}
-		
-		// Field  corporateAuthor2Name_txt_mv author is set
-		if (isset($this->fields[' corporateAuthor2Name_txt_mv'])) {
-			return $this->fields[' corporateAuthor2Name_txt_mv'];
+
+		// Field corporateAuthor2NameGnd_txt_mv author is set
+		if (isset($this->fields['corporateAuthor2NameGnd_txt_mv'])) {
+			return $this->fields['corporateAuthor2NameGnd_txt_mv'];
 		}
-		
+
+		// Field corporateAuthor2GndNo_str_mv author is set
+		if (isset($this->fields['corporateAuthor2GndNo_str_mv'])) {
+			return $this->fields['corporateAuthor2GndNo_str_mv'];
+		}
+
 		// If we got this far, no apropriate author field is set
 		return array();
+
+		// Original:
+		//return isset($this->fields['author2']) ? $this->fields['author2'] : array();
 	}
-	
-	
-	/**
-	 * Get additional authors
-	 *
-	 * @return array
-	 */
-	public function getAdditionalAuthors() {
-		if (isset($this->fields['author_additional'])) {
-			return $this->fields['author_additional'];
-		}
-		
-		// If we got this far, no apropriate author field is set
-		return array();
-	}
-	
-	
+
 	/**
 	 * Get all authors
 	 *
@@ -1784,41 +1528,41 @@ class SolrMab extends SolrDefault  {
 		$autor = isset($this->fields['author']) ? $this->fields['author'] : array();
 		$author2 = isset($this->fields['author2']) ? $this->fields['author2'] : array();
 		$author_additional = isset($this->fields['author_additional']) ? $this->fields['author_additional'] : array();
-		
+
 		$authorsAll = array_merge((array)$autor, $author2, $author_additional);
-		
+
 		return isset($authorsAll) ? $authorsAll : null;
 	}
-	
+
 	/**
 	 * Get all all involved / participants incl. their role and authoirty no.
-	 * 
+	 *
 	 *  @return array or null if empty
 	 */
 	public function getParticipants() {
-		
+
 		// First participant
 		$author1 = isset($this->fields['author']) ? $this->fields['author'] : null;
 		$author1Role = isset($this->fields['author_role']) ? $this->fields['author_role'] : 'NoRole';
 		$author1Gnd = isset($this->fields['author_GndNo_str']) ? $this->fields['author_GndNo_str'] : 'NoGndId';
-		
+
 		// Second participant
 		$author2 = isset($this->fields['author2']) ? $this->fields['author2'][0] : null;
 		$author2Role = isset($this->fields['author2_role']) ? $this->fields['author2_role'][0] : 'NoRole';
 		$author2Gnd = isset($this->fields['author2_GndNo_str']) ? $this->fields['author2_GndNo_str'] : 'NoGndId';
-		
+
 		// All other participants
 		$author_additional_NameRoleGnd = (isset($this->fields['author_additional_NameRoleGnd_str_mv']) && !empty($this->fields['author_additional_NameRoleGnd_str_mv'])) ? $this->fields['author_additional_NameRoleGnd_str_mv'] : null;
-		
+
 		// First Corporate participant
 		$corp1 = isset($this->fields['corporateAuthorName_txt']) ? $this->fields['corporateAuthorName_txt'] : null;
 		$corp1Role = isset($this->fields['corporateAuthorRole_str']) ? $this->fields['corporateAuthorRole_str'] : 'NoRole';
 		$corp1Gnd = isset($this->fields['corporateAuthorGndNo_str']) ? $this->fields['corporateAuthorGndNo_str'] : 'NoGndId';
-		
+
 		// All other corporate participants
 		$corp_additional_NameRoleGnd = (isset($this->fields['corporateAuthor2NameRoleGnd_str_mv']) && !empty($this->fields['corporateAuthor2NameRoleGnd_str_mv']))? $this->fields['corporateAuthor2NameRoleGnd_str_mv'] : null;
-		
-		
+
+
 		$participants = [];
 		if ($author1 != null && $author1Role != null && $author1Gnd != null) {
 			$participants[$author1Role][] = array($author1Gnd => $author1);
@@ -1829,43 +1573,43 @@ class SolrMab extends SolrDefault  {
 		if ($corp1 != null && $corp1Role != null && $corp1Gnd != null) {
 			$participants[$corp1Role][] = array($corp1Gnd => $corp1);
 		}
-		
+
 		if ($author_additional_NameRoleGnd != null) {
     		foreach ($author_additional_NameRoleGnd as $key => $value) {
-    			
+
     			if (($key % 3) == 0) { // First of 3 values
     				$name = $author_additional_NameRoleGnd[$key];
     			} else if (($key % 3) == 1) { // Second of 3 values
     				$role = $author_additional_NameRoleGnd[$key];
     			}  else if (($key % 3) == 2) { // Third and last of 3 values
     				$gnd = $author_additional_NameRoleGnd[$key];
-    				
+
     				// We have all values now, add them to the return array:
     				$participants[$role][] = array($gnd => $name);
     			}
     		}
     	}
-    	
+
     	if ($corp_additional_NameRoleGnd != null) {
     		foreach ($corp_additional_NameRoleGnd as $key => $value) {
-    			 
+
     			if (($key % 3) == 0) { // First of 3 values
     				$name = $corp_additional_NameRoleGnd[$key];
     			} else if (($key % 3) == 1) { // Second of 3 values
     				$role = $corp_additional_NameRoleGnd[$key];
     			}  else if (($key % 3) == 2) { // Third and last of 3 values
     				$gnd = $corp_additional_NameRoleGnd[$key];
-    	
+
     				// We have all values now, add them to the return array:
     				$participants[$role][] = array($gnd => $name);
     			}
     		}
     	}
-			
+
 		return (isset($participants) && !empty($participants)) ? $participants : null;
 	}
-	
-	
+
+
 	/**
 	 * Get all corporate authors
 	 *
@@ -1875,29 +1619,29 @@ class SolrMab extends SolrDefault  {
 		$corp = isset($this->fields['corporateAuthorName_str']) ? $this->fields['corporateAuthorName_str'] : array();
 		$corp2Gnd = isset($this->fields['corporateAuthor2NameGnd_str_mv']) ? $this->fields['corporateAuthor2NameGnd_str_mv'] : array();
 		$corp2 = isset($this->fields['corporateAuthor2Name_str_mv']) ? $this->fields['corporateAuthor2Name_str_mv'] : array();
-		
+
 		$corpAll = array_merge((array)$corp, $corp2Gnd, $corp2);
 
 		return isset($corpAll) ? $corpAll : null;
 	}
-	
-	
+
+
 	/**
 	 * Get all subjects
 	 *
 	 * @return array
 	 */
-	public function getAllSubjectHeadings() {		
-		
+	public function getAllSubjectHeadings() {
+
 		$headings = [];
 		foreach (['topic', 'authHeadingSubject_txt_mv', 'authUseForSubject_txt_mv', 'geographic', 'authHeadingGeographic_txt_mv', 'authUseForGeographic_txt_mv', 'authHeadingCongress_txt_mv', 'authUseForCongress_txt_mv', 'authHeadingWork_txt_mv', 'authUseForWork_txt_mv', 'genre', 'era'] as $field) {
 			if (isset($this->fields[$field])) {
 				$headings = array_merge($headings, $this->fields[$field]);
 			}
 		}
-		
+
 		sort($headings, SORT_ASC);
-	
+
 		// The Solr index doesn't currently store subject headings in a broken-down
 		// format, so we'll just send each value as a single chunk.  Other record
 		// drivers (i.e. MARC) can offer this data in a more granular format.
@@ -1906,11 +1650,11 @@ class SolrMab extends SolrDefault  {
 		};
 		return array_map($callback, array_unique($headings));
 	}
-	
+
 	/**
 	 * Get all keyword chains
-	 * 
-	 * @return array or null
+	 *
+	 * @return array
 	 */
 	public function getAllKeywordChains() {
 		$allKeywordChains = null;
@@ -1923,33 +1667,10 @@ class SolrMab extends SolrDefault  {
 		}
 		return $allKeywordChains;
 	}
-	
-	
-	/**
-	 * Get all keywords that are used in keyword chains as an array. Duplicates are removed.
-	 * 
-	 * @return NULL|array
-	 */
-	public function getUniqueKeywordChainKeywords() {
-		$uniqueKeywordChainKeywords = null;
-		$allKeywordChains = $this->getAllKeywordChains();
 
-		if ($allKeywordChains != null) {
-			$uniqueKeywordChainKeywords = [];
-			foreach ($allKeywordChains as $allKeywordChain) {
-				foreach ($allKeywordChain as $keyword) {
-					if (!in_array($keyword, $uniqueKeywordChainKeywords)) {
-						$uniqueKeywordChainKeywords[] = $keyword;
-					}
-				}
-			}
-		}
-		return $uniqueKeywordChainKeywords;
-	}
-	
 	/**
 	 * Get a keyword chain by it's number
-	 * 
+	 *
 	 * @param string $no	The number (with leading zero) of the keyword chain. Possible are values from 01 to 10.
 	 * @return array		Array of all values of the keyword chain or null if the keyword chain does not exist.
 	 */
@@ -1960,7 +1681,7 @@ class SolrMab extends SolrDefault  {
 		}
 		return $keywordChain;
 	}
-	
+
 	/**
 	 * Get Dewey Decimal Classifications (DDCs)
 	 *
@@ -1973,25 +1694,8 @@ class SolrMab extends SolrDefault  {
 		}
 		return $ddcs;
 	}
-	
-	/**
-	 * Get topics from Solr "topic" field
-	 *
-	 * @return array		Array of all topic values or null if none exists
-	 */
-	public function getTopics() {
-		return (isset($this->fields['topic'])) ? $this->fields['topic'] : null;
-	}
-	
-	/**
-	 * Get AK subjects from subjectAk_txt_mv field
-	 * 
-	 * @return array		Array of all AK subject values or null if none exists
-	 */
-	public function getAkSubjects() {
-		return (isset($this->fields['subjectAk_txt_mv'])) ? $this->fields['subjectAk_txt_mv'] : null;
-	}
-	
+
+
 	/**
 	 * Get Formats (electronic, printed, microform ...)
 	 *
@@ -2000,66 +1704,83 @@ class SolrMab extends SolrDefault  {
 	public function getFormats() {
 		return isset($this->fields['format']) ? $this->fields['format'] : null;
 	}
-	
+
 
 	/**
 	 * Get contens from notes field.
-	 * 
+	 *
 	 * @return array or null
 	 */
 	public function getNotes() {
 		return (isset($this->fields['notes_txt_mv'])) ? $this->fields['notes_txt_mv'] : null;
-		
+
 	}
-	
-	
+
+  /**
+   * Get Solrfield hol866aZsfBestandsangabe_txt_mv (e. g. array of Bestandsangaben)
+   *
+   * @return array
+   */
+  public function getLocalInventory() {
+    return isset($this->fields['hol866aZsfBestandsangabe_txt_mv']) ? $this->fields['hol866aZsfBestandsangabe_txt_mv'] : array();
+  }
+
+  /**
+   * Get Solrfield hol866zLuecken_txt_mv (e. g. gaps in the array of Bestandsangaben)
+   *
+   * @return array
+   */
+  public function getLocalInventoryGaps() {
+    return isset($this->fields['hol866zLuecken_txt_mv']) ? $this->fields['hol866zLuecken_txt_mv'] : array();
+  }
+
 
 
 	// #######################################################################################
 	// ################################## ILS COMMUNICATION ##################################
 	// #######################################################################################
-	
+
 	/**
      * Attach an ILS connection and related logic to the driver
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @param \VuFind\ILS\Connection       $ils            ILS connection
-     * @param \AkSearch\ILS\Logic\Holds    $holdLogic      Hold logic handler
+     * @param \VuFind\ILS\Logic\Holds      $holdLogic      Hold logic handler
      * @param \VuFind\ILS\Logic\TitleHolds $titleHoldLogic Title hold logic handler
      *
      * @return void
      */
-	public function attachILS(\VuFind\ILS\Connection $ils, \AkSearch\ILS\Logic\Holds $holdLogic, \VuFind\ILS\Logic\TitleHolds $titleHoldLogic) {
+    public function attachILS(\VuFind\ILS\Connection $ils, \VuFind\ILS\Logic\Holds $holdLogic, \VuFind\ILS\Logic\TitleHolds $titleHoldLogic) {
     	$this->ils = $ils;
         $this->holdLogic = $holdLogic;
         $this->titleHoldLogic = $titleHoldLogic;
     }
-    
+
 
     /**
      * Do we have an attached ILS connection?
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return bool
      */
     public function hasILS() {
         return null !== $this->ils;
     }
-    
-    
+
+
     /**
      * Get the bibliographic level of the current record.
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return string
      */
     public function getBibliographicLevel() {
     	$leader = $this->getLeader();
     	$biblioLevel = strtoupper($leader[6]);
-    	
+
     	switch ($biblioLevel) {
     		case 'M': // Monograph
     			return "Monograph";
@@ -2077,76 +1798,76 @@ class SolrMab extends SolrDefault  {
     			return "Unknown";
     	}
     }
-    
-    
+
+
     /**
      * Get an array of information about record holdings, obtained in real-time from the ILS.
      * Mask call nos and collections if value set in AKsearch.ini
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return array
      */
     public function getRealTimeHoldings() {
+
     	// Get real time holdings
     	if (!$this->hasILS()) {
-    		return array();
+            return array();
     	}
     	try {
-    		$holdings = $this->holdLogic->getHoldings($this->getSysNo(), $this->getHolIds());
+            $holdings = $this->holdLogic->getHoldings($this->getSysNo());
+            foreach ($holdings as &$holdingsOfLocation) {
+                $items = &$holdingsOfLocation['items'];
 
-    		foreach ($holdings as &$holdingsOfLocation) {
-    			$items = &$holdingsOfLocation['items'];
-    			
-    			foreach ($items as $key => &$item) {
-    				
-    				// Masking call no 1, call no 2, collection and collection description
-    				$callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
-    				$callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
-    				$collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
-    				$collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
-    				$item['callnumber'] = ($callNo1 != null) ? $this->getMaskedValue($callNo1) : null;
-    				$item['callnumber_second'] = ($callNo2 != null) ? $this->getMaskedValue($callNo2) : null;
-    				$item['collection'] = ($collection != null) ? $this->getMaskedValue($collection) : null;
-    				$item['collection_desc'] = ($collection_desc != null) ? $this->getMaskedValue($collection_desc) : null;
-    				
-    				// Hide items according to user configuration in AKsearch.ini
-    				foreach ($this->akConfig->HideItems as $configKey => $configValue) {
-    					if (isset($item[$configKey]) && $item[$configKey] == $configValue) {
-    						unset($items[$key]);
-    					}
-    				}
-    			}
-    		}
+                foreach ($items as $key => &$item) {
 
-    		return $holdings;
+                    // Masking call no 1, call no 2, collection and collection description
+                    $callNo1 = (isset($item['callnumber']) && !empty($item['callnumber'])) ? $item['callnumber'] : null;
+                    $callNo2 = (isset($item['callnumber_second']) && !empty($item['callnumber_second'])) ? $item['callnumber_second'] : null;
+                    $collection = (isset($item['collection']) && !empty($item['collection'])) ? $item['collection'] : null;
+                    $collection_desc = (isset($item['collection_desc']) && !empty($item['collection_desc'])) ? $item['collection_desc'] : null;
+                    $item['callnumber'] = ($callNo1 != null) ? $this->getMaskedValue($callNo1) : null;
+                    $item['callnumber_second'] = ($callNo2 != null) ? $this->getMaskedValue($callNo2) : null;
+                    $item['collection'] = ($collection != null) ? $this->getMaskedValue($collection) : null;
+                    $item['collection_desc'] = ($collection_desc != null) ? $this->getMaskedValue($collection_desc) : null;
+
+                    // Hide items according to user configuration in AKsearch.ini
+                    foreach ($this->akConfig->HideItems as $configKey => $configValue) {
+                        if (isset($item[$configKey]) && $item[$configKey] == $configValue) {
+                            unset($items[$key]);
+                        }
+                    }
+                }
+            }
+
+            return $holdings;
     	} catch (ILSException $e) {
-    		return array();
+            return array();
     	}
     }
 
-    
+
     /**
      * Masking values according to AKsearch.ini
-     * 
+     *
      * @param unknown $stringToMask
      * @param string $mode
      * @return unknown|string|mixed
      */
     private function getMaskedValue($stringToMask, $mode = 'begins') {
-    	
+
     	if ($mode == 'begins') {
     		$akConfigMasking = trim($this->akConfig->Masking->beginswith);
-    		 
+
     		// Masking call no 1, call no 2, collection and collection description
     		if (isset($akConfigMasking) && !empty($akConfigMasking)) {
     			$arrBeginswith = array_reverse(explode(',', $akConfigMasking));
     			$beginswithExceptions = trim($this->akConfig->Masking->beginswithExceptions);
     			$arrBeginswithExceptions = array_reverse(explode(',', $beginswithExceptions));
-    		
+
     			foreach ($arrBeginswith as $beginswith) {
     				$beginswith = trim($beginswith);
-    				 
+
     				if (isset($beginswithExceptions) && !empty($beginswithExceptions)) {
     					foreach ($arrBeginswithExceptions as $beginswithException) {
     						$beginswithException = trim($beginswithException);
@@ -2155,7 +1876,7 @@ class SolrMab extends SolrDefault  {
     						}
     					}
     				}
-    		
+
     				if (substr($stringToMask, 0, strlen($beginswith)) == $beginswith) {
     					return $beginswith.preg_replace("/./", '*', substr($stringToMask, strlen($beginswith), strlen($stringToMask)));
     				}
@@ -2164,16 +1885,16 @@ class SolrMab extends SolrDefault  {
     	} else if ($mode == 'all') {
     		return preg_replace("/./", '*', substr($stringToMask, 0, strlen($stringToMask)));
     	}
-    	
+
     	return $stringToMask;
     }
 
-    
+
     /**
      * Get an array of information about record history, obtained in real-time from the ILS.
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     * 
+     *
      * @return array
      */
     public function getRealTimeHistory() {
@@ -2188,12 +1909,12 @@ class SolrMab extends SolrDefault  {
         }
     }
 
-    
+
     /**
      * Get a link for placing a title level hold.
-     * 
+     *
      * Adopted from VuFind\RecordDriver\SolrMarc.
-     *  
+     *
      * @return mixed A url if a hold is possible, boolean false if not
      */
     public function getRealTimeTitleHold() {
@@ -2207,23 +1928,22 @@ class SolrMab extends SolrDefault  {
         }
         return false;
     }
-	
-    
+
+
     /**
      * Check if we have to show a "load more" link/button for items list in the holdings tab.
-     * 
-     * @var int $noOfTotalItems		No of totel items
-     * @return boolean				true if the link/button should be displayed, false otherwise
+     *
+     * @return boolean		true if the link/button should be displayed, false otherwise
      */
-    public function showLoadMore($noOfTotalItems) {
-    	return $this->ils->showLoadMore($noOfTotalItems);
+    public function showLoadMore() {
+    	return $this->ils->showLoadMore($this->getSysNo());
     }
-    
-    
+
+
     /**
      * Gets the status of the record (available or unavailable) from the ILS driver.
      * See also getStatus() function in \VuFind\ILS\Driver\Aleph
-     * 
+     *
      * @param string $id The record id to retrieve the holdings for
      *
      * @throws ILSException
@@ -2235,14 +1955,14 @@ class SolrMab extends SolrDefault  {
     		return $this->ils->getStatus($this->getSysNo());
     	}
     }
-    
-    
+
+
     /**
      * Gets the Aleph journal holdings
-     * 
+     *
      * @return array
      */
-    public function getJournalHoldings() {    	
+    public function getJournalHoldings() {
     	if (!$this->hasILS()) {
     		return array();
     	}
@@ -2252,42 +1972,42 @@ class SolrMab extends SolrDefault  {
     		return array();
     	}
     }
-    
-    
+
+
     /**
      * Gets the sublibrary name by sublibrary code
-     * 
+     *
      * @return string
      */
     public function getSubLibraryName($subLibCode) {
     	return $this->ils->getSubLibName($subLibCode);
     }
 
-    
+
     /**
      * Gets the URLs available for the record (e. g. to table of contents, etc.)
      *
      * @return array
      */
     public function getURLs() {
-    	
+
     	$retVal = [];
-    	
+
     	if (isset($this->fields['url']) && is_array($this->fields['url'])) {
     		$urls =  $this->fields['url'];
     	}
-    	
+
     	if (isset($urls)) {
     		$counter = 0;
     		foreach ($urls as $key => $value) {
-    			
+
     			if (($key % 3) == 0) { // First of 3 values
     				$url = $urls[$key];
     			} else if (($key % 3) == 1) { // Second of 3 values
     				$desc = $urls[$key];
     			}  else if (($key % 3) == 2) { // Third and last of 3 values
     				$mime = $urls[$key];
-    				
+
     				// We have all values now, add them to the return array:
     				$counter = $counter + 1;
     				$retVal[$counter]['url'] = $url;
@@ -2298,68 +2018,59 @@ class SolrMab extends SolrDefault  {
     	}
    		return $retVal;
     }
-    
-    
+
+
     /**
      * Check if the BIB record has holdings (= items).
-     * 
+     *
      * @return boolean	true if at least one holding (item) exists, false otherwise.
      */
     public function hasIlsHoldings() {
-    	
-    	// Check if ILS is active
-    	if (!$this->hasILS()) {
+      if (!$this->hasILS()) {
     		return false;
     	}
-    	
     	try {
     		return $this->ils->hasIlsHoldings($this->getSysNo());
     	} catch (ILSException $e) {
     		return false;
     	}
-    	
     }
-    
-    
+
+
     /**
      * Check if the BIB record has journal holdings (= real holding).
-     * 
+     *
      * @return boolean	true if at least one journal holding exists, false otherwise.
      */
     public function hasJournalHoldings() {
-    	// Check if ILS is active
-    	if (!$this->hasILS()) {
+      if (!$this->hasILS()) {
     		return false;
     	}
-    	
     	try {
-    		return $this->ils->hasJournalHoldings($this->getSysNo());
+        return $this->ils->hasJournalHoldings($this->getSysNo());
     	} catch (ILSException $e) {
     		return false;
     	}
-
     }
-    
-    
+
+
     /**
-     * Check if the BIB record has journal holdings (= real holding) or ILS holdings (= items).
+     * Check if the BIB record has journal holdings (= real holding).
      *
      * @return boolean	true if at least one journal holding exists, false otherwise.
      */
     public function hasIlsOrJournalHoldings() {
-    	// Check if ILS is active
-    	if (!$this->hasILS()) {
+      if (!$this->hasILS()) {
     		return false;
     	}
-    	
     	try {
-    		return $this->ils->hasIlsOrJournalHoldings($this->getSysNo());
+        return $this->ils->hasIlsOrJournalHoldings($this->getSysNo());
     	} catch (ILSException $e) {
     		return false;
     	}
     }
-    
-    
-    
+
+
+
 }
 ?>
