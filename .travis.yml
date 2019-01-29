@@ -7,7 +7,8 @@ env:
   - VUFIND_HOME=$PWD VUFIND_LOCAL_DIR=$PWD/local
 
 before_script:
-  - pear install pear/PHP_CodeSniffer
+  - pear clear-cache
+  - pear install PHP_CodeSniffer
   - pear channel-discover pear.phing.info
   - pear install phing/phing
   - composer global require fabpot/php-cs-fixer
