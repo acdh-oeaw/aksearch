@@ -174,8 +174,7 @@ class Connector implements \Zend\Log\LoggerAwareInterface
     {
         $params = $params ?: new ParamBag();
         $params
-            ->set('q', sprintf('%s:"%s"', $this->uniqueKey, addcslashes($id, '"')));
-
+            ->set('q', sprintf('%s:"%s"', $this->uniqueKey, addcslashes($id, '"')) . ' OR ' . sprintf('%s:"%s"', 'acNo_txt', addcslashes($id, '"')));       
         $handler = $this->map->getHandler(__FUNCTION__);
         $this->map->prepare(__FUNCTION__, $params);
 

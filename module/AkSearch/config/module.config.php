@@ -457,7 +457,7 @@ $config = [
                 'abstract_factories' => ['VuFind\ILS\Driver\PluginFactory'],
                 'factories' => [
                     'aleph' => 'AkSearch\ILS\Driver\Factory::getAleph',
-                	'alma'	=> 'AkSearch\ILS\Driver\Factory::getAlma',
+                    'alma'	=> 'AkSearch\ILS\Driver\Factory::getAlma',
                     'daia' => 'VuFind\ILS\Driver\Factory::getDAIA',
                     'demo' => 'VuFind\ILS\Driver\Factory::getDemo',
                     'horizon' => 'VuFind\ILS\Driver\Factory::getHorizon',
@@ -769,22 +769,22 @@ $config = [
                 ],
                 'defaultTab' => null,
             ],
-        	'AkSearch\RecordDriver\SolrMab' => [
-        			'tabs' => [
-        				'MultiVolumeWorks' => 'AkSearch\RecordTab\MultiVolumeWorks', // Tab added by AK Bibliothek Wien
-        				//'JournalHolding' => 'AkSearch\RecordTab\JournalHolding', // Tab added by AK Bibliothek Wien
-        				//'BindingUnits' => 'AkSearch\RecordTab\BindingUnits', // Tab added by AK Bibliothek Wien
-        				'Holdings' => 'AkSearch\RecordTab\HoldingsILS', // Tab changed by AK Bibliothek Wien
-        				'Description' => 'Description',
-        				'TOC' => 'TOC',
-        				'UserComments' => 'UserComments',
-        				'Reviews' => 'Reviews',
-        				'Excerpt' => 'Excerpt',
-        				'HierarchyTree' => 'HierarchyTree',
-        				'Map' => 'Map',
-        				'Details' => 'AkSearch\RecordTab\StaffViewAll', // Tab changed by AK Bibliothek Wien
-        				],
-        	]
+            'AkSearch\RecordDriver\SolrMab' => [
+                'tabs' => [
+                    'MultiVolumeWorks' => 'AkSearch\RecordTab\MultiVolumeWorks', // Tab added by AK Bibliothek Wien
+                    //'JournalHolding' => 'AkSearch\RecordTab\JournalHolding', // Tab added by AK Bibliothek Wien
+                    //'BindingUnits' => 'AkSearch\RecordTab\BindingUnits', // Tab added by AK Bibliothek Wien
+                    'Holdings' => 'AkSearch\RecordTab\HoldingsILS', // Tab changed by AK Bibliothek Wien
+                    'Description' => 'Description',
+                    'TOC' => 'TOC',
+                    'UserComments' => 'UserComments',
+                    'Reviews' => 'Reviews',
+                    'Excerpt' => 'Excerpt',
+                    'HierarchyTree' => 'HierarchyTree',
+                    'Map' => 'Map',
+                    'Details' => 'AkSearch\RecordTab\StaffViewAll', // Tab changed by AK Bibliothek Wien
+                ],
+            ]
         ],
     ],
     // Authorization configuration:
