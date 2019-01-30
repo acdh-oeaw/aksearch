@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 language: php
 php:
   - 5.4
@@ -7,7 +7,11 @@ env:
   - VUFIND_HOME=$PWD VUFIND_LOCAL_DIR=$PWD/local
 
 before_script:
-  - pear channel-update pear.php.net
+  - wget https://github.com/pear/Console_Getopt/archive/v1.4.1.tar.gz 
+  - tar xvzf v1.4.1.tar.gz 
+  - cd Console_Getopt-1.4.1/ 
+  - pear install package.xml
+  - pear install channel://pear.horde.org/Horde_Role
   - pear install pear/PHP_CodeSniffer
   - pear channel-discover pear.phing.info
   - pear clear-cache
