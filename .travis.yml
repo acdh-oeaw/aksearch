@@ -24,7 +24,6 @@ before_script:
 
 script:
   - phpunit -c $TRAVIS_BUILD_DIR/module/VuFind/tests/phpunit.xml
-  - phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module  
-  - phing --help
-  - phing php-cs-fixer-dryrun
+  #- phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module    
+  #- phing php-cs-fixer-dryrun
   
