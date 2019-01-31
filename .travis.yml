@@ -12,15 +12,19 @@ before_script:
   - cd Console_Getopt-1.4.1/ 
   - pear install package.xml
   - pear install channel://pear.horde.org/Horde_Role
-  - pear install pear/PHP_CodeSniffer
+  - git clone https://github.com/squizlabs/PHP_CodeSniffer.git
+  - cd PHP_CodeSniffer
+  - pear install package.xml  
   - pear channel-discover pear.phing.info
   - pear clear-cache
   - pear install phing/phing
-  - composer global require fabpot/php-cs-fixer
+  - composer global require fabpot/php-cs-fixer  
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - phpenv rehash
 
 script:
-  - phpunit --stderr --configuration module/VuFind/tests/phpunit.xml
-  - phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $PWD/module
+  - phpunit -c $TRAVIS_BUILD_DIR/module/VuFind/tests/phpunit.xml
+  - phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module  
+  - phing --help
   - phing php-cs-fixer-dryrun
+  
