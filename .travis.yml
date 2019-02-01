@@ -18,12 +18,31 @@ before_script:
   - pear channel-discover pear.phing.info
   - pear clear-cache
   - pear install phing/phing
-  - composer global require fabpot/php-cs-fixer  
-  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  #- composer global require fabpot/php-cs-fixer  
+  - composer global require friendsofphp/php-cs-fixer
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"  
+  #- export PATH="$PATH:$HOME/.composer/vendor/bin"
   - phpenv rehash
 
 script:
   - phpunit -c $TRAVIS_BUILD_DIR/module/VuFind/tests/phpunit.xml
-  #- phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module    
+  - phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth    
+  #- phing php-cs-fixer-dryrun -f "$TRAVIS_BUILD_DIR/build.xml"
+  #- phing -f "$TRAVIS_BUILD_DIR/build.xml" php-cs-fixer $TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth 
+  #- phing -f "$TRAVIS_BUILD_DIR/build.xml" php-cs-fixer-dryrun $TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth 
+  #- phing -f "$TRAVIS_BUILD_DIR/build.xml" 
+  #- phing php-cs-fixer-dryrun $TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth 
+  #- phing -f "$TRAVIS_BUILD_DIR/build.xml" php-cs-fixer-dryrun $TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth 
+  #- phing -l
+  - phing -debug -buildfile "$TRAVIS_BUILD_DIR/module/VuFind/tests/fixtures/configs/buildxml-2.5/build.xml"
+  
+  #- phing -i
+  #- phing -find build.xml
+  #- phing -h
+  #- cd $TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth
   #- phing php-cs-fixer-dryrun
+  #- phing php-cs-fixer-dryrun -f "$TRAVIS_BUILD_DIR/build.xml"
+  #- phing -debug -f "$TRAVIS_BUILD_DIR/build.xml" php-cs-fixer-dryrun "$TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth"
+  #- php -f php-cs-fixer-dryrun "$TRAVIS_BUILD_DIR/module/AkSearch/src/AkSearch/Auth"
+  
   
