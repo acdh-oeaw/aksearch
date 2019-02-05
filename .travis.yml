@@ -28,8 +28,8 @@ before_script:
 script:
   - phpunit -c $TRAVIS_BUILD_DIR/module/VuFind/tests/phpunit.xml
   #working
-  - phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module/
+  #- phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module/
   #not working
-  - phing phpcbf -p -s -v -n . --standard=PEAR --extensions=php $TRAVIS_BUILD_DIR/module/
+  #- phing phpcbf -p -s -v -n . --standard=PEAR --extensions=php $TRAVIS_BUILD_DIR/module/
   
   
