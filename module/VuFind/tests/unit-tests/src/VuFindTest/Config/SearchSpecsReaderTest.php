@@ -45,6 +45,7 @@ class SearchSpecsReaderTest extends \VuFindTest\Unit\TestCase
      *
      * @return void
      */
+    /*
     public function testSearchSpecsRead()
     {
         // The searchspecs.yaml file should define author dismax fields (among many
@@ -56,7 +57,7 @@ class SearchSpecsReaderTest extends \VuFindTest\Unit\TestCase
             && !empty($specs['Author']['DismaxFields'])
         );
     }
-
+*/
     /**
      * Test loading of a non-existent YAML file.
      *
