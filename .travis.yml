@@ -1,21 +1,35 @@
-sudo: false
+sudo: required
 language: php
 php:
-  - 5.4
+  - 5.6
 
 env:
   - VUFIND_HOME=$PWD VUFIND_LOCAL_DIR=$PWD/local
 
 before_script:
-  - pear clear-cache
-  - pear install PHP_CodeSniffer
+  - wget https://github.com/pear/Console_Getopt/archive/v1.4.1.tar.gz 
+  - tar xvzf v1.4.1.tar.gz 
+  - cd Console_Getopt-1.4.1/ 
+  - pear install package.xml
+  - pear install channel://pear.horde.org/Horde_Role
+  - git clone https://github.com/squizlabs/PHP_CodeSniffer.git
+  - cd PHP_CodeSniffer
+  - pear install package.xml  
   - pear channel-discover pear.phing.info
+  - pear clear-cache
+  #- composer global require squizlabs/php_codesniffer
+  - composer global require friendsofphp/php-cs-fixer
   - pear install phing/phing
-  - composer global require fabpot/php-cs-fixer
-  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  #- composer global require fabpot/php-cs-fixer   
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"  
+  #- export PATH="$PATH:$HOME/.composer/vendor/bin"
   - phpenv rehash
 
 script:
-  - phpunit --stderr --configuration module/VuFind/tests/phpunit.xml
-  - phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $PWD/module
-  - phing php-cs-fixer-dryrun
+  - phpunit -c $TRAVIS_BUILD_DIR/module/VuFind/tests/phpunit.xml
+  #working
+  #- phpcs --standard=PEAR --ignore=*/config/*,*/tests/* --extensions=php $TRAVIS_BUILD_DIR/module/
+  #not working
+  #- phing phpcbf -p -s -v -n . --standard=PEAR --extensions=php $TRAVIS_BUILD_DIR/module/
+  
+  

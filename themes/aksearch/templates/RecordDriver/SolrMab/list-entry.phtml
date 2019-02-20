@@ -11,21 +11,21 @@
   }
 ?>
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?>">
-  <? $cover=$this->record($this->driver)->getCover('list-entry', 'medium', $this->recordLink()->getUrl($this->driver)); ?>
-  <? if ($cover): ?>
-  <div class="col-xs-2 left">
-  <? else: ?>
-  <div class="col-xs-1 left">
-  <? endif ?>
-    <label class="pull-left flip"><?=$this->record($this->driver)->getCheckbox() ?></label>
-    <input type="hidden" value="<?=$id ?>" class="hiddenId"/>
-  <? if ($cover): ?>
-    <?=$cover ?>
-  </div>
-  <div class="col-xs-6 middle">
-  <? else: ?>
-  </div>
-  <div class="col-xs-7 middle">
+    <? $cover=$this->record($this->driver)->getCover('list-entry', 'medium', $this->recordLink()->getUrl($this->driver)); ?>
+    <? if ($cover): ?>
+        <div class="col-xs-2 left">
+    <? else: ?>
+        <div class="col-xs-1 left">
+    <? endif ?>
+            <label class="pull-left flip"><?=$this->record($this->driver)->getCheckbox() ?></label>
+            <input type="hidden" value="<?=$id ?>" class="hiddenId"/>
+            <? if ($cover): ?>
+                <?=$cover ?>
+        </div>
+        <div class="col-xs-6 middle">
+            <? else: ?>
+        </div>
+        <div class="col-xs-7 middle">
   <? endif ?>
 
     <div class="resultItemLine1">
@@ -35,33 +35,34 @@
     </div>
 
     <div class="resultItemLine2">
-      <? if($this->driver->isCollection()): ?>
-        <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
-      <? else: ?>
-        <? $summAuthor = $this->driver->getPrimaryAuthor(); if (!empty($summAuthor)): ?>
-          <?=$this->transEsc('by')?>
-          <a href="<?=$this->record($this->driver)->getLink('author', $summAuthor)?>"><?=$this->escapeHtml($summAuthor)?></a>
+        <? if($this->driver->isCollection()): ?>
+            <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
+        <? else: ?>
+            <? $summAuthor = $this->driver->getPrimaryAuthor(); if (!empty($summAuthor)): ?>
+            <?=$this->transEsc('by')?>
+            <a href="<?=$this->record($this->driver)->getLink('author', $summAuthor)?>"><?=$this->escapeHtml($summAuthor)?></a>
         <? endif; ?>
 
         <? $journalTitle = $this->driver->getContainerTitle(); $summDate = $this->driver->getPublicationDates(); ?>
         <? if (!empty($journalTitle)): ?>
-          <?=!empty($summAuthor) ? '<br/>' : ''?>
-          <?=/* TODO: handle highlighting more elegantly here */ $this->transEsc('Published in') . ' <a href="' . $this->record($this->driver)->getLink('journaltitle', str_replace(array('{{{{START_HILITE}}}}', '{{{{END_HILITE}}}}'), '', $journalTitle)) . '">' . $this->highlight($journalTitle) . '</a>';?>
-          <?=!empty($summDate) ? ' (' . $this->escapeHtml($summDate[0]) . ')' : ''?>
+            <?=!empty($summAuthor) ? '<br/>' : ''?>
+            <?=/* TODO: handle highlighting more elegantly here */ $this->transEsc('Published in') . ' <a href="' . $this->record($this->driver)->getLink('journaltitle', str_replace(array('{{{{START_HILITE}}}}', '{{{{END_HILITE}}}}'), '', $journalTitle)) . '">' . $this->highlight($journalTitle) . '</a>';?>
+            <?=!empty($summDate) ? ' (' . $this->escapeHtml($summDate[0]) . ')' : ''?>
         <? elseif (!empty($summDate)): ?>
-          <?=!empty($summAuthor) ? '<br/>' : ''?>
+            <?=!empty($summAuthor) ? '<br/>' : ''?>
         <? endif; ?>
+        
         <? $summInCollection = $this->driver->getContainingCollections(); if (false && !empty($summInCollection)): ?>
-          <? foreach ($summInCollection as $collId => $collText): ?>
-            <div>
-              <b><?=$this->transEsc("in_collection_label")?></b>
-              <a class="collectionLinkText" href="<?=$this->url('collection', array('id' => $collId))?>?recordID=<?=urlencode($this->driver->getUniqueID())?>">
-                <?=$this->escapeHtml($collText)?>
-              </a>
-            </div>
-          <? endforeach; ?>
+            <? foreach ($summInCollection as $collId => $collText): ?>
+                <div>
+                    <b><?=$this->transEsc("in_collection_label")?></b>
+                    <a class="collectionLinkText" href="<?=$this->url('collection', array('id' => $collId))?>?recordID=<?=urlencode($this->driver->getUniqueID())?>">
+                        <?=$this->escapeHtml($collText)?>
+                    </a>
+                </div>
+            <? endforeach; ?>
         <? endif; ?>
-      <? endif; ?>
+    <? endif; ?>
     </div>
     
     

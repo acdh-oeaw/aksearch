@@ -1,141 +1,143 @@
 <?php
     
-	$isMultiVolumeWork = $this->driver->tryMethod('isMultiVolumeWork');
-	$isSeries = $this->driver->tryMethod('isSeries');
-	$isParentOfArticles = $this->driver->tryMethod('isParentOfArticles');
-	
-	// Set page title (for HTML head-tag):
-	$pageTitlePrefix = ($isParentOfArticles) ? $this->translate('contains') : $this->translate('volumes');
-	$this->headTitle($pageTitlePrefix . ': ' . $this->driver->getBreadcrumb());
-	
-	$tableHeadingCol1 = $this->transEsc('Title');
-	$tableHeadingCol2 = $this->transEsc('volumeNo');
-	$tableHeadingCol3 = $this->transEsc('Year of Publication');
-	
-	$tableContentArrFieldCol1 = null;
-	$tableContentArrFieldCol2 = null;
-	$tableContentArrFieldCol3 = null;
-	
-	$tableContentUrlCol1 = 'default';
-	$tableContentUrlCol2 = 'default';
-	$tableContentUrlCol3 = 'default';
+    $isMultiVolumeWork = $this->driver->tryMethod('isMultiVolumeWork');
+    $isSeries = $this->driver->tryMethod('isSeries');
+    $isParentOfArticles = $this->driver->tryMethod('isParentOfArticles');
 
-	if ($isMultiVolumeWork) {
-		$childs = $this->driver->tryMethod('getChildRecords');
-		$tableContentArrFieldCol1 = 'volumeTitle';
-		$tableContentArrFieldCol2 = 'volumeNo';
-		$tableContentArrFieldCol3 = 'volumePublishDate';
-	}
-	
-	if ($isSeries) {
-		$childs = $this->driver->tryMethod('getSerialVolumes');
-		$tableContentArrFieldCol1 = 'volumeTitle';
-		$tableContentArrFieldCol2 = 'volumeNo';
-		$tableContentArrFieldCol3 = 'volumePublishDate';
-	}
-	
-	if ($isParentOfArticles) {
-		$childs = $this->driver->tryMethod('getArticleDetails');
-		$tableHeadingCol1a = $this->transEsc('year');
-		$tableHeadingCol1b = $this->transEsc('volume');
-		$tableHeadingCol1c = $this->transEsc('Issue');
-		$tableHeadingCol2 = $this->transEsc('pages');
-		$tableHeadingCol3 = $this->transEsc('link');
-		$tableContentArrFieldCol1 = 'articleTitle';
-		$tableContentArrFieldCol2 = 'articlePageFromTo';
-		$tableContentArrFieldCol3 = 'articleUrl';
-	}
+    // Set page title (for HTML head-tag):
+    $pageTitlePrefix = ($isParentOfArticles) ? $this->translate('contains') : $this->translate('volumes');
+    $this->headTitle($pageTitlePrefix . ': ' . $this->driver->getBreadcrumb());
 
-	if ($childs != null) {
-		
-		// For parent of articles, check for publish year, volume and issue. If empty, don't show column in table
-		if ($isParentOfArticles) {
-			$hasPublishDate = false;
-			$hasVolumeNo = false;
-			$hasIssueNo = false;
-			foreach ($childs as $childID => $childRecord) {
-				if ($childRecord['articlePublishDate'] != null && $childRecord['articlePublishDate'] != '0') {
-					$hasPublishDate = true;
-				}
-				if ($childRecord['articleVolume'] != null && $childRecord['articleVolume'] != '0') {
-					$hasVolumeNo = true;
-				}
-				if ($childRecord['articleIssue'] != null && $childRecord['articleIssue'] != '0') {
-					$hasIssueNo = true;
-				}
-			}
-		}
-		
-		$tabDescription = $this->tab->getDescription();
-		if ($tabDescription == 'contains') {
-			echo '<h3>'.$this->transEsc('contiansTabHeading').'</h3>';
-		} else if ($tabDescription == 'volumes') {
-			echo '<h3>'.$this->transEsc('volumesTabHeading').'</h3>';
-		}
-		
-		echo "<table class = 'table' cellpadding='2' cellspacing='0' border='0'>";
-			echo "<thead>";
-				echo "<th width='70%'>".$tableHeadingCol1."</th>";
-				if ($isParentOfArticles) {
-					if ($hasPublishDate) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1a."</th>"; }
-					if ($hasVolumeNo) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1b."</th>"; }
-					if ($hasIssueNo) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1c."</th>"; }
-				}
-				echo "<th>".$tableHeadingCol2."</th>";
-				echo "<th>".$tableHeadingCol3."</th>";
-			echo "</thead>";
-			echo "<tbody>";
-			foreach ($childs as $childID => $childRecord) {				
-				// Translation:
-				$col1 = ($childRecord[$tableContentArrFieldCol1] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml(str_replace(array('<', '>'), '', $childRecord[$tableContentArrFieldCol1]));
-				
-				if ($isParentOfArticles) {
-					$publishDate = null;
-					$volumeNo = null;
-					$issueNo = null;
-					$col1a = ($hasPublishDate && $childRecord['articlePublishDate'] != null && $childRecord['articlePublishDate'] != '0') ? $childRecord['articlePublishDate'] : $this->transEsc('n. A.');
-					$col1b = ($hasVolumeNo && $childRecord['articleVolume'] != null && $childRecord['articleVolume'] != '0') ? $childRecord['articleVolume'] : $this->transEsc('n. A.');
-					$col1c = ($hasIssueNo && $childRecord['articleIssue'] != null && $childRecord['articleIssue'] != '0') ? $childRecord['articleIssue'] : $this->transEsc('n. A.');
-					$articleLevel = (isset($childRecord['articleLevel']) && $childRecord['articleLevel'] != null) ? $childRecord['articleLevel'] : 0;
-					//$levelPadding = ($articleLevel > 0) ? 'padding-left: '.($articleLevel*20).'px;' : '';
-					$levelPadding = ''; // TODO: Level padding only for elements that have parents displayed before them in the tab.
-				}
-				$col2 = ($childRecord[$tableContentArrFieldCol2] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml($childRecord[$tableContentArrFieldCol2]);
-				$col3 = ($childRecord[$tableContentArrFieldCol3] == null || $childRecord[$tableContentArrFieldCol3] == '0')	? 'n. A.'	: $this->escapeHtml($childRecord[$tableContentArrFieldCol3]);
-				
-				echo "<tr>";
-				echo "<td style='".$levelPadding."'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1."</a></td>";
-					if ($isParentOfArticles) {
-						if ($hasPublishDate) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1a."</a></td>"; }
-						if ($hasVolumeNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1b."</a></td>"; }
-						if ($hasIssueNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col1c."</a></td>"; }
-					}	
-					echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col2."</a></td>";
-					if ($isParentOfArticles) {
-						if ($col3 == 'n. A.') {
-							echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$childID."'>".$this->transEsc($col3)."</a></td>";
-						} else {
-							if (strpos($col3, 'emedien.arbeiterkammer.at') !== false) {
-								$urlText = $this->transEsc('go_to_fulltext');
-							} else {
-								$urlText = $this->transEsc('external_link');
-							}
-							echo "<td style='white-space:nowrap;'><a href='".$col3."' target='_blank'><i class='fa fa-external-link'></i> ".$urlText."</a></td>";
-						}
-					} else {
-						if ($col3 == 'n. A.') {
-							echo "<td>".$this->transEsc($col3)."</td>";
-						} else {
-							echo "<td><a href='".$this->recordLink()->getUrl(null).$childID."'>".$col3."</a></td>";
-						}
-						
-					}
-				echo "</tr>";
-			}
-			echo "</tbody>";
-		echo "</table>";
-		
-	} else {
-		echo $this->transEsc('No child records found');
-	}
+    $tableHeadingCol1 = $this->transEsc('Title');
+    $tableHeadingCol2 = $this->transEsc('volumeNo');
+    $tableHeadingCol3 = $this->transEsc('Year of Publication');
+
+    $tableContentArrFieldCol1 = null;
+    $tableContentArrFieldCol2 = null;
+    $tableContentArrFieldCol3 = null;
+
+    $tableContentUrlCol1 = 'default';
+    $tableContentUrlCol2 = 'default';
+    $tableContentUrlCol3 = 'default';
+
+    if ($isMultiVolumeWork) {
+        $childs = $this->driver->tryMethod('getChildRecords');
+        $tableContentArrFieldCol1 = 'volumeTitle';
+        $tableContentArrFieldCol2 = 'volumeNo';
+        $tableContentArrFieldCol3 = 'volumePublishDate';
+    }
+
+    if ($isSeries) {
+        $childs = $this->driver->tryMethod('getSerialVolumes');
+        $tableContentArrFieldCol1 = 'volumeTitle';
+        $tableContentArrFieldCol2 = 'volumeNo';
+        $tableContentArrFieldCol3 = 'volumePublishDate';
+    }
+
+    if ($isParentOfArticles) {
+        $childs = $this->driver->tryMethod('getArticleDetails');
+        $tableHeadingCol1a = $this->transEsc('year');
+        $tableHeadingCol1b = $this->transEsc('volume');
+        $tableHeadingCol1c = $this->transEsc('Issue');
+        $tableHeadingCol2 = $this->transEsc('pages');
+        $tableHeadingCol3 = $this->transEsc('link');
+        $tableContentArrFieldCol1 = 'articleTitle';
+        $tableContentArrFieldCol2 = 'articlePageFromTo';
+        $tableContentArrFieldCol3 = 'articleUrl';
+    }
+    
+    if ($childs != null) {
+        // For parent of articles, check for publish year, volume and issue. If empty, don't show column in table
+        if ($isParentOfArticles) {
+            $hasPublishDate = false;
+            $hasVolumeNo = false;
+            $hasIssueNo = false;
+            foreach ($childs as $childID => $childRecord) {
+                if ($childRecord['articlePublishDate'] != null && $childRecord['articlePublishDate'] != '0') {
+                    $hasPublishDate = true;
+                }
+                if ($childRecord['articleVolume'] != null && $childRecord['articleVolume'] != '0') {
+                    $hasVolumeNo = true;
+                }
+                if ($childRecord['articleIssue'] != null && $childRecord['articleIssue'] != '0') {
+                    $hasIssueNo = true;
+                }
+            }
+        }
+
+        $tabDescription = $this->tab->getDescription();
+        if ($tabDescription == 'contains') {
+            echo '<h3>'.$this->transEsc('contiansTabHeading').'</h3>';
+        } else if ($tabDescription == 'volumes') {
+            echo '<h3>'.$this->transEsc('volumesTabHeading').'</h3>';
+        }
+        echo "<table class = 'table' cellpadding='2' cellspacing='0' border='0'>";
+            echo "<thead>";
+                echo "<th width='70%'>".$tableHeadingCol1."</th>";
+                if ($isParentOfArticles) {
+                    if ($hasPublishDate) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1a."</th>"; }
+                    if ($hasVolumeNo) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1b."</th>"; }
+                    if ($hasIssueNo) { echo "<th style='white-space: nowrap;'>".$tableHeadingCol1c."</th>"; }
+                }
+                echo "<th>".$tableHeadingCol2."</th>";
+                echo "<th>".$tableHeadingCol3."</th>";
+            echo "</thead>";
+            
+            echo "<tbody>";
+                foreach ($childs as $childID => $childRecord) {	
+                 
+                    // Translation:
+                    $col1 = ($childRecord[$tableContentArrFieldCol1] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml(str_replace(array('<', '>'), '', $childRecord[$tableContentArrFieldCol1]));
+                    if ($isParentOfArticles) {
+                        $publishDate = null;
+                        $volumeNo = null;
+                        $issueNo = null;
+                        $col1a = ($hasPublishDate && $childRecord['articlePublishDate'] != null && $childRecord['articlePublishDate'] != '0') ? $childRecord['articlePublishDate'] : $this->transEsc('n. A.');
+                        $col1b = ($hasVolumeNo && $childRecord['articleVolume'] != null && $childRecord['articleVolume'] != '0') ? $childRecord['articleVolume'] : $this->transEsc('n. A.');
+                        $col1c = ($hasIssueNo && $childRecord['articleIssue'] != null && $childRecord['articleIssue'] != '0') ? $childRecord['articleIssue'] : $this->transEsc('n. A.');
+                        $articleLevel = (isset($childRecord['articleLevel']) && $childRecord['articleLevel'] != null) ? $childRecord['articleLevel'] : 0;
+                        //$levelPadding = ($articleLevel > 0) ? 'padding-left: '.($articleLevel*20).'px;' : '';
+                        $levelPadding = ''; // TODO: Level padding only for elements that have parents displayed before them in the tab.
+                    }
+                    
+                    $col2 = ($childRecord[$tableContentArrFieldCol2] == null)	? $this->transEsc('n. A.')	: $this->escapeHtml($childRecord[$tableContentArrFieldCol2]);
+                    $col3 = ($childRecord[$tableContentArrFieldCol3] == null || $childRecord[$tableContentArrFieldCol3] == '0')	? 'n. A.' : $this->escapeHtml($childRecord[$tableContentArrFieldCol3]);
+                    //if we have recordID then we will use that - 29.01.2019 - ACDH
+                    $recordID = $childID;
+                    if( (strlen($childID) < 8) && ($childRecord['recordID'] != '0' || $childRecord['recordID'] != null) ) {
+                        $recordID = $childRecord['recordID'];
+                    }
+                    echo "<tr>";
+                        echo "<td style='".$levelPadding."'><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$col1."</a></td>";
+                        if ($isParentOfArticles) {
+                            if ($hasPublishDate) { echo "<td><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$col1a."</a></td>"; }
+                            if ($hasVolumeNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$col1b."</a></td>"; }
+                            if ($hasIssueNo) { echo "<td><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$col1c."</a></td>"; }
+                        }	
+                        echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$col2."</a></td>";
+                        if ($isParentOfArticles) {
+                            if ($col3 == 'n. A.') {
+                                echo "<td style='white-space:nowrap;'><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$this->transEsc($col3)."</a></td>";
+                            } else {
+                                if (strpos($col3, 'emedien.arbeiterkammer.at') !== false) {
+                                    $urlText = $this->transEsc('go_to_fulltext');
+                                } else {
+                                    $urlText = $this->transEsc('external_link');
+                                }
+                                echo "<td style='white-space:nowrap;'><a href='".$col3."' target='_blank'><i class='fa fa-external-link'></i> ".$urlText."</a></td>";
+                            }
+                        } else {
+                            if ($col3 == 'n. A.') {
+                                echo "<td>".$this->transEsc($col3)."</td>";
+                            } else {
+                                echo "<td><a href='".$this->recordLink()->getUrl(null).$recordID."'>".$col3."</a></td>";
+                            }
+                        }
+                    echo "</tr>";
+                }
+            echo "</tbody>";
+        echo "</table>";
+    } else {
+        echo $this->transEsc('No child records found');
+    }
 ?>

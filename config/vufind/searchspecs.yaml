@@ -153,190 +153,47 @@
 # These searches use Dismax when possible:
 Author:
   DismaxFields:
-    - author^1000
-    - author_wildcard^600
-    - authHeadingPerson_txt_mv^500
-    - subjectPER_txt_mv^300
-    - authUseForPerson_txt_mv^300
-    - corporateAuthorName_txt^400
-    - authHeadingCorporation_txt_mv^400
-    - subjectKOR_txt_mv^200
-    - corporateAuthor2Name_txt_mv^200
-    - corporateAuthor2NameGnd_txt_mv^200
-    - authUseForCorporation_txt_mv^200
-    - author2^200
-    - author_additional^200
-    - author_additional_NameGnd_txt_mv^200
-    - authOtherAdditionsPerson_txt_mv^150
-    - authOtherAdditionsCorporation_txt_mv^150
-#    - responsibilityNote_txt^100
-  DismaxParams:
-    - ["boost", "if(or(tf(corporateAuthorName_txt,'Bremen'),tf(responsibilityNote_txt,'Bremen')),-1,if(or(tf(author,'Wien'),tf(corporateAuthorName_txt,'Wien'),tf(corporateAuthor2Name_txt_mv,'Wien'),tf(corporateAuthor2NameGnd_txt_mv,'Wien'),tf(responsibilityNote_txt,'Wien')),1,0.3))"]
-    - ["bq", "publishDateSort:[2013 TO *]^1000"]
+    - author^100
+    - author_fuller^50
+    - author2
+    - author_additional
   QueryFields:
     author:
-      - [onephrase, 500]
+      - [onephrase, 350]
       - [and, 200]
       - [or, 100]
-    author_wildcard:
-      - [onephrase, 450]
-      - [and, 200]
-      - [or, 100]
-    authHeadingPerson_txt_mv:
-      - [onephrase, 500]
-      - [and, 50]
-      - [or, ~]
-    subjectPER_txt_mv:
-      - [onephrase, 500]
-      - [and, 50]
-      - [or, ~]      
-    authUseForPerson_txt_mv:
-      - [onephrase, 400]
-      - [and, 50]
-      - [or, ~]
-    corporateAuthorName_txt:
-      - [onephrase, 500]
-      - [and, 150]
-      - [or, 100]
-    authHeadingCorporation_txt_mv:
-      - [onephrase, 500]
-      - [and, 50]
-      - [or, ~]
-    subjectKOR_txt_mv:
-      - [onephrase, 500]
-      - [and, 50]
-      - [or, ~]  
-    corporateAuthor2Name_txt_mv:
-      - [onephrase, 350]
-      - [and, 50]
-      - [or, ~]
-    corporateAuthor2NameGnd_txt_mv:
-      - [onephrase, 350]
-      - [and, 50]
-      - [or, ~]
-    authUseForCorporation_txt_mv:
-      - [onephrase, 400]
-      - [and, 50]
-      - [or, ~]      
+    author_fuller:
+      - [onephrase, 200]
+      - [and, 100]
+      - [or, 50]
     author2:
-      - [onephrase, 350]
+      - [onephrase, 100]
       - [and, 50]
       - [or, ~]
     author_additional:
-      - [onephrase, 300]
+      - [onephrase, 100]
       - [and, 50]
       - [or, ~]
-    author_additional_NameGnd_txt_mv:
-      - [onephrase, 300]
-      - [and, 50]
-      - [or, ~]
-    authOtherAdditionsPerson_txt_mv:
-      - [onephrase, 150]
-      - [and, 50]
-      - [or, ~]      
-    authOtherAdditionsCorporation_txt_mv:
-      - [onephrase, 150]
-      - [and, 50]
-      - [or, ~]      
-#    responsibilityNote_txt:
-#      - [onephrase, 100]
-#      - [and, 50]
-#      - [or, ~]
 
-
-
-# ISN original search specs:
-#ISN:
-#  DismaxFields:
-#    - isbn
-#    - issn
-#  QueryFields:
-#    issn:
-#      - [and, 100]
-#      - [or, ~]
-#    isbn:
-#      - [and, 100]
-#      - [or, ~]
-
-
-# ISN search for AKsearch (enables search with or without dash incl. wildcard searches
-# Examples for searches: 3205005*, 3-205-005*, 3-205-00549-X and 320500549X
-ISN:      
-  CustomMunge:
-    isbn_exact:
-      # Strip whitespace and quotes:
-      - [preg_replace, '/[ "]/', ""]
-      # Strip dashes
-      - [preg_replace, '/\-/', ""]
-      # Strip pre-existing trailing asterisks:
-      - [preg_replace, "/\*+$/", ""]
-    isbn_fuzzy:
-      # Strip whitespace and quotes:
-      - [preg_replace, '/[ "]/', ""]
-      # Strip dashes
-      - [preg_replace, '/\-/', ""]
-      # Strip pre-existing trailing asterisks, then add a new one:
-      - [preg_replace, "/\*+$/", ""]
-      - [append, "*"]
-    issn_exact:
-      # Strip whitespace and quotes:
-      - [preg_replace, '/[ "]/', ""]
-      # Strip dashes
-      - [preg_replace, '/\-/', ""]
-      # Strip pre-existing trailing asterisks:
-      - [preg_replace, "/\*+$/", ""]
-    issn_fuzzy:
-      # Strip whitespace and quotes:
-      - [preg_replace, '/[ "]/', ""]
-      # Strip dashes
-      - [preg_replace, '/\-/', ""]
-      # Strip pre-existing trailing asterisks, then add a new one:
-      - [preg_replace, "/\*+$/", ""]
-      - [append, "*"]      
+ISN:
+  DismaxFields:
+    - isbn
+    - issn
   QueryFields:
-    isbn:
-      - [isbn_exact, 1000]
-      - [isbn_fuzzy, ~]
     issn:
-      - [issn_exact, 1000]
-      - [issn_fuzzy, ~]
-      
-      
+      - [and, 100]
+      - [or, ~]
+    isbn:
+      - [and, 100]
+      - [or, ~]
+
 Subject:
   DismaxFields:
     - topic_unstemmed^150
     - topic^100
-    - authHeadingSubject_txt_mv^100
-#    - authHeadingAdditionsSubject_txt_mv^80
-    - authUseForSubject_txt_mv^100
-#    - authUseForAdditionsSubject_txt_mv^70
-#    - authOtherAdditionsSubject_txt_mv^70
     - geographic^50
-    - authHeadingGeographic_txt_mv^50
-#    - authHeadingAdditionsGeographic_txt_mv^40
-    - authUseForGeographic_txt_mv^50
-#    - authUseForAdditionsGeographic_txt_mv^40
-#    - authOtherAdditionsGeographic_txt_mv^30
-    - authHeadingCongress_txt_mv^30
-    - authUseForCongress_txt_mv^30
-#    - authHeadingAdditionsCongress_txt_mv^20
-#    - authUseForAdditionsCongress_txt_mv^20
-#    - authOtherAdditionsCongress_txt_mv^10
-    - authHeadingWork_txt_mv^30
-#    - authHeadingAdditionsWork_txt_mv^20
-    - authUseForWork_txt_mv^30
-#    - authUseForAdditionsWork_txt_mv^20
-#    - authOtherAdditionsWork_txt_mv^10
-    - swdTopic_txt_mv^70
-    - swdGeographic_txt_mv^70
-    - subjectBKL_txt_mv^70
-    - subjectAdditional_txt_mv^70
-#    - subjectPER_txt_mv^30
-#    - subjectKOR_txt_mv^30
     - genre^50
-    - era^20
-  DismaxParams:
-    - ["bq", "publishDateSort:[2010 TO *]^10000 || datePublishSort_str:[2010 TO *]^10000"]
+    - era
   QueryFields:
     topic_unstemmed:
       - [onephrase, 350]
@@ -346,114 +203,14 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
-    authHeadingSubject_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authHeadingAdditionsSubject_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]    
-    authUseForSubject_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authUseForAdditionsSubject_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-#    authOtherAdditionsSubject_txt_mv:
-#      - [onephrase, 200]
-#      - [and, 70]
-#      - [or, ~]
     geographic:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-    authHeadingGeographic_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authHeadingAdditionsGeographic_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-    authUseForGeographic_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authUseForAdditionsGeographic_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-#    authOtherAdditionsGeographic_txt_mv:
-#      - [onephrase, 200]
-#      - [and, 70]
-#      - [or, ~]
-    authHeadingCongress_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authHeadingAdditionsCongress_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-    authUseForCongress_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authUseForAdditionsCongress_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-#    authOtherAdditionsCongress_txt_mv:
-#      - [onephrase, 200]
-#      - [and, 70]
-#      - [or, ~]
-    authHeadingWork_txt_mv:  
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authHeadingAdditionsWork_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-    authUseForWork_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-#    authUseForAdditionsWork_txt_mv:
-#      - [onephrase, 250]
-#      - [and, 80]
-#      - [or, ~]
-#    authOtherAdditionsWork_txt_mv:  
-#      - [onephrase, 200]
-#      - [and, 70]
-#      - [or, ~]
-    subjectSWD_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-    subjectBKL_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-    subjectAdditional_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]    
-    subjectPER_txt_mv:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-    subjectKOR_txt_mv:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
     genre:
       - [onephrase, 300]
       - [and, 100]
-      - [or, ~]    
+      - [or, ~]
     era:
       - [and, 100]
       - [or, ~]
@@ -522,30 +279,17 @@ JournalTitle:
 Title:
   DismaxFields:
     - title_short^500
-#    - title_de^500
-    - title_wildcard^450
     - title_full_unstemmed^450
     - title_full^400
     - title^300
     - title_alt^200
-    - title_sub^150
     - title_new^100
-    - title_old^100
+    - title_old
     - series^100
-    - series2^100
-    - authHeadingWork_txt_mv^100
-    - authUseForWork_txt_mv^100
-  DismaxParams:
-#    - ["boost", "if(or(tf(title,'Wien'),tf(title_short,'Wien'),tf(title_full_unstemmed,'Wien')),1,0.7)"]
-    - ["boost", "if(and(tf(title,'Arbeiterkammer'),tf(title,'Wien')),1,0.7)"]
-    - ["bq", "publishDateSort:[2013 TO *]^1000"]
+    - series2
   QueryFields:
     title_short:
       - [onephrase, 500]
-#    title_de:
-#      - [onephrase, 500]
-    title_wildcard:
-      - [onephrase, 450]
     title_full_unstemmed:
       - [onephrase, 450]
       - [and, 400]
@@ -556,8 +300,6 @@ Title:
       - [and, 250]
     title_alt:
       - [and, 200]
-    title_sub:
-      - [and, 200]
     title_new:
       - [and, 100]
     title_old:
@@ -566,12 +308,6 @@ Title:
       - [onephrase, 100]
       - [and, 50]
     series2:
-      - [onephrase, 50]
-      - [and , ~]
-    authHeadingWork_txt_mv:
-      - [onephrase, 50]
-      - [and , ~]
-    authUseForWork_txt_mv:
       - [onephrase, 50]
       - [and , ~]
 #  ExactSettings:
@@ -598,36 +334,19 @@ Series:
 
 AllFields:
   DismaxFields:
-#    - title_de^750
-    - title^1000
     - title_short^750
-    - title_wildcard^600
     - title_full_unstemmed^600
-    - title_full^600
-    - title_sub^500
-    - title_alt^400
-    - title_new^400
+    - title_full^400
+    - title^500
+    - title_alt^200
+    - title_new^100
     - series^50
     - series2^30
-#    - author_de^300
-    - author_wildcard^300
     - author^300
     - author_fuller^150
-    - author2^100
-    - author_additional^100
-    - author_additional_NameGnd_txt_mv^100
-    - corporateAuthorName_txt^300
-    - corporateAuthor2Name_txt_mv^100
-    - corporateAuthor2NameGnd_txt_mv^100
-    - responsibilityNote_txt^100
     - contents^10
     - topic_unstemmed^550
     - topic^500
-    - subjectSWD_txt_mv^400
-    - subjectBKL_txt_mv^400
-    - subjectAdditional_txt_mv^400
-    - subjectPER_txt_mv^300
-    - subjectKOR_txt_mv^300
     - geographic^300
     - genre^300
     - allfields_unstemmed^10
@@ -637,20 +356,11 @@ AllFields:
     - description
     - isbn
     - issn
-    - acNo_txt
-    - sysNo_txt
-  DismaxParams:
-    - ["boost", "if(and(or(tf(title,'Arbeiterkammer'),tf(author,'Arbeiterkammer'),tf(corporateAuthorName_txt,'Arbeiterkammer')),tf(title,'Wien')),1,0.7)"]
-    - ["bq", "publishDateSort:[2013 TO *]^1000"]
   QueryFields:
     0:
       0:
         - OR
         - 50
-#      title_de:
-#        - [onephrase, 750]
-      title_wildcard:
-        - [onephrase, 750]
       title_short:
         - [onephrase, 750]
       title_full_unstemmed:
@@ -661,92 +371,49 @@ AllFields:
       title:
         - [onephrase, 300]
         - [and, 250]
-      title_sub:
-        - [onephrase, 250]
-        - [and, 200]
       title_alt:
         - [and, 200]
       title_new:
         - [and, 100]
-      series:
-        - [and, 50]
-      series2:
-        - [and, 30]
-#      author_de:
-#        - [onephrase, 300]
-#        - [and, 250]
-      author_wildcard:
-        - [onephrase, 300]
-        - [and, 250]
-      author:
-        - [onephrase, 300]
-        - [and, 250]
-      author_fuller:
-        - [onephrase, 150]
-        - [and, 125]
-      author2:
-        - [and, 50]
-      author_additional:
-        - [and, 50]
-      author_additional_NameGnd_txt_mv:
-        - [and, 50]
-      corporateAuthorName_txt:
-        - [and, 250]
-      corporateAuthor2Name_txt_mv:
-        - [and, 50]
-      corporateAuthor2NameGnd_txt_mv:
-        - [and, 50]
-      responsibilityNote_txt:
-        - [and, 50]
-      contents:
-        - [and, 10]
-      topic_unstemmed:
-        - [onephrase, 550]
-        - [and, 500]
-      topic:
-        - [onephrase, 500]
-      subjectSWD_txt_mv:
-        - [onephrase, 400]
-        - [and, 40]
-        - [or, 10]
-      subjectBKL_txt_mv:
-        - [onephrase, 400]
-        - [and, 40]
-        - [or, 10]
-      subjectAdditional_txt_mv:
-        - [onephrase, 400]
-        - [and, 40]
-        - [or, 10]      
-      subjectPER_txt_mv:
-        - [onephrase, 300]
-        - [and, 30]
-        - [or, 10]
-      subjectKOR_txt_mv:
-        - [onephrase, 300]
-        - [and, 30]
-        - [or, 10]        
-      geographic:
-        - [onephrase, 300]
-      genre:
-        - [onephrase, 300]
-      allfields_unstemmed:
-        - [or, 10]
-      fulltext_unstemmed:
-        - [or, 10]
-      allfields:
-        - [or, ~]
-      fulltext:
-        - [or, ~]
-      description:
-        - [or, ~]
-      isbn:
-        - [onephrase, ~]
-      issn:
-        - [onephrase, ~]
-      acNo_txt:
-        - [onephrase, ~]
-      sysNo_txt:
-        - [onephrase, ~]
+    series:
+      - [and, 50]
+    series2:
+      - [and, 30]
+    author:
+      - [onephrase, 300]
+      - [and, 250]
+    author_fuller:
+      - [onephrase, 150]
+      - [and, 125]
+    author2:
+      - [and, 50]
+    author_additional:
+      - [and, 50]
+    contents:
+      - [and, 10]
+    topic_unstemmed:
+      - [onephrase, 550]
+      - [and, 500]
+    topic:
+      - [onephrase, 500]
+    geographic:
+      - [onephrase, 300]
+    genre:
+      - [onephrase, 300]
+    allfields_unstemmed:
+      - [or, 10]
+    fulltext_unstemmed:
+      - [or, 10]
+    allfields:
+      - [or, ~]
+    fulltext:
+      - [or, ~]
+    description:
+      - [or, ~]
+    isbn:
+      - [onephrase, ~]
+    issn:
+      - [onephrase, ~]
 #  ExactSettings:
 #    DismaxFields:
 #      - title_full_unstemmed^600
@@ -770,14 +437,6 @@ AllFields:
 #        - [onephrase, ~]
 #      issn:
 #        - [onephrase, ~]
-
-
-
-
-
-
-####################################################################################################
-
 
 # These are advanced searches that never use Dismax:
 id:
@@ -914,4 +573,4 @@ oclc_num:
       - [preg_replace, "/^0*/", ""]
   QueryFields:
     oclc_num:
-      - [oclc_num, ~]
+        - [oclc_num, ~]

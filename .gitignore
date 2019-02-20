@@ -8,7 +8,12 @@ TAGS
 vendor/.git
 /.project
 /.buildpath
-/.settings/
+/.settings
+/.m2
+/.links
+/config/*
+/module/AkSearch/config/module.config.php
+/local/config/aksearch_defaults/AKsearch.ini
 /import/solrmarc.log*
 /local/config/vufind/Alma.ini
 /local/config/vufind/AKsearch.ini
