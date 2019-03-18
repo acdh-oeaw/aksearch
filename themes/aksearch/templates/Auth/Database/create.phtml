@@ -145,6 +145,7 @@ $captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '/aksearch' : '';
 	    echo '<input type="file" name="residenceRegistrationCard" id="residenceRegistrationCard" ';
 	    echo (($residenceRegistrationCardRequired) ? 'required aria-required="true"' : '');
 	    echo ' />&nbsp';
+            echo $this->translate('createResidentialRegistrationText');
 	    echo '<div class="help-block with-errors"></div>';
 	    echo '</td>';
 	    echo '</tr>';
