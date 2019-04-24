@@ -1,0 +1,9 @@
+[submodule "module/AkSearch"]
+	path = module/AkSearch
+	url = https://git.betullam.at/aksearch2module.git
+[submodule "themes/AkSearch"]
+	path = themes/AkSearch
+	url = https://git.betullam.at/aksearch2theme.git
+[submodule "module/AkSearchSearch"]
+	path = module/AkSearchSearch
+	url = https://git.betullam.at/aksearch2searchmodule.git
