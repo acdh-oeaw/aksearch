@@ -31,7 +31,12 @@ chmod -R 755 /var/www/akimporter/data_unpacked
 
 #  + Stp 2: run AkImporter
 # cd /var/www/akimporter/
+# full indexing
+#  grep -iRl "<header status=\"deleted\">" ./  | xargs rm
+# [[ $count > 0 ]] && java -jar AkImporter.jar -p -v -o
+# reindexing of updates
 # [[ $count > 0 ]] && java -jar AkImporter.jar -R -v -o
+# fetch, consolidate, update (broken as is!)
 # [[ $count > 0 ]] && java -jar AkImporter.jar -u -v -o
 
 
