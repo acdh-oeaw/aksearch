@@ -138,10 +138,11 @@ if (! empty($holdings)) {
             $noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
             $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
         }
-        echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $this->transEsc($location) . '</h3><br />';
+        echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . '</h3><br />';
         echo '(Bestand: '. $this->driver->getLocalInventory()[0] . ')<br />';
         echo '(Lücken: '. $this->driver->getLocalInventoryGaps()[0] . ')<br />';
-
+        // print_r($this->driver->getLocalInventory());
+        // print_r($this->driver->getLocalInventoryGaps());
         // Check for second call number (for label in table heading) and some other values
         $hasSecondCallNo = false;
         $hasDescription = false;
@@ -157,8 +158,7 @@ if (! empty($holdings)) {
                 $hasLink = true;
             }
         }
-        
-        echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $this->transEsc($location) . '">';
+        echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $holdingsOfLocation['items'][0]['libraryName'] . '">';
 
         echo '<tr>';
         echo '<th>' . $this->transEsc('Call Number') . '</th>';
@@ -171,7 +171,6 @@ if (! empty($holdings)) {
         echo '</tr>';
 
         foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
-            error_log(print_R($holdingOfLocation, true));
             $check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 
             // Call Numbers (first and second)
@@ -194,7 +193,9 @@ if (! empty($holdings)) {
                 echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
                 
                 $itemStatus = "n. A.";
-                if (isset($holdingOfLocation['baseStatus']) && !empty($holdingOfLocation['baseStatus'])) {
+                if(isset($holdingOfLocation['policyName']) && !empty($holdingOfLocation['policyName'])) {
+                    $itemStatus = $holdingOfLocation['policyName'];
+                }else if (isset($holdingOfLocation['baseStatus']) && !empty($holdingOfLocation['baseStatus'])) {
                     $itemStatus = $holdingOfLocation['baseStatus'];
                     if(isset($holdingOfLocation['status']) && !empty($holdingOfLocation['status'])) {
                         $itemStatus = $itemStatus." (".$holdingOfLocation['status'].")";
@@ -202,7 +203,7 @@ if (! empty($holdings)) {
                 }else if(isset($holdingOfLocation['status']) && !empty($holdingOfLocation['status'])) {
                     $itemStatus = $holdingOfLocation['status'];
                 }
-                echo '<td>' . ((isset($holdingOfLocation['status'])) ? $holdingOfLocation['status'] : $this->transEsc('n. A.')) . '</td>';
+                echo '<td>' . ((isset($holdingOfLocation['policyName'])) ? $holdingOfLocation['policyName'] : $this->transEsc('n. A.')) . '</td>';
                 //echo '<td>' . $itemStatus . '</td>';
 
                 // Show status of item
