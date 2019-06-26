@@ -673,7 +673,8 @@ class SolrMab extends SolrDefault  {
 					"volumeNo" => $childVolumeNo,
 					"volumeTitle" => $childTitle,
 					"volumePublishDate" => $childPublishDate,
-					"volumeEdition" => $childEdition);
+					"volumeEdition" => $childEdition,
+                                        "recordID" => $childRecordSYS);
 		}
 
 		// Create array for sorting
@@ -1236,22 +1237,22 @@ class SolrMab extends SolrDefault  {
 
 			switch ($publicationTypeCode) {
 				case 'a':
-					$publicationType['begrenztesWerk'] = 'unselbst√§ndig erschienenes Werk';
+					$publicationType['begrenztesWerk'] = 'unselbst‰ndig erschienenes Werk';
 					break;
 				case 'f':
 					$publicationType['begrenztesWerk'] = 'Fortsetzung';
 					break;
 				case 'm':
-					$publicationType['begrenztesWerk'] = 'einb√§ndiges Werk - nicht Teil eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'einb‰ndiges Werk - nicht Teil eines Gesamtwerks';
 					break;
 				case 'n':
-					$publicationType['begrenztesWerk'] = 'mehrb√§ndiges begrenztes Werk - nicht Teil eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'mehrb‰ndiges begrenztes Werk - nicht Teil eines Gesamtwerks';
 					break;
 				case 's':
-					$publicationType['begrenztesWerk'] = 'einb√§ndiges Werk und Teil (mit St√ºcktitel) eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'einb‰ndiges Werk und Teil (mit St¸cktitel) eines Gesamtwerks';
 					break;
 				case 't':
-					$publicationType['begrenztesWerk'] = 'mehrb√§ndges begrenztes Werk und Teil (mit St√ºcktitel) eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'mehrb‰ndges begrenztes Werk und Teil (mit St¸cktitel) eines Gesamtwerks';
 					break;
 			}
 		}
@@ -1264,7 +1265,7 @@ class SolrMab extends SolrDefault  {
 
 			switch ($fortlaufendesWerkCode) {
 				case 'a':
-					$publicationType['fortlaufendesWerk'] = 'unselbst√§ndig erschienenes Werk';
+					$publicationType['fortlaufendesWerk'] = 'unselbst‰ndig erschienenes Werk';
 					break;
 				case 'f':
 					$publicationType['fortlaufendesWerk'] = 'Fortsetzung';
