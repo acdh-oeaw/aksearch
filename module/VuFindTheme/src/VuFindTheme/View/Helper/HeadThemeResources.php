@@ -77,11 +77,10 @@ class HeadThemeResources extends \Zend\View\Helper\AbstractHelper
     {
         // Set up encoding:
         $headMeta = $this->getView()->plugin('headmeta');
-        
         $headMeta()->prependHttpEquiv(
             'Content-Type', 'text/html; charset=' . $this->container->getEncoding()
         );
-        $headMeta()->appendName('google-site-verification', 'QKRrZtdDxkpcUoFPcNPgpqdLeNvy1KzNazDteUa2gcc');
+
         // Set up generator:
         $generator = $this->container->getGenerator();
         if (!empty($generator)) {
