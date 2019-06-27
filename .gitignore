@@ -20,4 +20,4 @@ vendor/.git
 /akimporter/data_unpacked
 /akimporter/data_update
 /akimporter/sample_data
-/.idea
+/.idea/*
