@@ -639,6 +639,7 @@ AllFields:
     - issn
     - acNo_txt
     - sysNo_txt
+    - callnumbers_txt_mv
   DismaxParams:
     - ["boost", "if(and(or(tf(title,'Arbeiterkammer'),tf(author,'Arbeiterkammer'),tf(corporateAuthorName_txt,'Arbeiterkammer')),tf(title,'Wien')),1,0.7)"]
     - ["bq", "publishDateSort:[2013 TO *]^1000"]
@@ -747,6 +748,8 @@ AllFields:
         - [onephrase, ~]
       sysNo_txt:
         - [onephrase, ~]
+      callnumbers_txt_mv:
+        - [or, ~]
 #  ExactSettings:
 #    DismaxFields:
 #      - title_full_unstemmed^600
@@ -845,11 +848,11 @@ CallNumber:
       - [append, "*"]
   QueryFields:
     callnumber-search:
-      - [callnumber_exact, 1000]
-      - [callnumber_fuzzy, ~]
+      - [callnumbers_txt_mv, 1000]
+      - [callnumbers_txt_mv, ~]
     dewey-search:
-      - [callnumber_exact, 1000]
-      - [callnumber_fuzzy, ~]
+      - [callnumbers_txt_mv, 1000]
+      - [callnumbers_txt_mv, ~]
 
 publisher:
   DismaxFields:
