@@ -356,6 +356,7 @@ AllFields:
     - description
     - isbn
     - issn
+    - hol852hSignatur_txt_mv
   QueryFields:
     0:
       0:
@@ -413,6 +414,8 @@ AllFields:
     isbn:
       - [onephrase, ~]
     issn:
+      - [onephrase, ~]
+    hol852hSignatur_txt_mv:
       - [onephrase, ~]
 #  ExactSettings:
 #    DismaxFields:
