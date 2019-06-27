@@ -509,6 +509,7 @@ CallNumber:
     callnumber-search:
       - [callnumber_exact, 1000]
       - [callnumber_fuzzy, ~]
+      - [hol852hSignatur_txt_mv, 1000]
     dewey-search:
       - [callnumber_exact, 1000]
       - [callnumber_fuzzy, ~]
