@@ -156,21 +156,19 @@ JS;
     		echo '<div class="akContainer">';
     			echo $this->layout()->content;
     		echo '</div>';
-    		/*
     		echo	'<div id="systemChangeAlert2">'.
 						'<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>&nbsp;'.
-						'Einschränkung wegen Systemumstieg, 22.12.17 - 7.1.18: '.
-						'<a href="https://wien.arbeiterkammer.at/beratung/bildung/bibliothek/bibliotheksbenuetzung/systemumstieg.html" target="_blank">Weitere Infos hier</a>!'.
+						'Die Signaturen<br>'.
+                        '80.000 bis 80.317, 100.000 bis 202.559, sowie alle Einzelwerke (Format Zahl-A bis Zahl-D)<br>'.
+                        'sind auf Grund von Renovierungsarbeiten nicht verfügbar !<br>'.
 					'</div>';
-    		*/
     	} else {
-    		/*
-    		echo	'<div id="systemChangeAlert2">'.
-						'<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>&nbsp;'.
-						'Einschränkung wegen Systemumstieg, 22.12.17 - 7.1.18: '.
-						'<a href="https://wien.arbeiterkammer.at/beratung/bildung/bibliothek/bibliotheksbenuetzung/systemumstieg.html" target="_blank">Weitere Infos hier</a>!'.
-					'</div>';
-    		*/
+            echo	'<div id="systemChangeAlert2">'.
+                '<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>&nbsp;'.
+                'Die Signaturen<br>'.
+                '80.000 bis 80.317, 100.000 bis 202.559, sowie alle Einzelwerke (Format Zahl-A bis Zahl-D)<br>'.
+                'sind auf Grund von Renovierungsarbeiten nicht verfügbar !<br>'.
+                '</div>';
     		echo '<div class="container">';
     			echo $this->layout()->content;
     		echo '</div>';
