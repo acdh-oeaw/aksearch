@@ -438,28 +438,25 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		        $formError = true;
     		    }
     		}
-    		
+			
     		// Check if captcha code is correct:
     		include_once 'vendor/securimage/securimage.php';
     		$securimage = new \Securimage();
     		if ($securimage->check($captchaCode) == false) {
     			$errorMsg[] = $this->translate('captchaError');
     			$formError = true;
-    		}
+			}
     		
     		if ($formError) {
     			// Ouput of error messages
     			foreach ($errorMsg as $errorMessage) {
     				$this->flashMessenger()->addMessage($errorMessage, 'error');
     			}
-    		} else {
-    		    // Create an empty block XML variable for adding to the XML further down.
-    		    $blockXml = '';
-    		    
+    		} else {    		    
     		    // Check if the newly registered user should be blocked
     		    $blockUser = (isset($configAlma->Users->blockUser) && !empty($configAlma->Users->blockUser)) ? $configAlma->Users->blockUser : false;
     		    
-    		    // If the new user should be blocked, create an XML for the Alma API
+    		    // If the new user should be blocked, get values for the XML for the Alma API
     		    if ($blockUser) {
     		        $blockTypeCode = (isset($configAlma->Users->blockTypeCode) && !empty($configAlma->Users->blockTypeCode)) ? $configAlma->Users->blockTypeCode : null;
     		        $blockTypeDesc = (isset($configAlma->Users->blockTypeDesc) && !empty($configAlma->Users->blockTypeDesc)) ? $configAlma->Users->blockTypeDesc : null;
@@ -469,85 +466,71 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     		        $blockNote = (isset($configAlma->Users->blockNote) && !empty($configAlma->Users->blockNote)) ? $configAlma->Users->blockNote : '';
     		        $blockCreatedBy = (isset($configAlma->Users->blockCreatedBy) && !empty($configAlma->Users->blockCreatedBy)) ? $configAlma->Users->blockCreatedBy : 'AKsearch';
     		        $blockCreatedDate = date('Y-m-d\TH:i:s\Z'); // Date in Alma Format
-    		        
-    		        // Make sure all necessary fields are set
-    		        if ($blockTypeCode != null && $blockTypeDesc != null && $blockDescriptionCode != null && $blockDescriptionDesc != null) {
-    		            // Create XML for Alma API
-    		            $blockXml = '<user_blocks>'.
-                                        '<user_block segment_type="Internal">'.
-                                            '<block_type desc="'.$blockTypeDesc.'">'.$blockTypeCode.'</block_type>'.
-                                            '<block_description desc="'.$blockDescriptionDesc.'">'.$blockDescriptionCode.'</block_description>'.
-                                            '<block_status>'.$blockStatus.'</block_status>'.
-                                            '<block_note>'.$blockNote.'</block_note>'.
-                                            '<created_by>'.$blockCreatedBy.'</created_by>'.
-                                            '<created_date>'.$blockCreatedDate.'</created_date>'.
-                                        '</user_block>'.
-                                    '</user_blocks>';
-    		        }
     		    }
     		    
     			// Generate a barcode. We use it as an additional user identifier in Alma.
     			$stringForHash = $firstName . $lastName . $birthdayTs . $email . time();
     			$barcode = $this->akSearch()->generateBarcode($stringForHash);
-    			
-    			// Set XML string for inserting new patron in Alma. We send this as POST body in an HTTP request
-    			$xml_string = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-						<user>
-						  <record_type>'.$recordType.'</record_type>
-						  <first_name>'.$firstName.'</first_name>
-						  <last_name>'.$lastName.'</last_name>
-						  <job_category>'.$jobCategory.'</job_category>
-						  <job_description>'.$job.'</job_description>
-						  <gender>'.$gender.'</gender>
-						  <user_group>'.$userGroup.'</user_group>
-                          <preferred_language desc="German">de</preferred_language>
-						  <birth_date>'.$birthdayAlma.'Z</birth_date>
-						  <expiry_date>'.$dateExpiry.'Z</expiry_date>
-						  <account_type>'.$accountType.'</account_type>
-						  <status>'.$status.'</status>
-						  <contact_info>
-						    <addresses>
-						      <address preferred="true">
-						        <line1>'.$street.'</line1>
-								<line2>'.$zip.' '. $city .'</line2>
-						        <city>'.$city.'</city>
-								<postal_code>'.$zip.'</postal_code>
-						        <start_date>'.$dateToday.'Z</start_date>
-						        <address_types>
-						          <address_type>'.$addressType.'</address_type>
-						        </address_types>
-						      </address>
-						    </addresses>
-						    <emails>
-						      <email preferred="true">
-						        <email_address>'.$email.'</email_address>
-						        <email_types>
-						          <email_type>'.$emailType.'</email_type>
-						        </email_types>
-						      </email>
-						    </emails>
-						    <phones>
-						      <phone preferred="true">
-						        <phone_number>'.$phone.'</phone_number>
-						        <phone_types>
-						          <phone_type>'.$phoneType.'</phone_type>
-						        </phone_types>
-						      </phone>
-						    </phones>
-						  </contact_info>
-						  <user_identifiers>
-							<user_identifier>
-								<id_type>01</id_type>
-								<value>'.$barcode.'</value>
-							</user_identifier>
-						  </user_identifiers>'.
-						  $blockXml.
-						'</user>';
+
+				// Create XML by using SimpleXML for inserting new patron in Alma. We send this as POST body in an HTTP request
+				$simpleXml = new \SimpleXMLElement(
+					'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'.
+					'<user></user>
+				');
+				$simpleXml->record_type = $recordType;
+				$simpleXml->first_name = $firstName;
+				$simpleXml->last_name = $lastName;
+				$simpleXml->job_category = $jobCategory;
+				$simpleXml->job_description = $job;
+				$simpleXml->gender = $gender;
+				$simpleXml->user_group = $userGroup;
+				$simpleXml->preferred_language = 'de';
+				$simpleXml->preferred_language->addAttribute('desc', 'German');
+				$simpleXml->birth_date = $birthdayAlma;
+				$simpleXml->expiry_date = $dateExpiry;
+				$simpleXml->account_type = $accountType;
+				$simpleXml->status = $status;
+				$sContact = $simpleXml->addChild('contact_info');
+				$sAddress = $sContact->addChild('addresses')->addChild('address');
+				$sAddress->addAttribute('preferred', 'true');
+				$sAddress->line1 = $street;
+				$sAddress->line2 = $zip.' '. $city;
+				$sAddress->city = $city;
+				$sAddress->postal_code = $zip;
+				$sAddress->start_date = $dateToday;
+				$sAddress->address_types->address_type = $addressType;
+				$sEmail = $sContact->addChild('emails')->addChild('email');
+				$sEmail->addAttribute('preferred', 'true');
+				$sEmail->email_address = $email;
+				$sEmail->email_types->email_type = $emailType;
+				$sPhone = $sContact->addChild('phones')->addChild('phone');
+				$sPhone->addAttribute('preferred', 'true');
+				$sPhone->phone_number = $phone;
+				$sPhone->phone_types->phone_type = $phoneType;
+				$sUserId = $simpleXml->addChild('user_identifiers')->addChild('user_identifier');
+				$sUserId->id_type = '01';
+				$sUserId->value = $barcode;
+
+				if ($blockTypeCode != null && $blockTypeDesc != null && $blockDescriptionCode != null && $blockDescriptionDesc != null) {
+					$sBlock = $simpleXml->addChild('user_blocks')->addChild('user_block');
+					$sBlock->addAttribute('segment_type', 'Internal');
+					$sBlock->block_type = $blockTypeCode;
+					$sBlock->block_type->addAttribute('desc', $blockTypeDesc);
+					$sBlock->block_description = $blockDescriptionCode;
+					$sBlock->block_description->addAttribute('desc', $blockDescriptionDesc);
+					$sBlock->block_status = $blockStatus;
+					$sBlock->block_note = $blockNote;
+					$sBlock->created_by = $blockCreatedBy;
+					$sBlock->created_date = $blockCreatedDate;
+				}
+
+				// Get the SimpleXML as string
+				$xml_string = $simpleXml->asXML();
     			
     			// Remove whitespaces from XML string:
     			$xml_string = preg_replace("/\n/i", "", $xml_string);
-    			$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
-    			
+				$xml_string = preg_replace("/>\s*</i", "><", $xml_string);
+				
     			// Create user in Alma
     			$almaReturn = $this->akSearch()->doHTTPRequest($configAlma->API->url.'users/?&apikey='.$configAlma->API->key, 'POST', $xml_string, ['Content-Type' => 'application/xml']);
 
@@ -593,8 +576,8 @@ class MyResearchController extends DefaultMyResearchController implements Transl
     	}
     	    	
     	return $view;
-    }
-
+	}
+	
     
     /**
      * Send eMail to new patron if account was created successfully.
