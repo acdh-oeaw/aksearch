@@ -68,7 +68,7 @@ $captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '/aksearch' : '';
 		</td>
 	</tr>
 	<tr>
-		<td><?=$this->transEsc('street').(($streetRequired) ? ' *' : '')?></td>
+		<td><?=$this->transEsc('street').' '.$this->transEsc('streetnumber').(($streetRequired) ? ' *' : '')?></td>
 		<td class="form-group" colspan="2">
 			<input type="text" name="street" id="street" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('street'))?>" <?=(($streetRequired) ? 'required aria-required="true"' : '')?> />
 			<div class="help-block with-errors"></div>
