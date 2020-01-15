@@ -1,247 +1,251 @@
-<div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-11">
-    <div class="row">
+<div
+	class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>col-xs-11">
+	<div class="row">
 	
-        <!-- ID -->
-        <div>
-            <input type="hidden"
-                value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>"
-                class="hiddenId" /> 
-            <input type="hidden"
-                value="<?=$this->escapeHtmlAttr($this->driver->getResourceSource())?>"
-                class="hiddenSource" />
-        </div>
-
-        <!-- Cover -->
-        <? if ($cover = $this->record($this->driver)->getCover('result-list', 'medium', $this->recordLink()->getUrl($this->driver))): ?>
-            <div class="col-sm-2 col-xs-3 left"><?=$cover ?></div>
-        <? endif ?>
-        	
-        <div class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
+		<!-- ID -->
+		<div>
+			<input type="hidden"
+				value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>"
+				class="hiddenId" /> <input type="hidden"
+				value="<?=$this->escapeHtmlAttr($this->driver->getResourceSource())?>"
+				class="hiddenSource" />
+		</div>
+		
+		<!-- Cover -->
+	    <? if ($cover = $this->record($this->driver)->getCover('result-list', 'medium', $this->recordLink()->getUrl($this->driver))): ?>
+	      <div class="col-sm-2 col-xs-3 left"><?=$cover ?></div>
+	    <? endif ?>
+    
 	    	
-            <!-- Title + Subseries -->
-            <div>
-                <a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
-                    <?php
-                        $title = trim(str_replace(array('&lt;', '&gt;'), '', $this->record($this->driver)->getTitleHtml()));
-                        echo trim($title);
-
-                        // Subseries
-                        $subSeries = $this->driver->tryMethod('getSubseries');
-                        if (isset($subSeries)) {
-                            $subSeriesCommaSeparated = implode(', ', $subSeries);
-                            echo ': '.$this->escapeHtml(str_replace(array('<', '>'), '', $subSeriesCommaSeparated));
-                        }
-                    ?>
-                </a>
-            </div>
+	    	<div class="<?=$cover ? 'col-sm-7 col-xs-6' : 'col-sm-9 col-xs-9'?> middle">
+	    	
+				<!-- Title + Subseries -->
+				<div>
+					<a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title"><?php
+	          			$title = trim(str_replace(array('&lt;', '&gt;'), '', $this->record($this->driver)->getTitleHtml()));
+	          			echo trim($title);
+	          			
+	          			// Subseries
+	          			$subSeries = $this->driver->tryMethod('getSubseries');
+	          			if (isset($subSeries)) {
+	          				$subSeriesCommaSeparated = implode(', ', $subSeries);
+	          				echo ': '.$this->escapeHtml(str_replace(array('<', '>'), '', $subSeriesCommaSeparated));
+	          			}
+	          			
+	          			?>
+	          		</a>
+	        	</div>
 	          	
-            <!-- Subtitle -->
-            <div class="akEllipsis">
-                <?php
-                    $subTitle = trim($this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle()))));
-                    if (!empty($subTitle)) {
-                        echo '<span title="'.$subTitle.'">'.$subTitle.'</span>';
-                    }
-                ?>
-            </div>
+				<!-- Subtitle -->
+				<div class="akEllipsis">
+				<?php
+				$subTitle = trim($this->escapeHtml(str_replace(array('<', '>'), '', ucfirst($this->driver->getSubtitle()))));
+				if (!empty($subTitle)) {
+					echo '<span title="'.$subTitle.'">'.$subTitle.'</span>';
+				}
+				?>
+				</div>
 				
-            <!-- Volume No and parent title -->
-            <div class="akEllipsis">
-                <?php
-                    $volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
-                    $parentTitles = $this->driver->getParentTitles();
-                    $parentSYSs =  $this->driver->getParentSYSs();
-                    if (!empty($volumeNo)) {
-                        // Show volume no.
-                        echo '<span title="'.$this->transEsc('volume').' &quot;'.$volumeNo.'&quot;">';
-                        echo '<span>'.$this->transEsc('volume').' </span> ';
-                        echo '<span><i>'.$volumeNo.'</i></span>';
-                        echo '</span>';
+				<!-- Volume No and parent title -->
+				<div class="akEllipsis">
+				<?php
+				$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
+				$parentTitles = $this->driver->getParentTitles();
+				$parentSYSs =  $this->driver->getParentSYSs();
+				if (!empty($volumeNo)) {
+					// Show volume no.
+					echo '<span title="'.$this->transEsc('volume').' &quot;'.$volumeNo.'&quot;">';
+						echo '<span>'.$this->transEsc('volume').' </span> ';
+						echo '<span><i>'.$volumeNo.'</i></span>';
+					echo '</span>';
 
-                        // Show parent titles and link them if possible 
-                        if ($parentTitles != null && $parentSYSs != null && count($parentTitles) == count($parentSYSs)) {
-                            // Get all parent titles and Sys-Nos. as links and put them into an array.
-                            $parents = [];
-                            foreach($parentTitles as $key => $value) {
-                                $parents[] = '<a href="'.$this->recordLink()->getUrl(null).$parentSYSs[$key].'" title="'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $parentTitles[$key]))).'">'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $parentTitles[$key]))).'</a>';
-                            }
+					// Show parent titles and link them if possible
+					if ($parentTitles != null && $parentSYSs != null && count($parentTitles) == count($parentSYSs)) {
+						// Get all parent titles and Sys-Nos. as links and put them into an array.
+						$parents = [];
+						foreach($parentTitles as $key => $value) {
+							$parents[] = '<a href="'.$this->recordLink()->getUrl(null).$parentSYSs[$key].'" title="'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $parentTitles[$key]))).'">'.trim($this->escapeHtml(str_replace(array('<', '>'), '', $parentTitles[$key]))).'</a>';
+						}
+						
+						// Glue parent titles togehter as string
+						if (!empty($parents)) {
+							$parentsString = implode('; ', $parents);
+						}
+						
+						// Show linked parent titles:
+						echo ' <span> '.$this->transEsc('akFrom').' ';
+							echo $parentsString;
+						echo '</span>';
+					}
+				}
+				?>
+				</div>
+				
+				<div class="akResultListSeparator"></div>
 
-                            // Glue parent titles togehter as string
-                            if (!empty($parents)) {
-                                $parentsString = implode('; ', $parents);
-                            }
-
-                            // Show linked parent titles:
-                            echo ' <span> '.$this->transEsc('akFrom').' ';
-                            echo $parentsString;
-                            echo '</span>';
-                        }
-                    }
-                ?>
-            </div>
-
-            <div class="akResultListSeparator"></div>
-
-            <div>        
+		<div>
 	        <? if($this->driver->isCollection()): ?>
-                    <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
+	          <?=implode('<br>', array_map(array($this, 'escapeHtml'), $this->driver->getSummary())); ?>
 	        <? else: ?>
 
-                    <!-- Participants (all persons: Authors, Editors, etc.) -->
-                    <div class="akEllipsis">
-                        <?php
-                            $participants = $this->driver->getParticipants();	          	
-                            if (isset($participants) && !empty($participants)) {
-                                $participantLinks= [];
-                                foreach ($participants as $role => $participant) {
-                                    foreach ($participant as $key => $gndName) {
-                                        $name = $gndName[key($gndName)];
-                                        $participantLinks[] = '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'" title="'.$name.'">' . trim($this->escapeHtml(str_replace(array('<', '>'), '', $name))) . '</a>';
-                                    }
-                                }
-                                echo '<span class="akResultListCaption">'.$this->transEsc('Beteiligte').':</span> '.join('; ', $participantLinks);
-                            }
-                        ?>
-                    </div>
+	          
+	          <!-- Participants (all persons: Authors, Editors, etc.) -->
+	          <div class="akEllipsis">
+	          <?php
+	          $participants = $this->driver->getParticipants();
+	          if (isset($participants) && !empty($participants)) {
+	          	$participantLinks= [];
+	          	foreach ($participants as $role => $participant) {
+	          		foreach ($participant as $key => $gndName) {
+	          			$name = $gndName[key($gndName)];
+	          			$participantLinks[] = '<a property="author" href="'.$this->record($this->driver)->getLink('author', $name).'" title="'.$name.'">' . trim($this->escapeHtml(str_replace(array('<', '>'), '', $name))) . '</a>';
+	          		}
+	          	}
+	          	echo '<span class="akResultListCaption">'.$this->transEsc('Beteiligte').':</span> '.join('; ', $participantLinks);
+	          }
+	          ?>
+	          </div>
 
-                    <? $journalTitle = $this->driver->getContainerTitle(); $summDate = $this->driver->getPublicationDates(); ?>
-                    <? if (!empty($journalTitle)): ?>
-                        <?=!empty($summAuthor) ? '<br />' : ''?>
-                        <?=$this->transEsc('Published in')?>
-                        <? $containerID = $this->driver->getContainerRecordID(); ?>
-                        <? /* TODO: handle highlighting more elegantly here: */?>
-                        <a href="<?=($containerID ? $this->recordLink()->getUrl("VuFind|$containerID") : $this->record($this->driver)->getLink('journaltitle', str_replace(array('{{{{START_HILITE}}}}', '{{{{END_HILITE}}}}'), '', $journalTitle)))?>"><?=$this->highlight($journalTitle) ?></a>
-                        <?=!empty($summDate) ? ' (' . $this->escapeHtml($summDate[0]) . ')' : ''?>
-                    <? elseif (!empty($summDate)): ?>
-                        <?=!empty($summAuthor) ? '<br />' : ''?>
-                    <? endif; ?>
-                    
-                    <? $summInCollection = $this->driver->getContainingCollections(); if (!empty($summInCollection)): ?>
+	          <? $journalTitle = $this->driver->getContainerTitle(); $summDate = $this->driver->getPublicationDates(); ?>
+	          <? if (!empty($journalTitle)): ?>
+	            <?=!empty($summAuthor) ? '<br />' : ''?>
+	            <?=$this->transEsc('Published in')?>
+	            <? $containerID = $this->driver->getContainerRecordID(); ?>
+	            <? /* TODO: handle highlighting more elegantly here: */?>
+	            <a href="<?=($containerID ? $this->recordLink()->getUrl("VuFind|$containerID") : $this->record($this->driver)->getLink('journaltitle', str_replace(array('{{{{START_HILITE}}}}', '{{{{END_HILITE}}}}'), '', $journalTitle)))?>"><?=$this->highlight($journalTitle) ?></a>
+	            <?=!empty($summDate) ? ' (' . $this->escapeHtml($summDate[0]) . ')' : ''?>
+	          <? elseif (!empty($summDate)): ?>
+	            <?=!empty($summAuthor) ? '<br />' : ''?>
+	          <? endif; ?>
+	          <? $summInCollection = $this->driver->getContainingCollections(); if (!empty($summInCollection)): ?>
 	            <? foreach ($summInCollection as $collId => $collText): ?>
-                        <div>
-                            <b><?=$this->transEsc("in_collection_label")?></b> 
-                            <a
-                                class="collectionLinkText"
-                                href="<?=$this->url('collection', array('id' => $collId))?>?recordID=<?=urlencode($this->driver->getUniqueID())?>">
-                                <?=$this->escapeHtml($collText)?>
-                            </a>
-                        </div>
+	              <div>
+						<b><?=$this->transEsc("in_collection_label")?></b> <a
+							class="collectionLinkText"
+							href="<?=$this->url('collection', array('id' => $collId))?>?recordID=<?=urlencode($this->driver->getUniqueID())?>">
+	                  <?=$this->escapeHtml($collText)?>
+	                </a>
+					</div>
 	            <? endforeach; ?>
-                    <? endif; ?>
-                <? endif; ?>
-            </div>
-            
-            <!-- Publication details -->
-            <div>
+	          <? endif; ?>
+	        <? endif; ?>
+	      </div>
+
+          
+		<!-- Publication details -->
+		<div>
 		<?php
 
-                    $publicationDetails = $this->driver->getPublicationDetails();
-                    $publisher = (isset($publicationDetails['publisher'])) ? $publicationDetails['publisher'] : null;
-                    $publicationPlace = (isset($publicationDetails['publishPlace'])) ? $publicationDetails['publishPlace'] : null; //$publicationDetails['publishPlace'];
-                    $publicationYear = (isset($publicationDetails['publishDate'])) ? $publicationDetails['publishDate'] : null; //$publicationDetails['publishDate'];
-                    //$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
+		$publicationDetails = $this->driver->getPublicationDetails();
+		$publisher = (isset($publicationDetails['publisher'])) ? $publicationDetails['publisher'] : null;
+		$publicationPlace = (isset($publicationDetails['publishPlace'])) ? $publicationDetails['publishPlace'] : null; //$publicationDetails['publishPlace'];
+		$publicationYear = (isset($publicationDetails['publishDate'])) ? $publicationDetails['publishDate'] : null; //$publicationDetails['publishDate'];
+		//$volumeNo = trim($this->escapeHtml($this->driver->getVolumeNo()));
 		
-                    if (isset($publicationYear)) {
-                        echo '<div class="akEllipsis">';
-                        echo '<span class="akResultListCaption">'.$this->transEsc('year').':</span> '.$publicationYear;
-                        echo '</div>';
-                    }
+		if (isset($publicationYear)) {
+			echo '<div class="akEllipsis">';
+			echo '<span class="akResultListCaption">'.$this->transEsc('year').':</span> '.$publicationYear;
+			echo '</div>';
+		}
 		
-                    /*
-                    echo '<div class="akEllipsis">';
-                    if (!empty($volumeNo)) {
-                            echo '<span class="akResultListCaption">'.$this->transEsc('volume').':</span> ';
-                            echo '<span title="'.$volumeNo.'">'.$volumeNo.'</span>';
-                    }
-                    echo '</div>';
-                    */
-
-                    if ($this->driver->isArticle()) {
-                        $articleParentTitle = $this->driver->tryMethod('getArticleParentTitle');
-                        $arrArticleParentSYSs = $this->driver->tryMethod('getParentSYSs');
-                        $articleParentSYS = (isset($arrArticleParentSYSs)) ? $arrArticleParentSYSs[0] : null; // There should only be 1 parentSYS for an article
-
-                        if (isset($articleParentTitle) && !empty($articleParentTitle)) {
-                            $articleParentTitle = str_replace(array('<', '>'), '', $articleParentTitle);
-                            echo '<div class="akEllipsis">';
-                            echo '<span class="akResultListCaption">'.$this->transEsc('Published in').':</span> ';
-                            //echo '<span title="'.$articleParentTitle.'">'.$articleParentTitle.'</span>';
-                            if (isset($articleParentSYS) && $articleParentSYS != null) {
-                                echo '<a href="'.$this->recordLink()->getUrl().$articleParentSYS.'/Holdings" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
-                            } else {
-                                echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
-                            }
-                            echo '</div>';
-                        }
-                    } else {
-                        if (isset($publisher)) {
-                            $publishString = $publisher;
-                            if (isset($publicationPlace)) {
-                                $publishString .= ' ('.$publicationPlace.')';
-                            }
-
-                            echo '<div class="akEllipsis">';
-                            echo '<span class="akResultListCaption">'.$this->transEsc('Publisher').':</span> ';
-                            echo '<span title="'.$publishString.'">'.$publishString.'</span>';
-                            echo '</div>';
-                        }
-                    }
+		/*
+		echo '<div class="akEllipsis">';
+		if (!empty($volumeNo)) {
+			echo '<span class="akResultListCaption">'.$this->transEsc('volume').':</span> ';
+			echo '<span title="'.$volumeNo.'">'.$volumeNo.'</span>';
+		}
+		echo '</div>';
+		*/
+		
+		if ($this->driver->isArticle()) {
+			$articleParentTitle = $this->driver->tryMethod('getArticleParentTitle');
+			$arrArticleParentSYSs = $this->driver->tryMethod('getParentSYSs');
+			$articleParentSYS = (isset($arrArticleParentSYSs)) ? $arrArticleParentSYSs[0] : null; // There should only be 1 parentSYS for an article
+				
+			if (isset($articleParentTitle) && !empty($articleParentTitle)) {
+				$articleParentTitle = str_replace(array('<', '>'), '', $articleParentTitle);
+				echo '<div class="akEllipsis">';
+				echo '<span class="akResultListCaption">'.$this->transEsc('Published in').':</span> ';
+				//echo '<span title="'.$articleParentTitle.'">'.$articleParentTitle.'</span>';
+				if ($articleParentSYS != null) {
+					echo '<a href="'.$this->recordLink()->getUrl(null).$articleParentSYS.'/Holdings" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+				} else {
+					echo '<a href="'.$this->record($this->driver)->getLink('title', $articleParentTitle).'" title="'.$articleParentTitle.'">'.$this->escapeHtml($articleParentTitle).'</a><br/>';
+				}
+				echo '</div>';
+			}
+		} else {
+			if (isset($publisher)) {
+				$publishString = $publisher;
+				if (isset($publicationPlace)) {
+					$publishString .= ' ('.$publicationPlace.')';
+				}
+							
+				echo '<div class="akEllipsis">';
+					echo '<span class="akResultListCaption">'.$this->transEsc('Publisher').':</span> ';
+					echo '<span title="'.$publishString.'">'.$publishString.'</span>';
+				echo '</div>';
+			}
+		}
 		?>
-            </div>
-            <? if(!$this->driver->isCollection()): ?>
-                <? if ($snippet = $this->driver->getHighlightedSnippet()): ?>
-                    <br />
-                    <? if (!empty($snippet['caption'])): ?>
-                        <strong><?=$this->transEsc($snippet['caption']) ?>:</strong>
-                    <? endif; ?>
-                    <? if (!empty($snippet['snippet'])): ?>
-                        <span class="quotestart">&#8220;</span>...<?=str_replace(array('&lt;', '&gt;'), "", $this->highlight($snippet['snippet'])) ?>...<span class="quoteend">&#8221;</span>
-                    <? endif; ?>
-                <? endif; ?>
-            <? endif; ?>
-            <?
+		</div>
+          
+
+      <? if(!$this->driver->isCollection()): ?>
+        <? if ($snippet = $this->driver->getHighlightedSnippet()): ?>
+          <br />
+          <? if (!empty($snippet['caption'])): ?>
+            <strong><?=$this->transEsc($snippet['caption']) ?>:</strong>
+          <? endif; ?>
+          <? if (!empty($snippet['snippet'])): ?>
+            <span class="quotestart">&#8220;</span>...<?=str_replace(array('&lt;', '&gt;'), "", $this->highlight($snippet['snippet'])) ?>...<span class="quoteend">&#8221;</span>
+          <? endif; ?>
+        <? endif; ?>
+      <? endif; ?>
+
+      <?
 		/* Display information on duplicate records if available */
 		if ($dedupData = $this->driver->getDedupData()) :
 							?>
-                    <div class="dedupInformation">
-                    <?
+        <div class="dedupInformation">
+        <?
 			$i = 0;
 			foreach ($dedupData as $source => $current) {
-                            if (++ $i == 1) { ?>
-                                <span class="currentSource"><a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->transEsc("source_$source", array(), $source)?></a></span><?
-                            } else {
-                                if ($i == 2) {
-                                    ?> <span class="otherSources">(<?=$this->transEsc('Other Sources')?>: <?
-                                } else {
-                                ?>, <?
-                                }
-                                ?><a href="<?=$this->recordLink()->getUrl($current['id'])?>"><?=$this->transEsc("source_$source", array(), $source)?></a><?
-                            }
-                        }
-                        if ($i > 1) {
-                            ?>)</span><?
-                        }
-                    ?>
-                    </div>
-                <? endif; ?>
+				if (++ $i == 1) {
+					?><span class="currentSource"><a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->transEsc("source_$source", array(), $source)?></a></span><?
+				} else {
+					if ($i == 2) {
+						?> <span class="otherSources">(<?=$this->transEsc('Other Sources')?>: <?
+					} else {
+						?>, <?
+					}
+					?><a href="<?=$this->recordLink()->getUrl($current['id'])?>"><?=$this->transEsc("source_$source", array(), $source)?></a><?
+				}
+			}
+			if ($i > 1) {
+				?>)</span><?
+			}
+			?>
+        </div>
+      <? endif; ?>
 
-            <div class="callnumAndLocation ajax-availability hidden">
-                <? if ($this->driver->supportsAjaxStatus()): ?>
-                    <strong class="hideIfDetailed"><?=$this->transEsc('Call Number')?>:</strong>
-                    <span class="callnumber ajax-availability hidden">
-                        <?=$this->transEsc('Loading')?>...<br />
-                    </span> <strong><?=$this->transEsc('Located')?>:</strong> 
-                    <span class="location ajax-availability hidden">
-                        <?=$this->transEsc('Loading')?>...
-                    </span>
-                    <div class="locationDetails"></div>
-                <? else: ?>
-                    <? $summCallNo = $this->driver->getCallNumber(); if (!empty($summCallNo)): ?>
-                    <strong><?=$this->transEsc('Call Number')?>:</strong> <?=$this->escapeHtml($summCallNo)?>
-                    <? endif; ?>
-                <? endif; ?>
-            </div>
-            <?
+      <div class="callnumAndLocation ajax-availability hidden">
+        <? if ($this->driver->supportsAjaxStatus()): ?>
+          <strong class="hideIfDetailed"><?=$this->transEsc('Call Number')?>:</strong>
+				<span class="callnumber ajax-availability hidden">
+            <?=$this->transEsc('Loading')?>...<br />
+				</span> <strong><?=$this->transEsc('Located')?>:</strong> <span
+					class="location ajax-availability hidden">
+            <?=$this->transEsc('Loading')?>...
+          </span>
+				<div class="locationDetails"></div>
+        <? else: ?>
+          <? $summCallNo = $this->driver->getCallNumber(); if (!empty($summCallNo)): ?>
+            <strong><?=$this->transEsc('Call Number')?>:</strong> <?=$this->escapeHtml($summCallNo)?>
+          <? endif; ?>
+        <? endif; ?>
+      </div>
+      <?
 		/*
 		 * We need to find out if we're supposed to display an OpenURL link ($openUrlActive),
 		 * but even if we don't plan to display the link, we still want to get the $openUrl
@@ -254,83 +258,89 @@
 		
 		if ($openUrlActive || ! empty($urls)) :
 							?>
-                    <? if ($openUrlActive): ?>
-                        <?=$openUrl->renderTemplate()?>
-                    <? endif; ?>
-                <?
+        <? if ($openUrlActive): ?>
+          
+          <?=$openUrl->renderTemplate()?>
+        <? endif; ?>
+        <?
 							
-                    if (!is_array($urls))
+		if (!is_array($urls))
 			$urls = array();
-                        if (!$this->driver->isCollection()) :
-                            echo'<div class="akEllipsis">';
-                            echo '<span class="akResultListCaption">'.$this->transEsc('links').':</span> ';
+				if (!$this->driver->isCollection()) :
+					echo'<div class="akEllipsis">';
+					echo '<span class="akResultListCaption">'.$this->transEsc('links').':</span> ';
+								
+					foreach ($urls as $current) : ?>
+          				<a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new" title="<?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($this->transEsc($current['desc']))?>">
+          					<i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($this->transEsc($current['desc']))?>
+          				</a>
+          			<? endforeach; ?>
+          			<?='</div>'?>
+        		<? endif; ?>
+      <? endif; ?>
 
-                            foreach ($urls as $current) : ?>
-                                <a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>" class="fulltext" target="new" title="<?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($this->transEsc($current['desc']))?>">
-                                    <i class="fa fa-external-link"></i> <?=($current['url'] == $current['desc']) ? $this->transEsc('Get full text') : $this->escapeHtml($this->transEsc($current['desc']))?>
-                                </a>
-                            <? endforeach; ?>
-                            <?='</div>'?>
-                        <? endif; ?>
-                    <? endif; ?>
-                <?php
+	
+	  <?php
 	  	// Shows "format" badge:
 	  	//echo '<br />'.str_replace('class="', 'class="label label-info ', $this->record($this->driver)->getFormatList());
-                ?>
+	  ?>
+      
 
-                    <? if (!$openUrlActive && empty($urls) && $this->driver->supportsAjaxStatus()): ?>
-                        <span class="status ajax-availability hidden"> <span
-                            class="label label-default"><?=$this->transEsc('Loading')?>...</span>
+      <? if (!$openUrlActive && empty($urls) && $this->driver->supportsAjaxStatus()): ?>
+        <span class="status ajax-availability hidden"> <span
+				class="label label-default"><?=$this->transEsc('Loading')?>...</span>
 			</span>
-                    <? endif; ?>
-                    <?=$this->record($this->driver)->getPreviews()?>
-                </div>
-            <div class="col-xs-3 right hidden-print">
-                <? /* Display qrcode if appropriate: */ ?>
-                <? if ($QRCode = $this->record($this->driver)->getQRCode("results")): ?>
-                <?
-                    // Add JS Variables for QrCode
-                    $this->jsTranslations()->addStrings(array('qrcode_hide' => 'qrcode_hide', 'qrcode_show' => 'qrcode_show'));
+      <? endif; ?>
+      <?=$this->record($this->driver)->getPreviews()?>
+    </div>
+		<div class="col-xs-3 right hidden-print">
+      <? /* Display qrcode if appropriate: */ ?>
+      <? if ($QRCode = $this->record($this->driver)->getQRCode("results")): ?>
+        <?
+		// Add JS Variables for QrCode
+		$this->jsTranslations()->addStrings(array('qrcode_hide' => 'qrcode_hide', 'qrcode_show' => 'qrcode_show'));
 		?>
-                    <span class="hidden-xs"> <i class="fa fa-fw fa-qrcode"></i> 
-                        <a href="<?=$this->escapeHtmlAttr($QRCode);?>" class="qrcodeLink"><?=$this->transEsc('qrcode_show')?></a>
-                        <div class="qrcode hidden">
-                            <script type="text/template" class="qrCodeImgTag">
-                                <img alt="<?=$this->transEsc('QR Code')?>" src="<?=$this->escapeHtmlAttr($QRCode);?>"/>
-                            </script>
-                        </div> <br />
-                    </span>
-                <? endif; ?>
+        <span class="hidden-xs"> <i class="fa fa-fw fa-qrcode"></i> <a href="<?=$this->escapeHtmlAttr($QRCode);?>" class="qrcodeLink"><?=$this->transEsc('qrcode_show')?></a>
+			<div class="qrcode hidden">
+				<script type="text/template" class="qrCodeImgTag">
+              		<img alt="<?=$this->transEsc('QR Code')?>" src="<?=$this->escapeHtmlAttr($QRCode);?>"/>
+            	</script>
+			</div> <br />
+		</span>
+      <? endif; ?>
 
-                <? if ($this->userlist()->getMode() !== 'disabled'): ?>
-                    <? /* Add to favorites */ ?>
-                    <i class="fa fa-fw fa-star"></i> 
-                    <a href="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>" class="save-record modal-link" id="<?=$this->driver->getUniqueId() ?>"
+      <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+        <? /* Add to favorites */ ?>
+        <i class="fa fa-fw fa-star"></i> <a
+				href="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>"
+				class="save-record modal-link"
+				id="<?=$this->driver->getUniqueId() ?>"
 				title="<?=$this->transEsc('Add to favorites')?>"><?=$this->transEsc('Add to favorites')?></a><br />
 
-                    <? /* Saved lists */ ?>
-                    <div class="savedLists alert alert-info hidden">
+        <? /* Saved lists */ ?>
+        <div class="savedLists alert alert-info hidden">
 			<strong><?=$this->transEsc("Saved in")?>:</strong>
-                    </div>
-                <? endif; ?>
+		</div>
+      <? endif; ?>
 
-                <? /* Hierarchy tree link */ ?>
-                <? $trees = $this->driver->tryMethod('getHierarchyTrees'); if (!empty($trees)): ?>
-                    <? foreach ($trees as $hierarchyID => $hierarchyTitle): ?>
-                        <div class="hierarchyTreeLink">
-                            <input type="hidden"
+      <? /* Hierarchy tree link */ ?>
+      <? $trees = $this->driver->tryMethod('getHierarchyTrees'); if (!empty($trees)): ?>
+        <? foreach ($trees as $hierarchyID => $hierarchyTitle): ?>
+		<div class="hierarchyTreeLink">
+			<input type="hidden"
 				value="<?=$this->escapeHtmlAttr($hierarchyID)?>"
-				class="hiddenHierarchyId" /> <i class="fa fa-fw fa-sitemap"></i> 
-                            <a
+				class="hiddenHierarchyId" /> <i class="fa fa-fw fa-sitemap"></i> <a
 				class="hierarchyTreeLinkText modal-link"
 				href="<?=$this->recordLink()->getTabUrl($this->driver, 'HierarchyTree')?>?hierarchy=<?=urlencode($hierarchyID)?>#tabnav"
 				title="<?=$this->transEsc('hierarchy_tree')?>">
-                            <?=$this->transEsc('hierarchy_view_context')?><? if (count($trees) > 1): ?>: <?=$this->escapeHtml($hierarchyTitle)?><? endif; ?>
-                            </a>
-                        </div>
-                    <? endforeach; ?>
-                <? endif; ?>
-                <?=$this->driver->supportsCoinsOpenUrl()?'<span class="Z3988" title="'.$this->escapeHtmlAttr($this->driver->getCoinsOpenUrl()).'"></span>':''?>
-            </div>
+			<?=$this->transEsc('hierarchy_view_context')?><? if (count($trees) > 1): ?>: <?=$this->escapeHtml($hierarchyTitle)?><? endif; ?>
+            </a>
+		</div>
+        <? endforeach; ?>
+      <? endif; ?>
+
+      <?=$this->driver->supportsCoinsOpenUrl()?'<span class="Z3988" title="'.$this->escapeHtmlAttr($this->driver->getCoinsOpenUrl()).'"></span>':''?>
+    
+    </div>
 	</div>
 </div>

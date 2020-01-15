@@ -27,6 +27,19 @@ class Loans extends Gateway {
 		return (empty($row)) ? null : $row;
 	}
 	
+	
+	/**
+	 * Delete loan objects from the database based on ils_user_id (this is normally
+	 * the primary, not modifiable ID of the user in the ILS).
+	 * 
+	 * @param string $ilsUserId		Primary ILS user id to use for identifing loan objects from this user.
+	 * @return int					Number of rows deleted
+	 */
+	public function deleteByIlsUserId($ilsUserId) {
+		$noDeleted = $this->delete(['ils_user_id' => $ilsUserId]);
+		return $noDeleted;
+	}
+	
 }
 
 ?>

@@ -61,15 +61,14 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	// Get Alma.ini via service locator (getServiceLocator()).
     	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
     	$parentLocator = $this->getServiceLocator()->getServiceLocator();
-    	$this->almaConfig= $parentLocator->get('VuFind\Config')->get('Alma');
+    	$this->almaConfig = $parentLocator->get('VuFind\Config')->get('Alma');
     	
     	// Check if we should use the VuFind database to store user credentials.
     	$useVuFindDatabase = (isset($this->almaConfig->Authentication->useVuFindDatabase)) ? filter_var($this->almaConfig->Authentication->useVuFindDatabase, FILTER_VALIDATE_BOOLEAN) : false;
     	
     	// Call the default "create" function if the configuration "useVuFindDatabase" in Alma.ini is set to false
     	if (!$useVuFindDatabase) {
-    		parent::create($request);
-    		return; // Stop execution
+    	    return parent::create($request);
     	}
     	
         // Ensure that all expected parameters are populated to avoid notices in the code below.
@@ -137,13 +136,13 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
 
     
     /**
-     * Attempt to authenticate the current user.  Throws exception if login fails. Exteded version for use with Alma.
+     * Attempt to authenticate a user. Throws exception if login fails.
+     * Exteded version for use with Alma.
      *
-     * @param \Zend\Http\PhpEnvironment\Request $request Request object containing
-     * account credentials.
+     * @param	\Zend\Http\PhpEnvironment\Request	$request	Request object containing account credentials.
      *
-     * @throws AuthException
-     * @return \VuFind\Db\Row\User Object representing logged-in user.
+     * @throws	AuthException
+     * @return	\VuFind\Db\Row\User								Object representing logged-in user.
      */
     public function authenticate($request) {
     	// Make sure the credentials are non-blank:
@@ -153,9 +152,17 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     		throw new AuthException('authentication_error_blank');
     	}
     	
-    	// Get user data from database
-    	$user = $this->getUserTable()->getByUsername($this->username, false);
-    
+    	// Get user data from database if we don't already have a user.
+    	if ($user == null) {
+    		$user = $this->getUserTable()->getByUsername($this->username, false);
+    	}
+    	
+    	// Check if the user should be forced to change his password
+    	if (is_object($user) && $this->isForcePwChange($user)) {
+    	    // Return user object with "$user->force_pw_change" set to "1"
+    	    return $user;
+    	}
+    	
     	// Validate the credentials
     	if (!is_object($user) || !$this->checkPassword($this->password, $user)) {
     		throw new AuthException('authentication_error_invalid');
@@ -166,6 +173,9 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     		throw new AuthException('authentication_error_otp');
     	}
     	
+    	// Update the column "last_login" in the user table
+    	$this->updateLastLogin($user);
+    	    	
     	// If we got this far, the login was successful:
     	return $user;
     }
@@ -260,6 +270,99 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
+    protected function isForcePwChange($user) {
+        return (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+    }
+    
+    
+    public function requestSetPassword($request) {
+        // 0. Click button in requestsetpassword.phtml
+        // 1. AkSitesController.php->requestSetPasswordAction()
+        // 2. Auth\Manager.php->requestSetPassword()
+        // 3. Auth\Database.php->requestSetPassword()        
+        
+        // Create an array for the values that we need from the post request
+        $params = [];
+        foreach (['username', 'email'] as $param) {
+            $params[$param] = $request->getPost()->get($param, '');
+        }
+        
+        // Needs a username
+        if (trim($params['username']) == '') {
+            throw new AuthException('required_fields_empty');
+        }
+        
+        // Needs an email address
+        if (trim($params['email']) == '') {
+            throw new AuthException('required_fields_empty');
+        }
+        
+        $user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($params['username'], $params['email']);
+        
+        // Check if user was found in database
+        if (!is_object($user)) {
+            // User was not found, so return an error message
+            return array('success' => false, 'status' => 'error_request_set_password', 'user' => null);
+        }
+        
+        // User was found, so return a success message
+        return array('success' => true, 'status' => 'success_request_set_password', 'user' => $user);
+    }
+    
+    
+    public function setPassword($username, $hash, $request) {
+        // 0. Click button in setpassword.phtml
+        // 1. Controller\AkSitesController.php->setPasswordAction()
+        // 2. Auth\Manager.php->setPassword()
+        // 3. Auth\Database.php->setPassword()
+        
+        // Create an array for the values that we need from the post request
+        $params = [];
+        foreach (['newPassword', 'newPasswordConfirm'] as $param) {
+            $params[$param] = $request->getPost()->get($param, '');
+        }
+        
+        // Needs new passwords
+        if ($params['newPassword'] == '' || $params['newPasswordConfirm'] == '') {
+            throw new AuthException('required_fields_empty');
+        }
+        
+        // New passwords don't match
+        if ($params['newPassword'] != $params['newPasswordConfirm']) {
+            throw new AuthException('Passwords do not match');
+        }
+        
+        // Get user data from database
+        $user = $this->getUserTable()->getByUsername($username, false);
+        //$user = $this->getDbTableManager()->get('user')->getByUsernameAndEmail($username, $email);
+        
+        // Control the user by verify hash as a security measure
+        $controlUser = $this->getUserTable()->getByVerifyHash($hash);        
+        
+        // Check if user was found in database
+        if (!is_object($user) || !is_object($controlUser)) {
+        	$result = array('success' => false, 'status' => 'authentication_error_invalid');
+        } else if ($user->verify_hash != $controlUser->verify_hash && $user->username != $controlUser->username) {
+        	$result = array('success' => false, 'status' => 'authentication_error_invalid');
+        } else { // Set the password
+
+        	if ($this->passwordHashingEnabled()) {
+        		$bcrypt = new Bcrypt();
+        		$user->pass_hash = $bcrypt->create($params['newPassword']);
+        	} else {
+        		$user->password = $params['newPassword'];
+        	}
+        	$user->force_pw_change = 0;
+        	$user->verify_hash = '';
+        	$user->save();
+        	
+        	$result = array('success' => true, 'status' => 'setPasswordSuccess');
+        }
+        
+        return $result;
+    }
+    
+    
     public function setPasswordWithOtp($request) {
 		// 0. Click button in setpasswordwithotp.phtml
 		// 1. AkSitesController.php->setPasswordWithOtpAction()
@@ -344,26 +447,67 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     }
     
     
-    
-    
-    public function updateUserData($request) {    	
+    /**
+     * Update eMail address in VuFind database and multiple other userdata (phone 1, phone 2) in Alma if applicable.
+     * 
+     * @param array $request	An array of POSTed user data from the "changeuserdata" form.
+	 * @return array			An array of data on the request including whether or not it was successful and a system message (if available)
+     */
+    public function updateUserData($request) {
+    	// 0. Click button in changeuserdata.phtml
+		// 1. AkSitesController.php->changeUserDataAction()
+		// 2. Manager.php->updateUserData()
+		// 3. ILS.php/Database.php->updateUserData()
+		// 4. Aleph.php/Alma.php->changeUserData();
+		
+    	// Get Alma.ini via service locator (getServiceLocator()).
+    	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
+    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
+    	$this->almaConfig = $parentLocator->get('VuFind\Config')->get('Alma');
+    	
     	// Ensure that all expected parameters are populated to avoid notices in the code below.
     	$params = [];
     	foreach (['username', 'cudEmail', 'cudPhone', 'cudPhone2'] as $param) {
     		$params[$param] = $request->getPost()->get($param, '');
     	}
+
+    	if ((!isset($params['cudEmail']) || empty(trim($params['cudEmail']))) || (!isset($params['username']) || empty($params['username']))) {
+    		$statusMessage = 'required_fields_empty';
+    		return array('success' => $success, 'status' => $statusMessage);
+    	}
     	
-    	/*// Get ILS via service locator
-    	// Attention: Class must implement \Zend\ServiceManager\ServiceLocatorAwareInterface and use \Zend\ServiceManager\ServiceLocatorAwareTrait
-    	$parentLocator = $this->getServiceLocator()->getServiceLocator();
-    	$catalog = $parentLocator->get('VuFind\ILSConnection');
-    	*/
-    	$result = $this->catalog->changeUserData([
-    			'username'	=> $params['username'],
-    			'email'		=> $params['cudEmail'],
-    			'phone'		=> $params['cudPhone'],
-    			'phone2'	=> $params['cudPhone2']
-    	]);
+    	$isAlma = (isset($this->config->Catalog->driver) && strtolower($this->config->Catalog->driver) == 'alma') ? true : false;
+    	$useVuFindDatabase = (isset($this->almaConfig->Authentication->useVuFindDatabase)) ? filter_var($this->almaConfig->Authentication->useVuFindDatabase, FILTER_VALIDATE_BOOLEAN) : false;
+    	
+    	// Get user from VuFind database
+    	$table = $this->getUserTable();
+    	$user = $table->getByUsername($params['username'], false);
+    	$params['primaryId'] = $user->cat_id;
+    	
+    	// Update eMail address in VuFind database
+    	$user->email = $params['cudEmail'];
+    	$user->save(); // Save user entry
+    	$result = array('success' => true, 'status' => 'changed_userdata_success');
+    	
+    	// Update userdata also in Alma if the Alma driver is activated and if the authentication source is the VuFind database.
+    	// If another authentication source is used (e. g. LDAP), we don't update Alma because a synchronisazion process apart
+    	// from VuFind should do that job.
+    	if ($isAlma && $useVuFindDatabase) {
+    		$result = $this->catalog->changeUserData([
+    				'primaryId'	=> $params['primaryId'],
+    				'username'	=> $params['username'],
+    				'email'		=> $params['cudEmail'],
+    				'phone'		=> $params['cudPhone'],
+    				'phone2'	=> $params['cudPhone2']
+    		]);
+    	}
+    	
+    	return $result;
+    }
+    
+    public function updateLastLogin($user) {
+        $user->last_login = date('Y-m-d H:i:s');
+        $user->save();
     }
     
 
@@ -385,11 +529,84 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     	return $supportsUserDataChange;
     }
     
-
-    public function getLoanHistory($profile) {
-    	$loanHistoryArray = [];
+    
+    public function isLoanHistory($user) {
+        // Get user data from database
+        $user = $this->getUserTable()->getByUsername($user->username, false);
+        
+        // Check if the user has chosen to save the loan history
+        return (isset($user->save_loans)) ? filter_var($user->save_loans, FILTER_VALIDATE_BOOLEAN) : false;
+    }
+    
+    
+    public function setIsLoanHistory($user, $postParams) {
+    	// 0. Click button in loanhistory.phtml
+        // 1. AkSitesController.php->loanHistoryAction()
+        // 2. Manager.php->setIsLoanHistory()
+        // 3. Database.php->setIsLoanHistory()
+        
+    	// Check from post parameters of the opt-in or opt-out form and set a variable that indicats if the user opts-in or not.
+    	$isOptIn = (isset($postParams['submitOptIn'])) ? true : false;
+    	$isOptOut = (isset($postParams['submitOptOut'])) ? true : false;
+    	
+        $optIn = 0;
+        if ( ($isOptIn && isset($postParams['chkOptInLoanHistory'])) || ($isOptOut && !isset($postParams['chkOptOutLoanHistory'])) ) {
+            $optIn = 1;
+        }
+        
+        // Get user data from database
+        $userDb = $this->getUserTable()->getByUsername($user->username, false);
+        
+        // Save the chosen value to the database
+        $userDb->save_loans = $optIn;
+        $userDb->save();
+        
+        // Return the result
+        $result = [];
+        if ($isOptIn) {
+	        if ($optIn == 1) {
+	        	$result = array('success' => true, 'status' => 'setLoanHistoryOptInSuccess');
+	        } else {
+	        	$result = array('success' => false, 'status' => 'setLoanHistoryOptInError');
+	        }
+        } else if ($isOptOut) {
+        	if ($optIn == 0) {
+	        	$result = array('success' => true, 'status' => 'setLoanHistoryOptOutSuccess');
+	        } else {
+	        	$result = array('success' => false, 'status' => 'setLoanHistoryOptOutError');
+	        }
+        }
+        
+        return $result;
+    }
+    
+    
+    public function deleteLoanHistory($user) {    	
+    	$ilsUserId = $user->cat_id;
+    	$loansTable = $this->getLoansTable();
+    	$noDeletedLoans = $loansTable->deleteByIlsUserId($ilsUserId);
+    	
+    	// Return the result
+        $result = [];
+        if (is_int($noDeletedLoans)) {
+        	$result = array('success' => true, 'status' => 'deletedLoanHistorySuccess');
+        } else {
+        	$result = array('success' => false, 'status' => 'deletedLoanHistoryError');
+        }
+        return $result;
+    }
+    
+    
+    public function getLoanHistory($user) {
+        $loanHistoryArray = [];
+        
+        if (!$this->isLoanHistory($user)) {
+            $loanHistoryArray['isLoanHistory'] = false;
+            return $loanHistoryArray;
+        }
+        
     	$table = $this->getLoansTable();
-    	$loans = $table->getByIlsUserId($profile['id']);
+    	$loans = $table->getByIlsUserId($user->cat_id);
     	
     	if ($loans) {
     		foreach ($loans as $loan) {
@@ -431,7 +648,6 @@ class Database extends DefaultDatabaseAuth implements \Zend\ServiceManager\Servi
     					// Other values that are not defined in the VuFind default return array for getMyTransactions()
     					'author' => $author,
     					'location' => $location,
-    					
     					//'reqnum' => $reqnum,
     					//'returned' => $this->parseDate($returned),
     					//'type' => $type,

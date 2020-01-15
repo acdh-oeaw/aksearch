@@ -39,7 +39,7 @@ function locate_index
 }
 
 #locate_index "bib_index" "../solr/biblio"
-locate_index "bib_index" "../solr/akw"
+locate_index "bib_index" "../solr/alma"
 locate_index "auth_index" "../solr/authority"
 index_dir="../solr/alphabetical_browse"
 

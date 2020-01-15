@@ -27,11 +27,63 @@
  * @link     http://wien.arbeiterkammer.at/service/bibliothek/
  */
 namespace AkSearch\Controller;
+use VuFind\Exception\Auth as AuthException;
 
 class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuFindHttp\HttpServiceAwareInterface {
 	
 	use \VuFindHttp\HttpServiceAwareTrait;
+	
+	// Additional status constants
+	const STATUS_FORCE_PW_CHANGE = 'FPWC';                  // force password change
 
+	
+	/**
+	 * Login with post'ed username and encrypted password.
+	 * Updated for use with Alma.
+	 *
+	 * @return \Zend\Http\Response
+	 */
+	protected function loginAjax() {
+	    
+	    // Fetch Salt
+	    $salt = $this->generateSalt();
+	    
+	    // HexDecode Password
+	    $password = pack('H*', $this->params()->fromPost('password'));
+	    
+	    // Decrypt Password
+	    $password = base64_decode(\VuFind\Crypt\RC4::encrypt($salt, $password));
+	    
+	    // Update the request with the decrypted password:
+	    $this->getRequest()->getPost()->set('password', $password);
+	    
+	    // Get username
+	    $username = $this->params()->fromPost('username');
+	    
+	    // Authenticate the user:
+	    try {
+	        $user = $this->getAuthManager()->login($this->getRequest());
+	        
+	        // Check if user should be forced to change his password
+	        $forcePwChange = (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+	        if ($forcePwChange) {
+	            // Log out the user and destroy the user session
+	            $this->getAuthManager()->logout(null, true);
+	            
+	            // Send the user to a site where he will be able to change his password
+	            return $this->output($username, self::STATUS_FORCE_PW_CHANGE);
+	        }
+	    } catch (AuthException $e) {
+	        return $this->output(
+	            $this->translate($e->getMessage()),
+	            self::STATUS_ERROR
+	            );
+	    }
+	    
+	    return $this->output(true, self::STATUS_OK);
+	}
+	
+	
 	/**
 	 * Call entity facts API
 	 * Example: http://hub.culturegraph.org/entityfacts/118540238
@@ -53,7 +105,31 @@ class AkAjaxController extends \VuFind\Controller\AjaxController implements \VuF
 		$json = $result->getBody();
 		return $this->output($json, self::STATUS_OK);
 	}
+	
+/*
+	public function getItemAvailabilityAjax() {
+		$this->outputMode = 'json';
+		$data = $this->params()->fromQuery('itemId');
+		return $this->output($data, self::STATUS_OK);
+		
+		
+// 		$gndid = $this->params()->fromQuery('gndid');
+// 		$client = $this->getServiceLocator()->get('VuFind\Http')->createClient('http://hub.culturegraph.org/entityfacts/' . $gndid);
+// 		$client->setMethod('GET');
+// 		$result = $client->send();
+		
+// 		// If an error occurs
+// 		if (! $result->isSuccess()) {
+// 			return $this->output($this->translate('An error has occurred'), self::STATUS_ERROR);
+// 		}
+		
+// 		$json = $result->getBody();
+// 		return $this->output($json, self::STATUS_OK);
+		
+	}
+*/
 
+	
 	/**
 	 * Check Request is Valid
 	 *

@@ -122,13 +122,15 @@ class NewItems extends \VuFind\Controller\Plugin\NewItems {
     	
     	if ($datePicker) { // If we use date picker
     		if (isset($this->catalogConfig->driver) && $this->catalogConfig->driver == 'Alma') { // If we use Alma
-    			$returnValue = 'receivingDates_date_mv:['.$from.' TO '.$to.']';
+    		    // Query inventoryDates_date_mv OR receivingDates_date_mv while inventoryDates_date_mv does not exist
+    			$returnValue = '(inventoryDates_date_mv:['.$from.' TO '.$to.'] || (-inventoryDates_date_mv:* && receivingDates_date_mv:['.$from.' TO '.$to.']))';
     		} else {
     			$returnValue = 'first_indexed:['.$from.' TO '.$to.']';
     		}
     	} else {
     		if (isset($this->catalogConfig->driver) && $this->catalogConfig->driver == 'Alma') { // If we use Alma
-    			$returnValue = 'receivingDates_date_mv:[NOW-' . $range . 'DAY TO NOW]';
+    		    // Query inventoryDates_date_mv OR receivingDates_date_mv while inventoryDates_date_mv does not exist
+    			$returnValue = '(inventoryDates_date_mv:[NOW-' . $range . 'DAY TO NOW] || (-inventoryDates_date_mv:* && receivingDates_date_mv:[NOW-' . $range . 'DAY TO NOW]))';
     		}
     	}
     	

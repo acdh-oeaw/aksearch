@@ -7,12 +7,14 @@ use \ZfcRbac\Service\AuthorizationServiceAwareTrait;
 use \Zend\Http\Response as HttpResponse;
 use Zend\Crypt\Password\Bcrypt;
 use Zend\Mail as Mail;
-
+use AkSearch\View\Helper\Root\Auth;
+use Zend\Http\Request;
 
 // Hide all PHP errors and warnings as this could brake the JSON and/or XML output
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(0);
+
 
 class ApiController extends AbstractBase implements AuthorizationServiceAwareInterface {
 	
@@ -30,6 +32,12 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	 * @var \AkSearch\Db\Table\User
 	 */
 	protected $userTable;
+	
+	/**
+	 * Plugin manager for db table
+	 * @var \VuFind\Db\Table\PluginManager
+	 */
+	protected $dbTableManager;
 	
 	/**
 	 * Http service
@@ -66,6 +74,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			throw new \Exception('Authorization service missing');
 		}
 		
+		$this->dbTableManager = $dbTableManager;
 		$this->userTable = $dbTableManager->get('user');
 		$this->httpService = $httpService;
 	}
@@ -87,6 +96,22 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$requestBodyJson = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent()) : null;
 		//$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
 		
+		// If a file is specified in Alma.ini to which we should write the data received from the webhook, write it to that file.
+		$writeRequestBodyToFile = (isset($this->configAlma->Webhook->receivedDataFile) && !empty(trim($this->configAlma->Webhook->receivedDataFile))) ? true : false;
+		if ($writeRequestBodyToFile) {
+			$pathToFile = $this->configAlma->Webhook->receivedDataFile;
+			$writeToFile = file_put_contents($pathToFile, json_encode($requestBodyJson, JSON_PRETTY_PRINT));
+			
+			if ($writeToFile == false) {
+				$returnArray['error'] = 'Could not write received data from Alma webhook to file "'.$pathToFile.'" specified in Alma.ini';
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+				$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
+				$this->httpResponse->setContent($returnJson);
+				return $this->httpResponse;
+			}
+		}
+		
 		// Get webhook action
 		$webhookAction = (isset($requestBodyJson->action)) ? $requestBodyJson->action: null;
 		
@@ -106,13 +131,13 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	
 	private function webhookUser($requestBodyJson) {
-				
+		
 		// Get webhook secret from Alma.ini. If it is not set, return an error message
 		$almaWebhookSecret = (isset($this->configAlma->Webhook->secret) && !empty($this->configAlma->Webhook->secret)) ? $this->configAlma->Webhook->secret : null;
 		if ($almaWebhookSecret == null) {
 			$errorText = 'Please provide webhook secret in Alma.ini in section [Webhook]. It must be the same value that is used in Alma in the integration profile for the webhook!';
 			$returnArray['error'] = $errorText;
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
 			$this->httpResponse->setContent($returnJson);
@@ -128,19 +153,22 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$almaSignature = ($this->getRequest()->getHeaders()->get('X-Exl-Signature')) ? $this->getRequest()->getHeaders()->get('X-Exl-Signature')->getFieldValue() : null;
 		
 		// Check for correct signature and return error message if check fails
+		/*
 		if ($almaSignature == null || $almaSignature != $hashedHmacMessage) {
 			$returnArray['error'] = 'Unauthorized: Signature value not correct!';
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
 			$this->httpResponse->setStatusCode(401); // Set HTTP status code to Unauthorized (401)
 			$this->httpResponse->setContent($returnJson);
 			error_log('[Alma] Unauthorized: Signature value not correct!'); // Log the error in our own system
 			return $this->httpResponse;
 		}
+		*/
 		
 		// Set some default values that will be overwritten if appropriate
 		$password = null;
 		$passHash = null;
+		$loanHistory = null;
 		$createIfNotExist = false;
 		$isOtp = 0;
 		
@@ -150,127 +178,135 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		// Get primary ID
 		$primaryId = (isset($requestBodyJson->webhook_user->user->primary_id)) ? $requestBodyJson->webhook_user->user->primary_id : null;
 		
-		// Get barcode
-		$barcode = null;
-		$userIdentifiers = (isset($requestBodyJson->webhook_user->user->user_identifier)) ? $requestBodyJson->webhook_user->user->user_identifier : null;
-		foreach ($userIdentifiers as $userIdentifier) {
-			$idType = (isset($userIdentifier->id_type->value)) ? $userIdentifier->id_type->value : null;
-			if ($idType != null && $idType == 'BARCODE' && $barcode == null) {
-				$barcode = (isset($userIdentifier->value)) ? $userIdentifier->value : null;
-			}
-		}
-		
-		// Get first name
-		$firstName = (isset($requestBodyJson->webhook_user->user->first_name)) ? $requestBodyJson->webhook_user->user->first_name : null;
-		
-		// Get last name
-		$lastName = (isset($requestBodyJson->webhook_user->user->last_name)) ? $requestBodyJson->webhook_user->user->last_name : null;
-		
-		// Get preferred eMail
-		$eMail = null;
-		$contactEmails = (isset($requestBodyJson->webhook_user->user->contact_info->email)) ? $requestBodyJson->webhook_user->user->contact_info->email : null;
-		foreach ($contactEmails as $contactEmail) {
-			$preferred = (isset($contactEmail->preferred)) ? $contactEmail->preferred : false;
-			if ($preferred && $eMail == null) {
-				$eMail = (isset($contactEmail->email_address)) ? $contactEmail->email_address : null;
-			}
-		}
 
-		// Do stuff if a new user is create via Alma webhook.
-		if ($method == 'CREATE') {
+		if ($method == 'CREATE' || $method == 'UPDATE') {
 			
-			// Set variable for getByCatalogId() function
-			$createIfNotExist = true;
+			// Get barcode
+			$barcode = null;
+			$userIdentifiers = (isset($requestBodyJson->webhook_user->user->user_identifier)) ? $requestBodyJson->webhook_user->user->user_identifier : null;
+			foreach ($userIdentifiers as $userIdentifier) {
+				$idType = (isset($userIdentifier->id_type->value)) ? $userIdentifier->id_type->value : null;
+				if ($idType != null && $idType == '01' && $barcode == null) {
+					$barcode = (isset($userIdentifier->value)) ? $userIdentifier->value : null;
+				}
+			}
 			
-			// Create new barcode
-			if ($barcode == null) {
-				$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
-				$barcode = $this->akSearch()->generateBarcode($stringForHash);
+			// Get first name
+			$firstName = (isset($requestBodyJson->webhook_user->user->first_name)) ? $requestBodyJson->webhook_user->user->first_name : null;
+			
+			// Get last name
+			$lastName = (isset($requestBodyJson->webhook_user->user->last_name)) ? $requestBodyJson->webhook_user->user->last_name : null;
+			
+			// Get preferred eMail
+			$eMail = null;
+			$contactEmails = (isset($requestBodyJson->webhook_user->user->contact_info->email)) ? $requestBodyJson->webhook_user->user->contact_info->email : null;
+			foreach ($contactEmails as $contactEmail) {
+				$preferred = (isset($contactEmail->preferred)) ? $contactEmail->preferred : false;
+				if ($preferred && $eMail == null) {
+					$eMail = (isset($contactEmail->email_address)) ? $contactEmail->email_address : null;
+				}
+			}
+			
+			if ($method == 'CREATE') {
+				// Set variables
+				$createIfNotExist = true;
+				$loanHistory = false;
 				
-				// Write barcode back to Alma
-				$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
+				// Create new barcode
+				if ($barcode == null) {
+					$stringForHash = ($almaSignature != null) ? $almaSignature . time() : $firstName . $lastName . $eMail . time(); // Message Signature or Name and eMail + Timestamp
+					$barcode = $this->akSearch()->generateBarcode($stringForHash);
+					
+					// Write barcode back to Alma
+					$addedBarcodeStatus = $this->barcodeToAlma($primaryId, $barcode);
+					
+					// Return error if barcode could not be written to Alma
+					if ($addedBarcodeStatus != '200') {
+						$errorText = 'Problem writing automatically generated barcode from VuFind back to Alma User with primary ID '.$primaryId.' while creating new user in VuFind from Alma webhook! Http status code: '.$addedBarcodeStatus;
+						$returnArray['error'] = $errorText;
+						$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+						$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+						$this->httpResponse->setStatusCode($addedBarcodeStatus); // Set HTTP status code according to Alma return value
+						$this->httpResponse->setContent($returnJson);
+						error_log('[Alma] '.$errorText); // Log the error in our own system
+						return $this->httpResponse;
+					}
+				}
 				
-				// Return error if barcode could not be written to Alma
-				if ($addedBarcodeStatus != '200') {
-					$errorText = 'Problem writing automatically generated barcode from VuFind back to Alma User with primary ID '.$primaryId.' while creating new user in VuFind from Alma webhook! Http status code: '.$addedBarcodeStatus;
+				// Generate one-time-password
+				$password = $this->generatePassword();
+				$isOtp = 1;
+				
+				// Send eMail to user with one-time-password and barcode (= username):
+				$isMailSent = $this->sendMail($barcode, $password, $eMail);
+				if (!$isMailSent) {
+					$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added from Alma to VuFind!';
 					$returnArray['error'] = $errorText;
-					$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+					$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-					$this->httpResponse->setStatusCode($addedBarcodeStatus); // Set HTTP status code according to Alma return value
+					$this->httpResponse->setStatusCode(400); // Set HTTP status code to Bad Request (400)
 					$this->httpResponse->setContent($returnJson);
 					error_log('[Alma] '.$errorText); // Log the error in our own system
 					return $this->httpResponse;
 				}
+				
+			} else if ($method == 'UPDATE') {
+				if ($primaryId == null || $barcode == null) {
+					$errorText = 'Primary ID or barcode not available. User was not updated from Alma to VuFind!';
+					$returnArray['error'] = $errorText;
+					$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+					$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+					$this->httpResponse->setContent($returnJson);
+					error_log('[Alma] '.$errorText); // Log the error in our own system
+					return $this->httpResponse;
+				}
+				// If everything is there, go on. All variables we need were already set above.
+				
 			}
 			
-			// Generate one-time-password
-			$password = $this->generatePassword();
-			/*
-			//if ($this->passwordHashingEnabled()) {
-			if ($this->akSearch()->passwordHashingEnabled()) { // See Controller\Plugin\AkSearch.php
-				$bcrypt = new Bcrypt();
-				$passHash = $bcrypt->create($password);
-			}
-			*/
-			$isOtp = 1;
+			$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $eMail, $password, $isOtp, $primaryId, $barcode, $loanHistory, $createIfNotExist);
 			
-			// Send eMail to user with one-time-password and barcode (= username):
-			$isMailSent = $this->sendMail($barcode, $password, $eMail);
-			if (!$isMailSent) {
-				$errorText = 'Could not send eMail to user with Alma '.$primaryId.'. User was not added to VuFind!';
+			if ($user != null) {
+				$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+			} else {
+				// Create a return message in case of error
+				$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
 				$returnArray['error'] = $errorText;
-				$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-				$this->httpResponse->setStatusCode(500); // Set HTTP status code to Internal Server Error (500)
+				$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
 				$this->httpResponse->setContent($returnJson);
 				error_log('[Alma] '.$errorText); // Log the error in our own system
 				return $this->httpResponse;
 			}
-		}
-		
-		
-		$user = $this->akSearch()->createOrUpdateUserInDb($firstName, $lastName, $eMail, $password, $isOtp, $primaryId, $barcode, $createIfNotExist);
-		if ($user != null) {
-			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
-		} else {
-			// Create a return message in case of error
-			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
-			$returnArray['error'] = $errorText;
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
-			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
-			$this->httpResponse->setContent($returnJson);
-			error_log('[Alma] '.$errorText); // Log the error in our own system
-		}
-		/*
-		// Update or create user in database table
-		$user = ($primaryId != null) ? $this->userTable->getByCatalogId($primaryId, $barcode, $createIfNotExist) : null;
-		if ($user != null && !empty($user)) {
-			$user->cat_id = $primaryId;
-			$user->username = $barcode;
-			$user->firstname = $firstName;
-			$user->lastname = $lastName;
-			$user->email = $eMail;
-			$user->cat_username = $barcode;
-			if ($createIfNotExist && $passHash != null) {
-				$user->pass_hash = $passHash;
-			} else if ($createIfNotExist && $password != null){
-				$user->password = $password;
+			
+		} else if ($method == 'DELETE') {
+			if ($primaryId == null) {
+				$errorText = 'Primary ID not available. User was not deleted in VuFind database!';
+				$returnArray['error'] = $errorText;
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+				$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+				$this->httpResponse->setContent($returnJson);
+				error_log('[Alma] '.$errorText); // Log the error in our own system
+				return $this->httpResponse;
+			} else {
+				$noOfDeletedUsers = $this->akSearch()->deleteUserInDb($primaryId);
+				$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
 			}
-			$user->is_otp = $isOtp;
-			$user->save(); // Update user record
-			$this->httpResponse->setStatusCode(200); // Set HTTP status code to OK (200)
+			
+			
 		} else {
-			// Create a return message in case of error
-			$errorText = 'Error updating user in VuFind from Alma webhook: User with Alma primary ID '.$primaryId.' was not found in VuFind user table by cat_id value '.$primaryId;
-			$returnArray['error'] = $errorText;			
-			$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+		    $errorText = 'Only the user webhook action "CREATE", "UPDATE" and "DELETE" are allowed! Method used was: '.(($method != null) ? $method : "null");
+			$returnArray['error'] = $errorText;
+			$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 			$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
-			$this->httpResponse->setStatusCode(404); // Set HTTP status code to Not Found (404)
+			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 			$this->httpResponse->setContent($returnJson);
 			error_log('[Alma] '.$errorText); // Log the error in our own system
+			return $this->httpResponse;
 		}
-		*/
 		
 		return $this->httpResponse;
 	}
@@ -278,7 +314,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	private function webhookJobEnd() {
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setStatusCode(501); // Set HTTP status code to Not Implemented (501)
+		$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 		$this->httpResponse->setContent('JOB_END webhook not implemented yet.');
 		return $this->httpResponse;
 	}
@@ -286,7 +322,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	
 	private function webhookNotification() {
 		$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
-		$this->httpResponse->setStatusCode(501); // Set HTTP status code to Not Implemented (501)
+		$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
 		$this->httpResponse->setContent('NOTIFICATION webhook not implemented yet.');
 		return $this->httpResponse;
 	}
@@ -302,7 +338,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$returnArray = array_filter($returnArray); // Remove null from array
 		
 		// Create return json value
-		$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+		$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 		
 		// Set HTTP status code to OK (200)
 		$this->httpResponse->setStatusCode(200);
@@ -335,19 +371,38 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		
 		// Request from external
 		$request = $this->getRequest();
-		
+	    
 		// Get request method (GET, POST, ...)
 		$requestMethod = $request->getMethod();
-		
-		// Get request body
-		$requestBodyArray = ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') ? json_decode($request->getContent(), true) : null;
 		
 		// Perform user-api action
 		switch ($apiUserAction) {
 			case 'Auth':
-				$username = $requestBodyArray['username'];
-				$password = $requestBodyArray['password'];
-				return $this->userAuth($requestMethod, $this->host, $this->database, $username, $password);
+				$userAuthSystem = (isset($this->configAKsearch->API->userAuthSystem)) ? $this->configAKsearch->API->userAuthSystem : 'Database';
+				
+				$requestBodyArray = null;
+				$authMode = null;
+				if ($request->getContent() != null && !empty($request->getContent()) && $requestMethod == 'POST') {
+				    mb_parse_str($request->getContent(), $requestBodyArray);
+				    $authMode = 'akw'; // Default
+				    if (!$requestBodyArray || !isset($requestBodyArray['mode']) || $requestBodyArray['mode'] != 'apa') {
+				        $requestBodyArray = json_decode($request->getContent(), true);
+				    } else if (isset($requestBodyArray['mode']) && $requestBodyArray['mode'] == 'apa') {
+				        $authMode = 'apa';
+				    }
+				}
+				
+				$username = urldecode($requestBodyArray['username']);
+				$password = urldecode($requestBodyArray['password']);
+				
+				if ($userAuthSystem == 'Aleph') {
+					$httpResponse = $this->userAuthAleph($requestMethod, $this->host, $this->database, $username, $password);
+				} else if ($userAuthSystem == 'Database') {
+				    $httpResponse = $this->userAuthDatabase($request, $authMode, $username, $password);
+				}
+				
+				return $httpResponse;
+				
 				break;
 			default:
 				$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
@@ -357,8 +412,220 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		}
 	}
 	
+	
+	private function userAuthDatabase(\Zend\Http\Request $authRequest, $authMode, $username, $password, $returnFormat = 'json') {
+		// Get request method (GET, POST, ...)
+		$authRequestMethod = $authRequest->getMethod();
+		
+		// HTTP status codes are dependent from auth mode. If "apa", we always have to return 200
+		$forbidden403 = ($authMode == 'apa') ? 200 : 403;
+		$unauthorized401 = ($authMode == 'apa') ? 200 : 401;
+		
+		// Only POST requests are allowed
+		if ($authRequestMethod != 'POST') {
+			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+			$this->httpResponse->setContent('Only POST requests are allowed.');
+			$this->httpResponse->setStatusCode(405); // Set HTTP status code to Method Not Allowed (405)
+			return $this->httpResponse; // Stop code execution here if request method is not POST
+		}
 
-	private function userAuth($requestMethod, $host, $library, $username, $password, $returnFormat = 'json') {
+		// Default values for return array
+		$isValid = 'U'; // U = Unknown (Default) - we don't know yet if the user credentials are valid or not
+		$userExists = 'U'; // U = Unknown (Default) - we don't know yet if the user credentials really exists or not
+		$isExpired = 'U'; // U = Unknown. At this point we don't know if the user account is expired
+		$expired = null; // null. We use null because we can easily remove null values from the return array. Data for account expiration should only be shown when the account really is expired.
+		$expireDateTS = null;
+		$expiryDateFormatted = null;
+		$isBlocked = 'U'; // U = Unknown. At this point we don't know if the user has blocks or not
+		$blocks = null; // null. We use null because we can easily remove null values from the return array. Blocks should only be shown when there really are blocks.
+		$hasError = null; // null = There is no error. We use null because we can easily remove null values from the return array. Errors should only be shown when there really are errors.
+		$errorMsg = null; // null = There is no error message.
+		
+		$userGroupCode = null;
+		$userGroupDesc = null;
+
+		// Create request for \AkSearch\Auth\Database::authenticate
+		$request = new Request();
+		$request->setMethod(Request::METHOD_POST);
+		$request->getPost()->set('username', $username);
+		$request->getPost()->set('password', $password);
+		
+		// Authenticate the user and catch exceptions
+		try {
+			$authDb = new \AkSearch\Auth\Database();
+			$authDb->setConfig($this->config);
+			$authDb->setDbTableManager($this->dbTableManager);
+			$user = $authDb->authenticate($request);
+			$forcePwChange = (isset($user->force_pw_change)) ? filter_var($user->force_pw_change, FILTER_VALIDATE_BOOLEAN) : false;
+			
+			if ($forcePwChange) {
+				// Force password change is activated
+				$isValid = 'N';
+				$userExists = 'Y';
+				$isBlocked = 'Y';
+				$blocks[0]['code'] = '01';
+				$blocks[0]['note'] = 'Systemwechsel: Bitte in aksearch.arbeiterkammer.at einloggen und Konto aktivieren! System change: log-in at aksearch.arbeiterkammer.at to activate account!';
+				$this->httpResponse->setStatusCode($forbidden403); // Forbidden
+			} else {
+				// Check also if user exists in Alma via API
+				// TODO: Should already be done in \AkSearch\Auth\Database.php
+				$primaryId = (isset($user->cat_id) && !empty($user->cat_id)) ? $user->cat_id : null;
+				$apiUrl = $this->configAlma->API->url;
+				$apiKey = $this->configAlma->API->key;
+				$almaUserObject = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
+				$almaUserObject = $almaUserObject['xml']; // Get the user XML object from the return-array.
+				
+				if (isset($almaUserObject->errorsExist) && $almaUserObject->errorsExist == true) {
+					$hasError = 'Y';
+					if (isset($almaUserObject->errorList)) {
+						// Get first error
+						$error = $almaUserObject->errorList->error[0];
+						$almaErrorMsg = (isset($error->errorMessage)) ? 'Alma error message: '.(string)$error->errorMessage : '';
+						$almaErrorCode = (isset($error->errorCode)) ? (string)$error->errorCode : null;
+						$almaErrorCodeMsg = ($almaErrorCode != null) ? ' (Alma error code: '.$almaErrorCode.')' : '';
+						$errorMsg = $almaErrorMsg.$almaErrorCodeMsg;
+						$this->httpResponse->setStatusCode($unauthorized401); // Unauthorized
+						
+						if ($almaErrorCode = '401861' || $almaErrorCode = '401890' || $almaErrorCode = '4019990' || $almaErrorCode = '4019998') {
+							$isValid = 'N';
+							$userExists = 'N';
+						} else {
+							$isValid = 'U';
+							$userExists = 'U';
+						}
+					}
+				} else {
+					$userExists = 'Y';
+					
+					// Check for user blocks in Alma
+					if (isset($almaUserObject->user_blocks) && !empty($almaUserObject->user_blocks)) {
+						$isBlocked = 'Y';
+						$blockCounter = 0;
+						foreach($almaUserObject->user_blocks->user_block as $key => $userBlock) {
+							$blockCounter++;
+							$blocks[$blockCounter]['code'] = (string)$userBlock->block_description;
+							$blocks[$blockCounter]['note'] = (string)$userBlock->block_description['desc'];
+						}
+					} else {
+						$isBlocked = 'N';
+					}
+					
+					// Check if user account is expired
+					$expiryDate = (string)$almaUserObject->expiry_date;
+					$expiryDate = rtrim($expiryDate, 'Z');
+					$expiryDateObj = \DateTime::createFromFormat('Y-m-d H:i:s', $expiryDate.' 23:59:59');
+					$expireDateTS = $expiryDateObj->getTimestamp();
+					$nowTs = time();
+					if ($expireDateTS < $nowTs) {
+						$isExpired = 'Y';
+						$expiryDateFormatted = date('d.m.Y', $expireDateTS);
+						$expired['timestamp'] = $expireDateTS;
+						$expired['formatted'] = $expiryDateFormatted;
+					} else {
+						$isExpired = 'N';
+					}
+					
+					if ($isBlocked == 'Y' || $isExpired == 'Y') {
+						$isValid = 'N';
+						$this->httpResponse->setStatusCode($forbidden403); // Forbidden
+					} else {
+						$isValid = 'Y';
+						$this->httpResponse->setStatusCode(200); // OK
+					}
+					
+					// Get user group and description
+					if (isset($almaUserObject->user_group) && !empty($almaUserObject->user_group)) {
+					    $userGroupCode = (string)$almaUserObject->user_group;
+					    $userGroupDesc = (string)$almaUserObject->user_group['desc'];
+					}
+					
+				}
+			}
+		} catch (\VuFind\Exception\Auth $authException) {
+			if ($authException->getMessage() == 'authentication_error_invalid') {
+				// Credentials are invalid
+				$isValid = 'N';
+				$userExists = 'U';
+				$this->httpResponse->setStatusCode($unauthorized401); // Unauthorized
+			} else if ($authException->getMessage() == 'authentication_error_otp') {
+				// Password is OTP
+				$isValid = 'N';
+				$userExists = 'Y';
+				$isBlocked = 'Y';
+				$blocks[0]['code'] = '02';
+				$blocks[0]['note'] = 'Kein Log-in mit Einmal-Passwort. Neues Passwort auf aksearch.arbeiterkammer.at setzen! No log-in with one-time-password. Set new password at aksearch.arbeiterkammer.at!';
+				$this->httpResponse->setStatusCode($forbidden403); // Forbidden
+			} else if ($authException->getMessage() == 'authentication_error_blank') {
+				// Blank credentials
+				$isValid = 'N';
+				$userExists = 'N';
+				$this->httpResponse->setStatusCode($unauthorized401); // Unauthorized
+			}
+		} catch (\Exception $ex) {
+			$this->httpResponse->setStatusCode(500); // Internal Server Error (500)
+		}
+		
+		switch ($authMode) {
+			case 'apa':
+				// Create the return XML
+				$xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><response/>');
+				
+				$status = '-1'; // Username or password wrong
+				if ($isValid === 'Y') {
+					$status = 3; // User is allowed to authenticate
+				} else if ($isBlocked === 'Y' || $isExpired === 'Y') {
+					$status = 1; // User blocked from access
+				}
+				
+				$xml->addChild('status', $status);
+				$xml->addChild('userid', $username);
+
+				$this->httpHeaders->addHeaderLine('Content-type', 'text/xml');
+				$this->httpResponse->setContent($xml->asXML());
+			break;
+			
+			case 'akw': // Skip to default, so we don't break here
+			default:
+				// Initialize return variables
+				$returnFormat = strtolower($returnFormat);
+				$returnArray = [];
+				$returnJson = null;
+		
+				// Create the return array
+				$returnArray['user']['isValid'] = $isValid;
+				$returnArray['user']['exists'] = $userExists;
+				if ($userGroupDesc) { $returnArray['user']['group']['desc'] = $userGroupDesc; };
+				if ($userGroupCode) { $returnArray['user']['group']['code'] = $userGroupCode; };
+				$returnArray['expired']['isExpired'] = $isExpired;
+				if ($expired) { $returnArray['expired']['date'] = $expired; }
+				$returnArray['blocks']['isBlocked'] = $isBlocked;
+				if ($blocks) { $returnArray['blocks']['reasons'] = $blocks; }
+				if ($hasError) { $returnArray['request']['hasError'] = $hasError; }
+				if ($errorMsg) { $returnArray['request']['errorMsg'] = $errorMsg; } // The error message from the database or ILS
+				$returnArray= array_filter($returnArray); // Remove null from array
+				$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
+				
+				// Return XML
+				if ($returnFormat == 'xml') {
+					$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
+					$this->httpResponse->setContent('Only "json" response is supported at the moment!');
+					// $this->httpHeaders->addHeaderLine('Content-type', 'text/xml');
+					// $this->httpResponse->setContent($XML);
+				} else if ($returnFormat == 'json') {
+					// Return JSON (Default)
+					$this->httpHeaders->addHeaderLine('Content-type', 'application/json');
+					$this->httpResponse->setContent($returnJson);
+				} else {
+					$this->httpResponse->setContent('You have to define a valid response format! Only "json" is supported at the moment!');
+				}
+			break;
+		}
+		
+		return $this->httpResponse;
+	}
+	
+
+	private function userAuthAleph($requestMethod, $host, $library, $username, $password, $returnFormat = 'json') {
 		// Only POST requests are allowed
 		if ($requestMethod != 'POST') {
 			$this->httpHeaders->addHeaderLine('Content-type', 'text/plain');
@@ -402,7 +669,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 				
 		// Check for error
 		if ($errorMsg) {
-			$isValid = 'N'; // N = No. User is not valid			
+			$isValid = 'N'; // N = No. User is not valid
 			$hasError = 'Y'; // Y = Yes. There is an error
 			$this->httpResponse->setStatusCode(500); // Default HTTP return status code: Internal Server Error (500)
 			$this->httpResponse->setContent($errorMsg);
@@ -419,7 +686,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 			
 			$userExists= 'Y'; // Y = Yes. The user credentials exists.
 			$isExpired = 'N'; // Default
-			$isBlocked = 'N'; // Default			
+			$isBlocked = 'N'; // Default
 			
 			// Check if user account is expired
 			$expiryDate = (string) $userXml->{'z305'}->{'z305-expiry-date'};
@@ -488,7 +755,7 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		if ($hasError) { $returnArray['request']['hasError'] = $hasError; }
 		if ($errorMsg) { $returnArray['request']['errorMsg'] = $errorMsg; } // The error message from the ILS server
 		$returnArray= array_filter($returnArray); // Remove null from array
-		$returnJson = json_encode($returnArray,  JSON_PRETTY_PRINT);
+		$returnJson = json_encode($returnArray, JSON_PRETTY_PRINT);
 		
 		// Return XML
 		if ($returnFormat == 'xml') {
@@ -702,6 +969,8 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 	private function barcodeToAlma($primaryId, $barcodeValue) {
 		$apiUrl = $this->configAlma->API->url;
 		$apiKey = $this->configAlma->API->key;
+		$barcodeIdType = $this->configAlma->Webhook->barcodeIdTypeCode;
+		$barcodeIdDesc = $this->configAlma->Webhook->barcodeIdTypeDesc;
 				
 		// Get the Alma user XML object from the Alma API
 		$almaUserObject = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?&apikey='.$apiKey, 'GET');
@@ -714,27 +983,39 @@ class ApiController extends AbstractBase implements AuthorizationServiceAwareInt
 		$userIds = $almaUserObject->user_identifiers;
 		$newBarcode = $userIds->addChild('user_identifier');
 		$newBarcode->addAttribute('segment_type', 'Internal');
-		$newBarcode->addChild('id_type', 'BARCODE')->addAttribute('desc', 'Barcode');
+		$newBarcode->addChild('id_type', $barcodeIdType)->addAttribute('desc', $barcodeIdDesc);
 		$newBarcode->addChild('value', $barcodeValue);
 		$newBarcode->addChild('status', 'ACTIVE');
-		
+
 		// Get XML for update process via API
 		$almaUserObjectForUpdate = $almaUserObject->asXML();
-		
+				
 		// Send update via HTTP PUT
 		$updateResult = $this->akSearch()->doHTTPRequest($apiUrl.'users/'.$primaryId.'?user_id_type=all_unique&apikey='.$apiKey, 'PUT', $almaUserObjectForUpdate, ['Content-type' => 'application/xml']);
+		
+		// Check for errors
+		if ($updateResult['status'] != '200') {
+			$errorMessage = $updateResult['xml']->errorList->error->errorMessage;
+			error_log('[Alma] ApiController -> barcodeToAlma(). Error (HTTP code '.$updateResult['status'].') when updating user in Alma via API: '.$errorMessage);
+		}
 		
 		return $updateResult['status']; // Return http status code
 	}
 	
-	
+	// TODO: Remove static eMail text (e. g. move to languages files)
 	private function sendMail($username, $password, $to) {
 		$success = false;
 		
 		$email_subject = 'AK Bibliothek Wien - Ihr Account';
-		$email_message = 'URL: http://aksearch.localhost.at/AkSites/SetPasswordWithOtp' . "\n";
-		$email_message = 'Username: ' . $username. "\n";
-		$email_message .= 'Password: ' . $password. "\n";
+		$email_message = '';
+		$email_message .= 'Sehr geehrte Nutzerin, sehr geehrter Nutzer!'."\n\n";
+		$email_message .= 'An der AK Bibliothek Wien wurde ein NutzerInnen Account für Sie erstellt. Um unsere Services in Anspruch nehmen zu können, müssen Sie zunächst ein eigenes Passwort wählen.'."\n\n";
+		$email_message .= 'Besuchen Sie bitte folgende Website, geben Sie in die ensprechenden Felder die untenstehenden Daten ein und wählen Sie dann mithilfe der Felder "Neues Passwort" sowie "Neues Passwort bestätigen" ein eigenes Passwort.' . "\n\n";
+		$email_message .= 'URL: https://aksearch.arbeiterkammer.at/AkSites/SetPasswordWithOtp' . "\n\n";
+		$email_message .= '  BenutzerInnen-Name: ' . $username. "\n";
+		$email_message .= '  Einmal-Passwort: ' . $password. "\n\n";
+		$email_message .= 'Mit freundlichen Grüßen'."\n";
+		$email_message .= 'Ihr Team der AK Bibliothek Wien'."\n";
 		
 		$from = (isset($this->configAlma->Webhook->emailFrom)) ? $this->configAlma->Webhook->emailFrom : null;
 		$bcc = (isset($this->configAlma->Webhook->emailBCC)) ? $this->configAlma->Webhook->emailBCC: null;

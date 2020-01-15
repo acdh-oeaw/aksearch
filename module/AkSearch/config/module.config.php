@@ -606,7 +606,8 @@ $config = [
                     'LibGuides' => 'VuFind\Search\Factory\LibGuidesBackendFactory',
                     'Pazpar2' => 'VuFind\Search\Factory\Pazpar2BackendFactory',
                     'Primo' => 'VuFind\Search\Factory\PrimoBackendFactory',
-                    'Solr' => 'VuFind\Search\Factory\SolrDefaultBackendFactory',
+                    //'Solr' => 'VuFind\Search\Factory\SolrDefaultBackendFactory',
+                    'Solr' => 'AkSearch\Search\Factory\SolrDefaultBackendFactory',
                     'SolrAuth' => 'VuFind\Search\Factory\SolrAuthBackendFactory',
                     'SolrReserves' => 'VuFind\Search\Factory\SolrReservesBackendFactory',
                     'SolrStats' => 'VuFind\Search\Factory\SolrStatsBackendFactory',
@@ -841,7 +842,7 @@ $dynamicRoutes = [
 // Define static routes -- Controller/Action strings
 $staticRoutes = [
 	'Akfilter/Home', 'Akfilter/Results', 'Akfilter/Advanced',
-	'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 'AkSites/Captcha', 'AkSites/LoanHistory',
+    'AkSites/About', 'AkSites/DataPrivacyStatement', 'AkSites/ChangeUserData', 'AkSites/SetPasswordWithOtp', 'AkSites/Captcha', 'AkSites/LoanHistory', 'AkSites/RequestSetPassword', 'AkSites/SetPassword',
     'Alphabrowse/Home', 'Author/Home', 'Author/Search',
     'Authority/Home', 'Authority/Record', 'Authority/Search',
     'Browse/Author', 'Browse/Dewey', 'Browse/Era', 'Browse/Genre', 'Browse/Home',

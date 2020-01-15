@@ -2,19 +2,6 @@
 
 $requiredFields = $this->required;
 
-$salutation = ($this->request->get('salutation')) ? $this->escapeHtmlAttr($this->request->get('salutation')) : null;
-$salutationSelectedNone = ($salutation == null || $salutation == '') ? 'selected="selected"' : '';
-$salutationSelectedMs = ($salutation != null && $salutation == $this->escapeHtmlAttr($this->transEsc('salutationMs'))) ? 'selected="selected"' : '';
-$salutationSelectedMr = ($salutation != null && $salutation == $this->escapeHtmlAttr($this->transEsc('salutationMr'))) ? 'selected="selected"' : '';
-
-$jobs = $this->jobs;
-$jobFromRequest = $this->escapeHtmlAttr($this->request->get('job'));
-$jobSelect = '<select name="job" id="job" required aria-required="true"><option value="" '.(($jobFromRequest == '') ? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc('pleaseChoose')).'</option>';
-foreach ($jobs as $job) {			
-	$jobSelect .= '<option value="'.$this->escapeHtmlAttr($this->transEsc($job)).'" '.($jobFromRequest == $this->escapeHtmlAttr($this->transEsc($job))? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc($job)).'</option>';
-}
-$jobSelect .= '</select>';
-
 $salutationRequired = in_array('salutation', $requiredFields);
 $firstNameRequired = in_array('firstName', $requiredFields);
 $lastNameRequired = in_array('lastName', $requiredFields);
@@ -27,10 +14,31 @@ $birthdayRequired = in_array('birthday', $requiredFields);
 $jobRequired = in_array('job', $requiredFields);
 $passwordRequired = in_array('password', $requiredFields);
 $passwordConfirmRequired = in_array('passwordConfirm', $requiredFields);
+$residenceRegistrationCardRequired = in_array('residenceRegistrationCard', $requiredFields);
 $dataProcessingRequired = in_array('dataProcessing', $requiredFields);
 $loanHistoryRequired = in_array('loanHistory', $requiredFields);
 $houseAndUsageRulesRequired = in_array('houseAndUsageRules', $requiredFields);
 $captchaCodeRequired = in_array('captchaCode', $requiredFields);
+
+$salutation = ($this->request->get('salutation')) ? $this->escapeHtmlAttr($this->request->get('salutation')) : null;
+$salutationSelectedNone = ($salutation == null || $salutation == '') ? 'selected="selected"' : '';
+$salutationSelectedMs = ($salutation != null && $salutation == $this->escapeHtmlAttr($this->transEsc('salutationMs'))) ? 'selected="selected"' : '';
+$salutationSelectedMr = ($salutation != null && $salutation == $this->escapeHtmlAttr($this->transEsc('salutationMr'))) ? 'selected="selected"' : '';
+
+$jobs = $this->jobs;
+$jobFromRequest = $this->escapeHtmlAttr($this->request->get('job'));
+$jobSelect = '<select name="job" id="job" '.(($jobRequired) ? 'required aria-required="true"' : '').'><option value="" '.(($jobFromRequest == '') ? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc('pleaseChoose')).'</option>';
+foreach ($jobs as $job) {
+    $jobSelect .= '<option value="'.$this->escapeHtmlAttr($this->transEsc($job)).'" '.($jobFromRequest == $this->escapeHtmlAttr($this->transEsc($job))? 'selected="selected"' : '').'>'.$this->escapeHtmlAttr($this->transEsc($job)).'</option>';
+}
+$jobSelect .= '</select>';
+
+$residenceRegistrationCardSending = $this->residenceRegistrationCardSending;
+
+//Check for "aksearch" in URL. We use the result for the captcha path further down. This is mainly necessary for test installations.
+$requestUri = preg_replace('/^\//','', $_SERVER['REQUEST_URI']);
+$splittedUri = explode('/', $requestUri);
+$captchaPath = (strtolower($splittedUri[0]) == 'aksearch') ? '/aksearch' : '';
 ?>
 
 <table id="almaUserRegistration" class="table table-striped">
@@ -60,7 +68,7 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 		</td>
 	</tr>
 	<tr>
-		<td><?=$this->transEsc('street').(($streetRequired) ? ' *' : '')?></td>
+		<td><?=$this->transEsc('street').' '.$this->transEsc('streetnumber').(($streetRequired) ? ' *' : '')?></td>
 		<td class="form-group" colspan="2">
 			<input type="text" name="street" id="street" class="form-control" value="<?=$this->escapeHtmlAttr($this->request->get('street'))?>" <?=(($streetRequired) ? 'required aria-required="true"' : '')?> />
 			<div class="help-block with-errors"></div>
@@ -125,6 +133,26 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 			<div class="help-block with-errors"></div>	
 		</td>
 	</tr>
+	
+	<?php
+	
+	if ($residenceRegistrationCardSending) {
+	    echo '<tr>';
+	    echo '<td>';
+	    echo $this->transEsc('residenceRegistrationCard').(($residenceRegistrationCardRequired) ? ' *' : '');
+	    echo '</td>';
+	    echo '<td class="form-group" colspan="2">';
+	    echo '<input type="file" name="residenceRegistrationCard" id="residenceRegistrationCard" ';
+	    echo (($residenceRegistrationCardRequired) ? 'required aria-required="true"' : '');
+	    echo ' />&nbsp';
+            echo $this->translate('createResidentialRegistrationText');
+	    echo '<div class="help-block with-errors"></div>';
+	    echo '</td>';
+	    echo '</tr>';
+	}
+	
+	?>
+
 	<tr class="form-group">
 		<td><?=$this->transEsc('dataProcessing').(($dataProcessingRequired) ? ' *' : '')?></td>
 		<td>
@@ -163,8 +191,8 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 		<td><?=$this->transEsc('captchaCode').(($captchaCodeRequired) ? ' *' : '')?></td>
 		<td colspan="2">
 			<br />
-			<img id="captcha" src="../AkSites/Captcha" alt="CAPTCHA Image" />&nbsp;
-			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = '../AkSites/Captcha?' + Math.random(); return false">
+			<img id="captcha" src="<?php echo $captchaPath; ?>/AkSites/Captcha" alt="CAPTCHA Image" />&nbsp;
+			<a href="#" id="reloadImage" onclick="document.getElementById('captcha').src = path + '/AkSites/Captcha?' + Math.random(); return false">
 				<i class="fa fa-refresh"></i>
 			</a>
 			<div class="form-group" style="margin-top: 10px; margin-left: 0px;">
@@ -178,4 +206,3 @@ $captchaCodeRequired = in_array('captchaCode', $requiredFields);
 	</tr>
 </table>
 <p>* = <?=$this->translate('This field is required')?></p>
-

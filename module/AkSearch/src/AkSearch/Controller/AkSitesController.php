@@ -80,61 +80,74 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 			return $this->redirect()->toRoute('home');
 		}
 		
-		// Stop now if the user does not have valid catalog credentials available
-		if (!is_array($patron = $this->catalogLogin())) {
-			return $patron;
-		}
+		// Get post params
+		$postParams = $this->params()->fromPost();
 		
 		// User must be logged in at this point, so we can assume this is non-false
 		$user = $this->getUser();
 		
-		/*
-		echo '<h3>$patron</h3>';
-		echo '<pre>';
-		print_r($patron);
-		echo '</pre>';
-		
-		echo '<h3>$user</h3>';
-		echo '<pre>';
-		print_r($user->toArray());
-		echo '</pre>';
-		*/
-		
 		// Begin building view object
 		$view = $this->createViewModel();
 
+		// Get the loan history
+		$loanHistory = $this->getAuthManager()->getLoanHistory($user);
 		
+		// If user has not yet opted-in for loan history, set a value for the template and show an opt-in message there:
+		if (isset($loanHistory['isLoanHistory']) && $loanHistory['isLoanHistory'] == false) {
+		    $view->loanHistory = $loanHistory;
+		    $view->setTemplate('aksites/loanhistory');
+		    
+		    // If the opt-in form was submitted, handle the opt-in logic
+		    if ($this->formWasSubmitted('submitOptIn')) {		        
+		        // 0. Click button in loanhistory.phtml
+		        // 1. AkSitesController.php->loanHistoryAction()
+		        // 2. Manager.php->setIsLoanHistory()
+		        // 3. Database.php->setIsLoanHistory()
+		        try {
+		            $result = $this->getAuthManager()->setIsLoanHistory($user, $postParams);
+		        } catch (\VuFind\Exception\Auth $e) {
+		            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+		            return $view;
+		        }
+		        
+		        if ($result['success']) {
+		            // Show message on success
+		            $this->flashMessenger()->addMessage($result['status'], 'success');
+		            $view->chkOptInLoanHistory = 1;
+		            
+		            // If opt-in was successful, reload site to show the loan history list
+		            return $this->redirect()->toRoute('aksites-loanhistory');
+		        } else {
+		            $this->flashMessenger()->addMessage($result['status'], 'error');
+		        }
+		    }
+		    return $view;
+		}
 		
-		/*
-		// Obtain user information from ILS
-		$catalog = $this->getILS();
-		$profile = $catalog->getMyProfile($patron);
+		// If opt-out form was submitted, handle the opt-out logic
+		if ($this->formWasSubmitted('submitOptOut')) {
+		    try {
+		        $result = $this->getAuthManager()->setIsLoanHistory($user, $postParams);
+		    	if ($result['success']) {
+		    		// Delete loan history from database
+		    		$resultDelete = $this->getAuthManager()->deleteLoanHistory($user);
+		    		
+		            // Show message on success
+		            $this->flashMessenger()->addMessage($result['status'], 'success');
+		            $view->chkOptInLoanHistory = 0;
+		            
+		            // If opt-out was successful, reload site to show the opt-in site
+		            return $this->redirect()->toRoute('aksites-loanhistory');
+		        } else {
+		            $this->flashMessenger()->addMessage($result['status'], 'error');
+		        }
+		    } catch (\VuFind\Exception\Auth $e) {
+		        $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+		        return $view;
+		    }
+		}
 		
-		// Get loan history from ILS
-		$loanHistory = $catalog->getLoanHistory($profile);
-		*/
-		
-		/*
-		// PROFILE ONLY FOR TESTING
-		$profile['firstname'] = 'PUBLIC';
-		$profile['lastname'] = 'AK';
-		$profile['address1'] = 'Prinz-Eugen-Straße 20-22';
-		$profile['address2'] = '1040';
-		$profile['zip'] = '1040';
-		$profile['city'] = 'Wien';
-		$profile['email'] = 'michael.birkner@akwien.at';
-		$profile['group'] = 'AKW1';//??
-		$profile['AKW Lesesaal-Leser'] = 'AKW-01';
-		$profile['barcode'] = '$XAWA03CAF1';
-		$profile['expire'] = '2099-07-13';
-		$profile['id'] = '2013-73';
-		*/
-		
-		$catalog = $this->getILS();
-		$profile = $catalog->getMyProfile($patron);
-		$loanHistory = $this->getAuthManager()->getLoanHistory($profile);		
-		
-		// If form was submitted, export loan history to CSV
+		// If export form was submitted, export loan history to CSV
 		if ($this->formWasSubmitted('submit')) {
 			
 			if (isset($loanHistory) && !empty($loanHistory)) {
@@ -232,7 +245,6 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 				fclose($output);
 				exit;
 			}
-			
 		}
 		
 		// Build paginator if needed
@@ -253,6 +265,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		
 		$view->paginator = $paginator;
 
+		$transactionHistory = [];
 		foreach ($loanHistory as $i => $current) {					
 			// Build record driver (only for the current visible page):
 			if ($i >= $pageStart && $i <= $pageEnd) {
@@ -261,11 +274,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		}
 		
 		// Set loan history to view
-		$view->loanHistory = $transactionHistory;	
-		
-		// Identification
-		$user->updateHash();
-		$view->hash = $user->verify_hash;
+		$view->loanHistory = $transactionHistory;
 		$view->setTemplate('aksites/loanhistory');
 
 		return $view;
@@ -325,11 +334,11 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 			// 0. Click button in changeuserdata.phtml
 			// 1. AkSitesController.php->changeUserDataAction()
 			// 2. Manager.php->updateUserData()
-			// 3. ILS.php->updateUserData()
-			// 4. Aleph.php->changeUserData();
+			// 3. ILS.php/Database.php->updateUserData()
+			// 4. Aleph.php/Alma.php->changeUserData();
 			try {
 				$result = $this->getAuthManager()->updateUserData($this->getRequest());
-			} catch (AuthException $e) {
+			} catch (\VuFind\Exception\Auth $e) {
 				$this->flashMessenger()->addMessage($e->getMessage(), 'error');
 				return $view;
 			}
@@ -345,6 +354,241 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		}
 		
 		return $view;
+	}
+	
+	
+	/**
+	 * Action for "request to set new password" page.
+	 *
+	 * @return \Zend\View\Model\ViewModel
+	 */
+	public function requestSetPasswordAction() {
+	    // Translator
+	    $translator = $this->getServiceLocator()->get('VuFind\Translator');
+	    $this->setTranslator($translator);
+	    
+	    // Get the username
+	    $username = $this->getEvent()->getRouteMatch()->getParam('username');
+	    $view = $this->createViewModel();
+	    
+	    // Pass the username to the view so we can show it there
+	    $view->username = $username;
+	    
+	    // Pass request to view so we can repopulate form fields:
+	    $view->request = $this->getRequest()->getPost();
+	    
+	    // Password policy - set a variable that we can use in the template file (setpasswordwithotp.phtml)
+	    //$view->passwordPolicy = $this->getAuthManager()->getPasswordPolicy();
+	    
+	    // If cancel button was clicked, return to home page
+	    if ($this->formWasSubmitted('cancel')) {
+	        return $this->redirect()->toRoute('home');
+	    }
+	    
+	    // If form was submitted
+	    if ($this->formWasSubmitted('submit')) {
+	        // 0. Click button in requestsetpassword.phtml
+	        // 1. AkSitesController.php->requestSetPasswordAction()
+	        // 2. Auth\Manager.php->requestSetPassword()
+	        // 3. Auth\Database.php->requestSetPassword()
+	        
+	        $result = $this->getAuthManager()->requestSetPassword($this->getRequest());
+	        
+	        if ($result['success']) {
+	            $config = $this->getServiceLocator()->get('VuFind\Config')->get('config'); // Get config.ini
+	            $almaConfig = $this->getServiceLocator()->get('VuFind\Config')->get('Alma'); // Get Alma.ini
+	            $sendEmailResult = $this->sendRequestSetPasswordEmail($result['user'], $config, $almaConfig);
+	            if ($sendEmailResult['success']) {
+	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'success');
+	            } else {
+	                $this->flashMessenger()->addMessage($sendEmailResult['status'], 'error');
+	            }
+	        } else {
+	            $this->flashMessenger()->addMessage($result['status'], 'error');
+	            return $view;
+	        }
+	    }
+	    
+	    return $view;
+	    
+	}
+	
+	
+	protected function sendRequestSetPasswordEmail($user, $config, $almaConfig) {
+	    $sendEmailResult = [];
+	    
+	    // If we can't find a user
+	    if (null == $user) {
+	        $sendEmailResult = array('success' => false, 'status' => 'recovery_user_not_found');
+	    } else {
+	        // Make sure we've waiting long enough
+	        $hashtime = $this->getHashAge($user->verify_hash);
+	        $recoveryInterval = isset($config->Authentication->recover_interval) ? $config->Authentication->recover_interval : 60;
+	        if (time() - $hashtime < $recoveryInterval) {
+	            $sendEmailResult = array('success' => false, 'status' => 'recovery_too_soon');
+	        } else {
+	        	
+	        	// Generate new hash
+	        	$user->updateHash();
+	        	
+	        	// Get authentication method
+	            $method = $this->getAuthManager()->getAuthMethod();
+	            
+	            // Get eMail text and subject from languages file and translate it
+	            $emailText = $this->translate('eMailRequestSetPasswordText', ['_firstName_' => $user->firstname, '_lastName_' => $user->lastname, '_url_' => $this->getServerUrl('aksites-setpassword') . '?hash=' . $user->verify_hash . '&auth_method=' . $method]);
+		    	$subject = $this->translate('eMailRequestSetPasswordSubject', ['_firstName_' => $user->firstname, '_lastName_' => $user->lastname]);
+		    	
+		    	// Get addresses
+		    	$toEmail = (isset($user->email) && !empty($user->email)) ? $user->email : null;
+		    	$fromEmail = (isset($almaConfig->Users->emailFrom) && !empty($almaConfig->Users->emailFrom)) ? $almaConfig->Users->emailFrom : $config->Site->email;
+	            $replyToEmail = (isset($almaConfig->Users->emailReplyTo) && !empty($almaConfig->Users->emailReplyTo)) ? $almaConfig->Users->emailReplyTo : null;
+		    	$bccEmail = (isset($almaConfig->Users->emailBcc) && !empty($almaConfig->Users->emailBcc)) ? $almaConfig->Users->emailBcc : null;
+		
+		    	// This sets up the email to be sent
+		    	$mail = new \Zend\Mail\Message();
+		    	$headers = $mail->getHeaders();
+		    	$headers->removeHeader('Content-Type');
+		    	$headers->addHeaderLine('Content-Type', 'text/html;charset=UTF-8');
+		    	$mail->addTo($toEmail);
+		    	$mail->setFrom($fromEmail);
+		    	$mail->setReplyTo($replyToEmail);
+		    	$mail->setBcc($bccEmail);
+		    	$mail->setSubject($subject);
+		    	
+		    	// Prepare HTML for eMail
+		    	$html = new \Zend\Mime\Part($emailText);
+		    	$html->type = 'text/html';
+		    	$html->setCharset('UTF-8');
+		    	$body = new \Zend\Mime\Message();
+		    	$body->setParts(array($html));
+		    	
+		    	// Add html to eMail body
+		    	$mail->setBody($body);
+		    	
+		    	try {
+		    		// Send eMail
+		    		$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
+		    		$sendEmailResult = array('success' => true, 'status' => 'success_request_set_password_email');
+		    	} catch (MailException $mex) {
+		    		$sendEmailResult = array('success' => false, 'status' => $e->getMessage());
+		    		error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
+		    	}
+	        	
+	        	
+	            /*
+	        	
+	        	try {
+	                // Create a fresh hash
+	                $user->updateHash();
+	                $config = $this->getConfig();
+	                $renderer = $this->getViewRenderer();
+	                $method = $this->getAuthManager()->getAuthMethod();
+	                // Custom template for emails (text-only)
+	                
+	                //Email/requestSetPasswordEmail.phtml
+	                $message = $renderer->render(
+	                    'Email/recover-password.phtml',
+	                    [
+	                        'library' => $config->Site->title,
+	                        'url' => $this->getServerUrl('aksites-setpassword') . '?hash=' . $user->verify_hash . '&auth_method=' . $method
+	                    ]
+	                );
+	                
+	                $fromEmail = (isset($almaConfig->Webhook->emailFrom) && !empty($almaConfig->Webhook->emailFrom)) ? $almaConfig->Webhook->emailFrom : $config->Site->email;
+	                $bcc = (isset($almaConfig->Webhook->emailBCC) && !empty($almaConfig->Webhook->emailBCC)) ? $almaConfig->Webhook->emailBCC : null;
+		
+					// This sets up the email to be sent
+					$mail = new \Zend\Mail\Message();
+					$mail->setBody($message);
+					$mail->setFrom($fromEmail);
+					$mail->addTo($user->email);
+					$mail->setSubject($this->translate('request_set_password_email_subject'));
+					$mail->addBcc($bcc);
+					
+					
+					$this->getServiceLocator()->get('VuFind\Mailer')->getTransport()->send($mail);
+					$sendEmailResult = array('success' => true, 'status' => 'success_request_set_password_email');
+					
+	            } catch (\Vufind\Exception\Mail $e) {
+	                //$this->flashMessenger()->addMessage($e->getMessage(), 'error');
+	                $sendEmailResult = array('success' => false, 'status' => $e->getMessage());
+	                error_log('[Alma] '.$mex->getMessage(). '. Line: '.$mex->getLine());
+	            }
+	            */
+	        }
+	    }
+	    
+	    return $sendEmailResult;
+	}
+	
+	
+	/**
+	 * Call action to go to "set password" page.
+	 *
+	 * @return \Zend\View\Model\ViewModel
+	 */
+	public function setPasswordAction() {
+	    $view = $this->createViewModel();
+	    
+	    // Password policy - set a variable that we can use in the template file (setpasswordwithotp.phtml)
+	    $view->passwordPolicy = $this->getAuthManager()->getPasswordPolicy();
+	    
+	    // TODO - see function "verifyAction" in \VuFind\Controller\MyResearchController->verifyAction()
+	    // - DONE: Get the Username by verify_hash (GET-Parameter)
+	    // - Show the username
+	    // - If form submitted: set password and force_pw_change in DB
+	    // - Show success or error message
+	    
+	    if ($hash = $this->params()->fromQuery('hash')) {
+	        $hashtime = $this->getHashAge($hash);
+	        $config = $this->getServiceLocator()->get('VuFind\Config')->get('config'); // Get config.ini
+	        // Check if hash is expired
+	        $hashLifetime = isset($config->Authentication->recover_hash_lifetime) ? $config->Authentication->recover_hash_lifetime : 1209600; // Two weeks
+	        if (time() - $hashtime > $hashLifetime) {
+	            $this->flashMessenger()->addMessage('recovery_expired_hash', 'error');
+	            return $this->forwardTo('AkSites', 'RequestSetPassword');
+	        } else {
+	            $table = $this->getTable('User');
+	            $user = $table->getByVerifyHash($hash);
+	            $username = $user->username;
+	        }
+	    }
+	    
+	    $view->username = $username;
+	    $view->hash = $hash;
+	    $view->authMethod = $this->params()->fromQuery('auth_method');
+	    
+	    // If form was submitted
+	    if ($this->formWasSubmitted('submit')) {
+	        // 0. Click button in setpassword.phtml
+	        // 1. Controller\AkSitesController.php->setPasswordAction()
+	        // 2. Auth\Manager.php->setPassword()
+	        // 3. Auth\Database.php->setPassword()
+	        try {
+	        	$result = $this->getAuthManager()->setPassword($view->username, $view->hash, $this->getRequest());
+	        } catch (\VuFind\Exception\Auth $e) {
+	            $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+	            return $view;
+	        }
+	        
+	        if ($result['success']) {
+	            // Show message and go to home on success
+	            $this->flashMessenger()->addMessage($result['status'], 'success');
+	            $view->setTemplate('aksites/setpasswordsuccess');
+	            return $view;
+	            //return $this->redirect()->toRoute('myresearch-home', array(), array('query' => array('clearFollowupUrl' => '1')));
+	        } else {
+	        	$this->flashMessenger()->addMessage($result['status'], 'error');
+	            return $view;
+	        }
+	    }
+	    
+	    
+	    return $view;
+	}
+	
+	public function setpasswordsuccessAction() {
+		return $this->createViewModel();
 	}
 	
 	
@@ -375,7 +619,7 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 			// 3. Database.php->setPasswordWithOtp()
 			try {
 				$result = $this->getAuthManager()->setPasswordWithOtp($this->getRequest());
-			} catch (AuthException $e) {
+			} catch (\VuFind\Exception\Auth $e) {
 				$this->flashMessenger()->addMessage($e->getMessage(), 'error');
 				return $view;
 			}
@@ -433,6 +677,19 @@ class AkSitesController extends AbstractBase implements \VuFind\I18n\Translator\
 		$record = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($id, $source, true);
 		$record->setExtraDetail('ils_details', $current);
 		return $record;
+	}
+	
+	
+	/**
+	 * Helper function for verification hashes.
+	 * Taken from \VuFind\Controller\MyResearchController
+	 *
+	 * @param string $hash User-unique hash string from request
+	 *
+	 * @return int age in seconds
+	 */
+	protected function getHashAge($hash) {
+	    return intval(substr($hash, -10));
 	}
 
 	
