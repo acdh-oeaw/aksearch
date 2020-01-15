@@ -220,9 +220,9 @@
 
 	  <?php
 	  $publicationDetails = $this->driver->getPublicationDetails();
-	  $publisher = $publicationDetails['publisher'];
-	  $publicationPlace = $publicationDetails['publishPlace'];
-	  $publicationYear = $publicationDetails['publishDate'];
+	  $publisher = (isset($publicationDetails['publisher']) ? $publicationDetails['publisher'] : "");
+	  $publicationPlace = (isset($publicationDetails['publishPlace']) ? $publicationDetails['publishPlace'] : "");
+	  $publicationYear = (isset($publicationDetails['publishDate']) ? $publicationDetails['publishDate'] : ""); 
 	  $publicationHistory = $this->driver->getPublicationHistory();
 
 

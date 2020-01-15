@@ -607,4 +607,5 @@ $(document).ready(function commonDocReady() {
     var parts = this.href.split('/');
     return Lightbox.get(parts[parts.length-3],'Save',{id:$(this).attr('id')});
   });
+  
 });

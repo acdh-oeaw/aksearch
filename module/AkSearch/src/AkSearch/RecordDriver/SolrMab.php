@@ -1237,22 +1237,22 @@ class SolrMab extends SolrDefault  {
 
 			switch ($publicationTypeCode) {
 				case 'a':
-					$publicationType['begrenztesWerk'] = 'unselbständig erschienenes Werk';
+					$publicationType['begrenztesWerk'] = 'unselbstÃ¤ndig erschienenes Werk';
 					break;
 				case 'f':
 					$publicationType['begrenztesWerk'] = 'Fortsetzung';
 					break;
 				case 'm':
-					$publicationType['begrenztesWerk'] = 'einbändiges Werk - nicht Teil eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'einbÃ¤ndiges Werk - nicht Teil eines Gesamtwerks';
 					break;
 				case 'n':
-					$publicationType['begrenztesWerk'] = 'mehrbändiges begrenztes Werk - nicht Teil eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'mehrbÃ¤ndiges begrenztes Werk - nicht Teil eines Gesamtwerks';
 					break;
 				case 's':
-					$publicationType['begrenztesWerk'] = 'einbändiges Werk und Teil (mit Stücktitel) eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'einbÃ¤ndiges Werk und Teil (mit StÃ¼cktitel) eines Gesamtwerks';
 					break;
 				case 't':
-					$publicationType['begrenztesWerk'] = 'mehrbändges begrenztes Werk und Teil (mit Stücktitel) eines Gesamtwerks';
+					$publicationType['begrenztesWerk'] = 'mehrbÃ¤ndges begrenztes Werk und Teil (mit StÃ¼cktitel) eines Gesamtwerks';
 					break;
 			}
 		}
@@ -1265,7 +1265,7 @@ class SolrMab extends SolrDefault  {
 
 			switch ($fortlaufendesWerkCode) {
 				case 'a':
-					$publicationType['fortlaufendesWerk'] = 'unselbständig erschienenes Werk';
+					$publicationType['fortlaufendesWerk'] = 'unselbstÃ¤ndig erschienenes Werk';
 					break;
 				case 'f':
 					$publicationType['fortlaufendesWerk'] = 'Fortsetzung';
@@ -1810,13 +1810,13 @@ class SolrMab extends SolrDefault  {
      * @return array
      */
     public function getRealTimeHoldings() {
-
     	// Get real time holdings
     	if (!$this->hasILS()) {
             return array();
     	}
     	try {
             $holdings = $this->holdLogic->getHoldings($this->getSysNo());
+            
             foreach ($holdings as &$holdingsOfLocation) {
                 $items = &$holdingsOfLocation['items'];
 
@@ -1964,11 +1964,12 @@ class SolrMab extends SolrDefault  {
      * @return array
      */
     public function getJournalHoldings() {
-    	if (!$this->hasILS()) {
-    		return array();
+        if (!$this->hasILS()) {
+            return array();
     	}
-    	try {
-    		return $this->ils->getJournalHoldings($this->getSysNo());
+        
+        try {
+            return $this->ils->getJournalHoldings($this->getSysNo());
     	} catch (ILSException $e) {
     		return array();
     	}

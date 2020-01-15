@@ -336,6 +336,35 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
             }
             return $returnValue;
 	}
+        
+        /* needs to be developed */
+        public function getJournalHoldings($mmsId) {
+            //$res = $this->getHolding($mmsId);
+        }
+        
+         /**
+        * Check if journal holding records exists for a certain record ID. This is a convenient method for enabling or disabling
+        * things like the "JournalHolding" tab without the need to process the holding data from the API.
+        *
+        * @param string	$id
+        * @return boolean	true if at least one journal holding exists, false otherwise.
+        */
+        public function hasJournalHoldings($id) {
+            $hasJournalHoldings = false;
+
+            echo "_";
+            //$bibId = $this->bib[0] . $id;
+            //$xml = $this->doRestDLFRequest(array('record', $bibId, 'holdings'));
+            list ($bib, $sys_no) = $this->parseId($id);
+            $resource = $bib . $sys_no;
+            $xml = $this->doRestDLFRequest(array('record', $resource, 'holdings'), null);
+
+            if (count($xml->holdings->holding) > 0) {
+                    $hasJournalHoldings = true;
+            }
+
+            return $hasJournalHoldings;
+        }
 	
 	
 	/**

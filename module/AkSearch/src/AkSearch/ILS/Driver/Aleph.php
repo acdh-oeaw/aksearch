@@ -220,7 +220,7 @@ class Aleph extends AlephDefault {
 	 *         duedate, number, barcode.
 	 */
 	public function getHolding($id, array $patron = null) {
-            error_log("aleph getholdings()");
+            
 		$holding = array();
 		list ($bib, $sys_no) = $this->parseId($id);
 		$resource = $bib . $sys_no;

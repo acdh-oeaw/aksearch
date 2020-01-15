@@ -232,3 +232,38 @@ dir
 bash import-alma.sh
 cd ../
 exit
+java
+dir
+cd akimporter
+dir
+cd akimporter
+java -jar AkImporter.jar -u -v -o
+java -jar AkImporter.jar -u -v -o
+java -jar AkImporter.jar -u -v -o > output.txt
+java -jar AkImporter.jar -u -v -o
+java -jar AkImporter.jar -u -v -o 2> output.txt
+java -jar AkImporter.jar -u -v -o 2> output.txt
+java -jar AkImporter.jar -u -v -o 2> output.txt
+java -jar AkImporter.jar -u -v -o 2> output.txt
+dir
+cd ..
+dir
+dir
+cd akimporter
+java -jar AkImporter.jar -R -v -o
+exit
+cd /var/www/html/
+ls
+cd error
+ls
+pwd
+exit
+exit
+cd data_unpacked
+dir
+cd akimporter
+cd data_unpacked
+touch delete.sh
+cd ../
+touch delete.sh
+exit

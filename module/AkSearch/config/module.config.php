@@ -469,7 +469,8 @@ $config = [
                     'voyagerrestful' => 'VuFind\ILS\Driver\Factory::getVoyagerRestful',
                 ],
                 'invokables' => [
-                	//'alma' => 'AkSearch\ILS\Driver\Alma',
+                    //'alma' => 'AkSearch\ILS\Driver\Alma',
+                    //'aleph' => 'AkSearch\ILS\Driver\Aleph',
                     'amicus' => 'VuFind\ILS\Driver\Amicus',
                     'claviussql' => 'VuFind\ILS\Driver\ClaviusSQL',
                     'evergreen' => 'VuFind\ILS\Driver\Evergreen',

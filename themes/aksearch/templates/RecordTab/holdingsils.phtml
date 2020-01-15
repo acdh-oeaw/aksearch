@@ -128,8 +128,9 @@ if (! empty($holdings)) {
     $showLoadMore = false;
     $noOfItemsToLoad = ($this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad) ? $this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad : 10;
 
+    $i = 0;
     foreach ($holdings as $location => $holdingsOfLocation) {
-
+        $i++;
         // Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
         // of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
         // we will display a "show more" button.
@@ -139,8 +140,8 @@ if (! empty($holdings)) {
             $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
         }
         echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . '</h3><br />';
-        echo '(Bestand: '. $this->driver->getLocalInventory()[0] . ')<br />';
-        echo '(Lücken: '. $this->driver->getLocalInventoryGaps()[0] . ')<br />';
+        echo '(Bestand: '. $this->driver->getLocalInventory()[$i-1] . ')<br />';
+        echo '(Lücken: '. $this->driver->getLocalInventoryGaps()[$i-1] . ')<br />';
         // print_r($this->driver->getLocalInventory());
         // print_r($this->driver->getLocalInventoryGaps());
         // Check for second call number (for label in table heading) and some other values

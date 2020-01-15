@@ -35,7 +35,7 @@ class HoldingsILS extends AbstractBase {
 
 
 	private $hasItemHoldings = false;
-	private $hasJournalHoldings = false;
+	private $hasJournalHoldings = true;
 	private $hasIlsOrJournalHoldings = false;
 	private $description = 'Holdings';
 	

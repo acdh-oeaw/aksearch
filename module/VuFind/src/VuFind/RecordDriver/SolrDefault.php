@@ -688,19 +688,22 @@ class SolrDefault extends AbstractBase
         // If we have multiple formats, Book, Journal and Article are most
         // important...
         $formats = $this->getFormats();
-        if (in_array('Book', $formats)) {
-            return 'Book';
-        } else if (in_array('Article', $formats)) {
-            return 'Article';
-        } else if (in_array('Journal', $formats)) {
-            return 'Journal';
-        } else if (isset($formats[0])) {
-            return $formats[0];
+        if(isset($formats) && (is_array($formats) && count($formats) > 0)) {
+            if (in_array('Book', $formats)) {
+                return 'Book';
+            } else if (in_array('Article', $formats)) {
+                return 'Article';
+            } else if (in_array('Journal', $formats)) {
+                return 'Journal';
+            } else if (isset($formats[0])) {
+                return $formats[0];
+            }    
         } else if (strlen($this->getCleanISSN()) > 0) {
             return 'Journal';
         } else if (strlen($this->getCleanISBN()) > 0) {
             return 'Book';
         }
+        
         return 'UnknownFormat';
     }
 
@@ -1699,27 +1702,30 @@ class SolrDefault extends AbstractBase
     public function getSchemaOrgFormatsArray()
     {
         $types = [];
-        foreach ($this->getFormats() as $format) {
-            switch ($format) {
-            case 'Book':
-            case 'eBook':
-                $types['Book'] = 1;
-                break;
-            case 'Video':
-            case 'VHS':
-                $types['Movie'] = 1;
-                break;
-            case 'Photo':
-                $types['Photograph'] = 1;
-                break;
-            case 'Map':
-                $types['Map'] = 1;
-                break;
-            case 'Audio':
-                $types['MusicAlbum'] = 1;
-                break;
-            default:
-                $types['CreativeWork'] = 1;
+        $formats = $this->getFormats();
+        if(isset($formats) && (is_array($formats) && count($formats) > 0)) {
+            foreach ($formats as $format) {
+                switch ($format) {
+                    case 'Book':
+                    case 'eBook':
+                        $types['Book'] = 1;
+                        break;
+                    case 'Video':
+                    case 'VHS':
+                        $types['Movie'] = 1;
+                        break;
+                    case 'Photo':
+                        $types['Photograph'] = 1;
+                        break;
+                    case 'Map':
+                        $types['Map'] = 1;
+                        break;
+                    case 'Audio':
+                        $types['MusicAlbum'] = 1;
+                        break;
+                    default:
+                        $types['CreativeWork'] = 1;
+                }
             }
         }
         return array_keys($types);
