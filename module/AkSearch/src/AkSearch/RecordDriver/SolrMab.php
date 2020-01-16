@@ -1735,6 +1735,23 @@ class SolrMab extends SolrDefault  {
     return isset($this->fields['hol866zLuecken_txt_mv']) ? $this->fields['hol866zLuecken_txt_mv'] : array();
   }
 
+	/**
+	 * Get Solrfield hol852cSonderstandort_txt_mv (e. g. codes of holding locations)
+	 *
+	 * @return array
+	 */
+	public function getHoldingLocationCodes() {
+		return isset($this->fields['hol852cSonderstandort_txt_mv']) ? $this->fields['hol852cSonderstandort_txt_mv'] : array();
+	}
+
+	/**
+	 * Get Solrfield hol852hSignatur_txt_mv (e. g. call numbers)
+	 *
+	 * @return array
+	 */
+	public function getCallnumbers() {
+		return isset($this->fields['hol852hSignatur_txt_mv']) ? $this->fields['hol852hSignatur_txt_mv'] : array();
+	}
 
 
 	// #######################################################################################
