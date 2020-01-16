@@ -1745,11 +1745,20 @@ class SolrMab extends SolrDefault  {
 	}
 
 	/**
+	 * Get Solrfield location_txtF_mv (e. g. names of holding locations)
+	 *
+	 * @return array
+	 */
+	public function getHoldingLocationNames() {
+		return isset($this->fields['location_txtF_mv']) ? $this->fields['location_txtF_mv'] : array();
+	}
+
+	/**
 	 * Get Solrfield hol852hSignatur_txt_mv (e. g. call numbers)
 	 *
 	 * @return array
 	 */
-	public function getCallnumbers() {
+	public function getHoldingCallnumbers() {
 		return isset($this->fields['hol852hSignatur_txt_mv']) ? $this->fields['hol852hSignatur_txt_mv'] : array();
 	}
 

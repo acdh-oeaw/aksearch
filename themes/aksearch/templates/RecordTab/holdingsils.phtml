@@ -122,206 +122,218 @@ usleep(500000);
 /*########################### ITEM HOLDINGS ###########################*/
 // Get item holdings from API
 $holdings = $this->driver->getRealTimeHoldings();
+$locations = $this->driver->getHoldingLocationCodes();
+$locationNames = $this->driver->getHoldingLocationNames();
+$locationInventory = $this->driver->getLocalInventory();
+$locationGaps = $this->driver->getLocalInventoryGaps();
+$callNumbers = $this->driver->getHoldingCallNumbers();
 
-if (! empty($holdings)) {
+if (! empty($locations)) {
 
     $showLoadMore = false;
     $noOfItemsToLoad = ($this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad) ? $this->driver->getAkConfig()->MaxItemsLoad->maxItemsLoad : 10;
 
     $i = 0;
-    foreach ($holdings as $location => $holdingsOfLocation) {
-        $i++;
-        // Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
-        // of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
-        // we will display a "show more" button.
-        $noOfCurrentIlsHoldings = count($holdingsOfLocation['items']);
-        if ($noOfCurrentIlsHoldings == $noOfItemsToLoad) {
-            $noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
-            $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
-        }
-        echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . '</h3><br />';
-        echo '(Bestand: '. $this->driver->getLocalInventory()[$i-1] . ')<br />';
-        echo '(Lücken: '. $this->driver->getLocalInventoryGaps()[$i-1] . ')<br />';
-        // print_r($this->driver->getLocalInventory());
-        // print_r($this->driver->getLocalInventoryGaps());
-        // Check for second call number (for label in table heading) and some other values
-        $hasSecondCallNo = false;
-        $hasDescription = false;
-        $hasLink = false;
-        foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
-            if (isset($holdingOfLocation['callnumber_second']) && ! empty(trim($holdingOfLocation['callnumber_second']))) {
-                $hasSecondCallNo = true;
+    foreach ($locations as $location) {
+        if(! empty($holdings[$location])) {
+            $holdingsOfLocation = $holdings[$location];
+            // Check if it is possible that there could be more holdings. This is the case if the first (current) holding call already returns the max. no.
+            // of items specified by the user in AKsearch.ini. If we reached the max. no of items, we will check if there really are more holdings and, if yes,
+            // we will display a "show more" button.
+            $noOfCurrentIlsHoldings = count($holdingsOfLocation['items']);
+            if ($noOfCurrentIlsHoldings == $noOfItemsToLoad) {
+                $noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
+                $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
             }
-            if (isset($holdingOfLocation['description']) && ! empty(trim($holdingOfLocation['description']))) {
-                $hasDescription = true;
-            }
-            if (isset($holdingOfLocation['link'])) {
-                $hasLink = true;
-            }
-        }
-        echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $holdingsOfLocation['items'][0]['libraryName'] . '">';
-
-        echo '<tr>';
-        echo '<th>' . $this->transEsc('Call Number') . '</th>';
-        echo ($hasSecondCallNo) ? '<th>' . $this->transEsc('Call Number 2') . '</th>' : ''; // If there is a second call no, show an additional table column
-        echo '<th>' . $this->transEsc('Location') . '</th>';
-        echo ($hasDescription) ? '<th>' . $this->transEsc('Description') . '</th>' : ''; // If there is a description, show an additional table column
-        echo '<th>' . $this->transEsc('Status') . '</th>';
-        echo '<th>' . $this->transEsc('availability') . '</th>';
-        echo (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) ? '<th>' . $this->transEsc('hold_place') . '</th>' : '';
-        echo '</tr>';
-
-        foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
-            $check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
-
-            // Call Numbers (first and second)
-            $callNoFirst = (isset($holdingOfLocation['callnumber']) && ! empty(trim($holdingOfLocation['callnumber']))) ? $holdingOfLocation['callnumber'] : $this->transEsc('n. A.');
-            $callNoSecond = (isset($holdingOfLocation['callnumber_second']) && ! empty(trim($holdingOfLocation['callnumber_second']))) ? $holdingOfLocation['callnumber_second'] : $this->transEsc('n. A.');
-
-            if (isset($holdingOfLocation['barcode']) && ! empty(trim($holdingOfLocation['barcode']))) {
-                echo '<tr>';
-                echo '<td>' . $callNoFirst . '</td>';
-                echo ($hasSecondCallNo) ? '<td>' . $callNoSecond . '</td>' : ''; // If there is a second call no, show an additional table column
-                
-                $itemLocation = "n. A.";
-                if (isset($holdingOfLocation['collection_desc']) && !empty($holdingOfLocation['collection_desc'])) {
-                    $itemLocation = $holdingOfLocation['collection_desc'];
-                }else if(isset($holdingOfLocation['collection']) && !empty($holdingOfLocation['collection'])) {
-                    $itemLocation = $holdingOfLocation['collection'];
+            echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . '</h3><br />';
+            echo '(Bestand: ' . $locationInventory[$i] . ')<br />';
+            // echo '(Lücken: ' . $locationGaps[$i] . ')<br />';
+            // Check for second call number (for label in table heading) and some other values
+            $hasSecondCallNo = false;
+            $hasDescription = false;
+            $hasLink = false;
+            foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
+                if (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) {
+                    $hasSecondCallNo = true;
                 }
-                echo '<td>' . $itemLocation . '</td>';
-                
-                echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
-                
-                $itemStatus = "n. A.";
-                if(isset($holdingOfLocation['policyName']) && !empty($holdingOfLocation['policyName'])) {
-                    $itemStatus = $holdingOfLocation['policyName'];
-                }else if (isset($holdingOfLocation['baseStatus']) && !empty($holdingOfLocation['baseStatus'])) {
-                    $itemStatus = $holdingOfLocation['baseStatus'];
-                    if(isset($holdingOfLocation['status']) && !empty($holdingOfLocation['status'])) {
-                        $itemStatus = $itemStatus." (".$holdingOfLocation['status'].")";
-                    }
-                }else if(isset($holdingOfLocation['status']) && !empty($holdingOfLocation['status'])) {
-                    $itemStatus = $holdingOfLocation['status'];
+                if (isset($holdingOfLocation['description']) && !empty(trim($holdingOfLocation['description']))) {
+                    $hasDescription = true;
                 }
-                echo '<td>' . ((isset($holdingOfLocation['policyName'])) ? $holdingOfLocation['policyName'] : $this->transEsc('n. A.')) . '</td>';
-                //echo '<td>' . $itemStatus . '</td>';
+                if (isset($holdingOfLocation['link'])) {
+                    $hasLink = true;
+                }
+            }
+            echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $holdingsOfLocation['items'][0]['libraryName'] . '">';
 
-                // Show status of item
-                echo '<td>';
-                if ($holdingOfLocation['reserve'] == "Y") {
-                    echo $this->transEsc("On Reserve - Ask at Circulation Desk");
-                } elseif (isset($holdingOfLocation['use_unknown_message']) && $holdingOfLocation['use_unknown_message']) {
-                    echo $this->transEsc("status_unknown_message");
-                } else { // Begin Available Items (Holds)
-                    if ($holdingOfLocation['availability']) {
-                        echo '<div>';
-                        echo '<span class="available">' . $this->transEsc("Available") . '</span> ';
+            echo '<tr>';
+            echo '<th>' . $this->transEsc('Call Number') . '</th>';
+            echo ($hasSecondCallNo) ? '<th>' . $this->transEsc('Call Number 2') . '</th>' : ''; // If there is a second call no, show an additional table column
+            echo '<th>' . $this->transEsc('Location') . '</th>';
+            echo ($hasDescription) ? '<th>' . $this->transEsc('Description') . '</th>' : ''; // If there is a description, show an additional table column
+            echo '<th>' . $this->transEsc('Status') . '</th>';
+            echo '<th>' . $this->transEsc('availability') . '</th>';
+            echo (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) ? '<th>' . $this->transEsc('hold_place') . '</th>' : '';
+            echo '</tr>';
 
-                        /*
-                        // Link for placing a hold
-                        if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
-                                $checkClass = $check ? ' checkRequest' : '';
-                                $checkText = $check ? 'Check Hold' : 'Place a Hold';
-                                echo '<a class="holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
-                        }
-                        */
-                        echo '</div>';
-                    } else { // Begin Unavailable Items (Recalls)
-                        echo '<div>';
+            foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
+                $check = (isset($holdingOfLocation['check']) && $holdingOfLocation['check']);
 
-                        // Information-Text:
-                        echo '<span class="checkedout">';
-                        if (isset($holdingOfLocation['returnDate']) && $holdingOfLocation['returnDate']) {
-                            echo '<span class="statusExtra">' . $this->escapeHtml($holdingOfLocation['returnDate']) . '</span>';
-                        }
+                // Call Numbers (first and second)
+                $callNoFirst = (isset($holdingOfLocation['callnumber']) && !empty(trim($holdingOfLocation['callnumber']))) ? $holdingOfLocation['callnumber'] : $this->transEsc('n. A.');
+                $callNoSecond = (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) ? $holdingOfLocation['callnumber_second'] : $this->transEsc('n. A.');
 
-                        if (isset($holdingOfLocation['duedate']) && $holdingOfLocation['duedate']) {
-                            if ($holdingOfLocation['duedate'] == 'requested') {
-                                echo '<span class="statusExtra">' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
-                            } else {
-                                echo '<span class="statusExtra">' . $this->transEsc("Due") . ': ' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
-                            }
-                        }
+                if (isset($holdingOfLocation['barcode']) && !empty(trim($holdingOfLocation['barcode']))) {
+                    echo '<tr>';
+                    echo '<td>' . $callNoFirst . '</td>';
+                    echo ($hasSecondCallNo) ? '<td>' . $callNoSecond . '</td>' : ''; // If there is a second call no, show an additional table column
 
-                        if (isset($holdingOfLocation['requests_placed']) && $holdingOfLocation['requests_placed'] > 0) {
-                            echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
-                        }
-
-                        if ((!isset($holdingOfLocation['duedate']) || !$holdingOfLocation['duedate']) && (!isset($holdingOfLocation['requests_placed']) || !$holdingOfLocation['requests_placed']) && (!isset($holdingOfLocation['returnDate']) || !$holdingOfLocation['returnDate'])) {
-                            echo '<span class="statusExtra">' . $this->transEsc("not_available_at_the_moment") . '</span>';
-                        }
-                        echo '</span>';
-
-                        /*
-                        // Link for request:
-                        if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
-                                $checkClass = $check ? ' checkRequest' : '';
-                                $checkText = $check ? 'Check Recall' : 'Recall This';
-                                echo '<a class="holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $checkText . '</span></a>';
-                        }
-                        */
-                        echo '</div>';
+                    $itemLocation = "n. A.";
+                    if (isset($holdingOfLocation['collection_desc']) && !empty($holdingOfLocation['collection_desc'])) {
+                        $itemLocation = $holdingOfLocation['collection_desc'];
+                    } else if (isset($holdingOfLocation['collection']) && !empty($holdingOfLocation['collection'])) {
+                        $itemLocation = $holdingOfLocation['collection'];
                     }
-                    echo '</td>';
+                    echo '<td>' . $itemLocation . '</td>';
+
+                    echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
+
+                    $itemStatus = "n. A.";
+                    if (isset($holdingOfLocation['policyName']) && !empty($holdingOfLocation['policyName'])) {
+                        $itemStatus = $holdingOfLocation['policyName'];
+                    } else if (isset($holdingOfLocation['baseStatus']) && !empty($holdingOfLocation['baseStatus'])) {
+                        $itemStatus = $holdingOfLocation['baseStatus'];
+                        if (isset($holdingOfLocation['status']) && !empty($holdingOfLocation['status'])) {
+                            $itemStatus = $itemStatus . " (" . $holdingOfLocation['status'] . ")";
+                        }
+                    } else if (isset($holdingOfLocation['status']) && !empty($holdingOfLocation['status'])) {
+                        $itemStatus = $holdingOfLocation['status'];
+                    }
+                    echo '<td>' . ((isset($holdingOfLocation['policyName'])) ? $holdingOfLocation['policyName'] : $this->transEsc('n. A.')) . '</td>';
+                    //echo '<td>' . $itemStatus . '</td>';
+
+                    // Show status of item
                     echo '<td>';
-                    //echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
+                    if ($holdingOfLocation['reserve'] == "Y") {
+                        echo $this->transEsc("On Reserve - Ask at Circulation Desk");
+                    } elseif (isset($holdingOfLocation['use_unknown_message']) && $holdingOfLocation['use_unknown_message']) {
+                        echo $this->transEsc("status_unknown_message");
+                    } else { // Begin Available Items (Holds)
+                        if ($holdingOfLocation['availability']) {
+                            echo '<div>';
+                            echo '<span class="available">' . $this->transEsc("Available") . '</span> ';
 
-                    if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
-                        if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
-                            if (!$user) {
-                                // Link for login
-                                echo '<a href="'.$this->url('myresearch-userlogin').'" class="akOpenLogin btn btn-default clear-btn" title="'.$this->transEsc("Login").'">'.$this->transEsc("Login").'</a>';
-                            } elseif (!$user->cat_username) {
-                                echo $this->translate("hold_profile_html", array('%%url%%' => $this->currentPath() . '?catalogLogin=true'));
-                            } else {
-                                // Link for placing a hold
+                            /*
+                            // Link for placing a hold
+                            if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
+                                    $checkClass = $check ? ' checkRequest' : '';
+                                    $checkText = $check ? 'Check Hold' : 'Place a Hold';
+                                    echo '<a class="holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
+                            }
+                            */
+                            echo '</div>';
+                        } else { // Begin Unavailable Items (Recalls)
+                            echo '<div>';
 
-                                if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
-                                    // Use this if we check if the request is valid in checkRequestIsValidAjax (PHP class AkSearch\Controller\AkAjaxController and JS checkRequestIsValid in record.aksearch.js)
-                                    //$checkClass = $check ? ' checkRequest' : '';
-                                    //$checkText = $check ? 'Check Hold' : 'Place a Hold';
-                                    //echo '<a class="btn btn-default clear-btn holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
+                            // Information-Text:
+                            echo '<span class="checkedout">';
+                            if (isset($holdingOfLocation['returnDate']) && $holdingOfLocation['returnDate']) {
+                                echo '<span class="statusExtra">' . $this->escapeHtml($holdingOfLocation['returnDate']) . '</span>';
+                            }
 
-                                    $holdButtonText = $this->transEsc('Place a Hold');
-                                    if (isset($holdingOfLocation['holdtype']) && $holdingOfLocation['holdtype'] == 'reserve') {
-                                        $holdButtonText = $this->transEsc('Recall This');
-                                        echo $this->transEsc('AskLibraryStaff');
-                                    }else {
-                                        echo '<a class="btn btn-default clear-btn holdPlace" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($holdButtonText) . '</span></a>';
-                                    }
+                            if (isset($holdingOfLocation['duedate']) && $holdingOfLocation['duedate']) {
+                                if ($holdingOfLocation['duedate'] == 'requested') {
+                                    echo '<span class="statusExtra">' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
                                 } else {
-                                    if (isset($holdingOfLocation['get_from_readingroom']) && $holdingOfLocation['get_from_readingroom'] == true) {
-                                        echo $this->transEsc('GetFromReadingRoom');
-                                    } else {
-                                        echo $this->transEsc('AskLibraryStaff');
-                                    }
+                                    echo '<span class="statusExtra">' . $this->transEsc("Due") . ': ' . $this->transEsc($this->escapeHtml($holdingOfLocation['duedate'])) . '</span>';
                                 }
                             }
-                        } else {
-                            echo $this->transEsc('login_disabled');
+
+                            if (isset($holdingOfLocation['requests_placed']) && $holdingOfLocation['requests_placed'] > 0) {
+                                echo '<span class="statusExtra">' . $this->transEsc("Requests") . ': ' . $this->escapeHtml($holdingOfLocation['requests_placed']) . '</span>';
+                            }
+
+                            if ((!isset($holdingOfLocation['duedate']) || !$holdingOfLocation['duedate']) && (!isset($holdingOfLocation['requests_placed']) || !$holdingOfLocation['requests_placed']) && (!isset($holdingOfLocation['returnDate']) || !$holdingOfLocation['returnDate'])) {
+                                echo '<span class="statusExtra">' . $this->transEsc("not_available_at_the_moment") . '</span>';
+                            }
+                            echo '</span>';
+
+                            /*
+                            // Link for request:
+                            if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
+                                    $checkClass = $check ? ' checkRequest' : '';
+                                    $checkText = $check ? 'Check Recall' : 'Recall This';
+                                    echo '<a class="holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $checkText . '</span></a>';
+                            }
+                            */
+                            echo '</div>';
                         }
+                        echo '</td>';
+                        echo '<td>';
+                        //echo '<span><i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i>&nbsp;Systemumstieg!&nbsp;<i class="fa fa-exclamation-triangle smallTriangle" aria-hidden="true"></i><br />Bestellungen erst wieder ab 8.1.2018 möglich.</span>';
+
+                        if (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) {
+                            if ($account->loginEnabled() && $offlineMode != 'ils-offline') {
+                                if (!$user) {
+                                    // Link for login
+                                    echo '<a href="' . $this->url('myresearch-userlogin') . '" class="akOpenLogin btn btn-default clear-btn" title="' . $this->transEsc("Login") . '">' . $this->transEsc("Login") . '</a>';
+                                } elseif (!$user->cat_username) {
+                                    echo $this->translate("hold_profile_html", array('%%url%%' => $this->currentPath() . '?catalogLogin=true'));
+                                } else {
+                                    // Link for placing a hold
+
+                                    if (isset($holdingOfLocation['link']) && $holdingOfLocation['link']) {
+                                        // Use this if we check if the request is valid in checkRequestIsValidAjax (PHP class AkSearch\Controller\AkAjaxController and JS checkRequestIsValid in record.aksearch.js)
+                                        //$checkClass = $check ? ' checkRequest' : '';
+                                        //$checkText = $check ? 'Check Hold' : 'Place a Hold';
+                                        //echo '<a class="btn btn-default clear-btn holdPlace' . $checkClass . '" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($checkText) . '</span></a>';
+
+                                        $holdButtonText = $this->transEsc('Place a Hold');
+                                        if (isset($holdingOfLocation['holdtype']) && $holdingOfLocation['holdtype'] == 'reserve') {
+                                            $holdButtonText = $this->transEsc('Recall This');
+                                            echo $this->transEsc('AskLibraryStaff');
+                                        } else {
+                                            echo '<a class="btn btn-default clear-btn holdPlace" href="' . $this->recordLink()->getHoldUrl($holdingOfLocation['link']) . '"><span>' . $this->transEsc($holdButtonText) . '</span></a>';
+                                        }
+                                    } else {
+                                        if (isset($holdingOfLocation['get_from_readingroom']) && $holdingOfLocation['get_from_readingroom'] == true) {
+                                            echo $this->transEsc('GetFromReadingRoom');
+                                        } else {
+                                            echo $this->transEsc('AskLibraryStaff');
+                                        }
+                                    }
+                                }
+                            } else {
+                                echo $this->transEsc('login_disabled');
+                            }
+                        }
+
+                        echo '</td>';
+                        echo '</tr>';
+
                     }
-
-                    echo '</td>';
-                    echo '</tr>';
-
                 }
             }
-        }
 
-        echo '</table>';
+            echo '</table>';
 
-        if ($showLoadMore) {
-            // echo '<div class="akLoadMore" id="akLoadMoreItems"><i class="fa fa-spinner fa-spin" id="akLoadMoreItemsSpinner"></i>&nbsp;<a href="">'.$this->transEsc('loadMore').'</a></div>';
-            echo '<div class="akLoadMore"><a href="' . $this->recordLink()->getUrl($this->driver) . '/Holdings?loadAll" id="akLoadMoreItems">' . $this->transEsc('loadMore') . '&nbsp;<i class="fa fa-chevron-down" aria-hidden="true"></i></a></div>';
-            // echo '<div class="akLoadMore"><a href="#" id="akLoadMoreItems">'.$this->transEsc('loadMore').'</a></div>';
+            if ($showLoadMore) {
+                // echo '<div class="akLoadMore" id="akLoadMoreItems"><i class="fa fa-spinner fa-spin" id="akLoadMoreItemsSpinner"></i>&nbsp;<a href="">'.$this->transEsc('loadMore').'</a></div>';
+                echo '<div class="akLoadMore"><a href="' . $this->recordLink()->getUrl($this->driver) . '/Holdings?loadAll" id="akLoadMoreItems">' . $this->transEsc('loadMore') . '&nbsp;<i class="fa fa-chevron-down" aria-hidden="true"></i></a></div>';
+                // echo '<div class="akLoadMore"><a href="#" id="akLoadMoreItems">'.$this->transEsc('loadMore').'</a></div>';
+            }
         }
+        else {
+            echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $locationNames[$i] . '</h3><br />';
+            echo '(Bestand: ' . $locationInventory[$i] . ')<br />';
+            echo '(Signatur: ' . $callNumbers[$i] . ')<br />';
+            // echo '(Lücken: ' . $locationGaps[$i] . ')<br />';
+        }
+        $i++;
     }
 }
 
 
-if (empty($holdings) && empty($journalHoldings) && empty($urls)) {
+if (empty($locations) && empty($journalHoldings) && empty($urls)) {
     echo '<br /><h3>' . $this->transEsc('akNoHoldings') . '</h3><br />';
 }
 
