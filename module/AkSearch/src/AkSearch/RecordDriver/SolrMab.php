@@ -1727,13 +1727,21 @@ class SolrMab extends SolrDefault  {
   }
 
   /**
-   * Get Solrfield hol866zLuecken_txt_mv (e. g. gaps in the array of Bestandsangaben)
+   * Get Solrfield hol866az_txt_mv and filter for every second value (e. g. gaps in the array of Bestandsangaben)
    *
    * @return array
    */
-  public function getLocalInventoryGaps() {
-    return isset($this->fields['hol866zLuecken_txt_mv']) ? $this->fields['hol866zLuecken_txt_mv'] : array();
-  }
+	public function getLocalInventoryGaps() {
+		$allholds = isset($this->fields['hol866az_txt_mv']) ? $this->fields['hol866az_txt_mv'] : array();;
+		foreach (range(0, count($allholds), 2) as $key) {
+			unset($allholds[$key]);
+		}
+		$gaps = array_merge($allholds);
+		return $gaps;
+	}
+	/*  public function getLocalInventoryGaps() {
+		return isset($this->fields['hol866zLuecken_txt_mv']) ? $this->fields['hol866zLuecken_txt_mv'] : array();
+	  }*/
 
 	/**
 	 * Get Solrfield hol852cSonderstandort_txt_mv (e. g. codes of holding locations)
