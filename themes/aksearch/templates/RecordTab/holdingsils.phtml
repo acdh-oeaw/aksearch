@@ -131,8 +131,6 @@ $locationInventory = $this->driver->getLocalInventory();
 $locationGaps = $this->driver->getLocalInventoryGaps();
 $callNumbers = $this->driver->getHoldingCallNumbers();
 
-//print("<pre>".print_r($holdings,true)."</pre>");
-
 # periodicals
 if (! empty($locations)) {
     $showLoadMore = false;
@@ -170,6 +168,7 @@ if (! empty($locations)) {
             // Check for second call number (for label in table heading) and some other values
             $hasSecondCallNo = false;
             $hasDescription = false;
+            $hasNotes = false;
             $hasLink = false;
             foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
                 if (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) {
@@ -181,7 +180,11 @@ if (! empty($locations)) {
                 if (isset($holdingOfLocation['link'])) {
                     $hasLink = true;
                 }
+                if (isset($holdingOfLocation['item_notes'])) {
+                    $hasNotes = true;
+                }
             }
+
             echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $holdingsOfLocation['items'][0]['libraryName'] . '">';
 
             echo '<tr>';
@@ -189,6 +192,7 @@ if (! empty($locations)) {
             echo ($hasSecondCallNo) ? '<th>' . $this->transEsc('Call Number 2') . '</th>' : ''; // If there is a second call no, show an additional table column
             echo '<th>' . $this->transEsc('Location') . '</th>';
             echo ($hasDescription) ? '<th>' . $this->transEsc('Description') . '</th>' : ''; // If there is a description, show an additional table column
+            echo ($hasNotes) ? '<th>' . $this->transEsc('Notes') . '</th>' : ''; // If there is a Note, show an additional table column
             echo '<th>' . $this->transEsc('Status') . '</th>';
             echo '<th>' . $this->transEsc('availability') . '</th>';
             echo (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) ? '<th>' . $this->transEsc('hold_place') . '</th>' : '';
@@ -215,6 +219,7 @@ if (! empty($locations)) {
                     echo '<td>' . $itemLocation . '</td>';
 
                     echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
+                    echo ($hasNotes) ? '<td>' . ((isset($holdingOfLocation['item_notes'])) ? $holdingOfLocation['item_notes'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a notes, show an additional table column
 
                     $itemStatus = "n. A.";
                     if (isset($holdingOfLocation['policyName']) && !empty($holdingOfLocation['policyName'])) {
@@ -379,6 +384,7 @@ elseif (! empty($holdings) ) {
         // Check for second call number (for label in table heading) and some other values
         $hasSecondCallNo = false;
         $hasDescription = false;
+        $hasNotes = false;
         $hasLink = false;
         foreach ($holdingsOfLocation['items'] as $holdingOfLocation) {
             if (isset($holdingOfLocation['callnumber_second']) && !empty(trim($holdingOfLocation['callnumber_second']))) {
@@ -390,6 +396,9 @@ elseif (! empty($holdings) ) {
             if (isset($holdingOfLocation['link'])) {
                 $hasLink = true;
             }
+            if (isset($holdingOfLocation['item_notes'])) {
+                $hasNotes = true;
+            }
         }
         echo '<table class="table" summary="' . $this->transEsc('Holdings details from') . ' ' . $holdingsOfLocation['items'][0]['libraryName'] . '">';
         echo '<tr>';
@@ -397,6 +406,7 @@ elseif (! empty($holdings) ) {
         echo ($hasSecondCallNo) ? '<th>' . $this->transEsc('Call Number 2') . '</th>' : ''; // If there is a second call no, show an additional table column
         echo '<th>' . $this->transEsc('Location') . '</th>';
         echo ($hasDescription) ? '<th>' . $this->transEsc('Description') . '</th>' : ''; // If there is a description, show an additional table column
+        echo ($hasNotes) ? '<th>' . $this->transEsc('Notes') . '</th>' : ''; // If there is a Note, show an additional table column
         echo '<th>' . $this->transEsc('Status') . '</th>';
         echo '<th>' . $this->transEsc('availability') . '</th>';
         echo (($this->ils()->getHoldsMode() == 'driver' || $this->ils()->getTitleHoldsMode() == 'driver')) ? '<th>' . $this->transEsc('hold_place') . '</th>' : '';
@@ -420,6 +430,7 @@ elseif (! empty($holdings) ) {
                 echo '<td>' . $itemLocation . '</td>';
 
                 echo ($hasDescription) ? '<td>' . ((isset($holdingOfLocation['description'])) ? $holdingOfLocation['description'] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a description, show an additional table column
+                echo ($hasNotes) ? '<td>' . ((isset($holdingOfLocation['item_notes'])) ? $holdingOfLocation['item_notes'][0] : $this->transEsc('n. A.')) . '</td>' : ''; // If there is a notes, show an additional table column
 
                 $itemStatus = "n. A.";
                 if (isset($holdingOfLocation['policyName']) && !empty($holdingOfLocation['policyName'])) {
