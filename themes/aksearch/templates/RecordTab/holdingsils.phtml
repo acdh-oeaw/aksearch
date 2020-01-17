@@ -65,7 +65,10 @@ $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcr
 <?php
 /* ########################### JOURNAL HOLDINGS ########################### */
 // Get journal holdings from API
-$journalHoldings = $this->driver->getJournalHoldings();
+// Commented out since the getJournalHoldings Method has not been developed in the ALMA driver
+// Holdings are currently retrieved via indexed holding info from SOLR
+// TODO: check with mbirkner if viable solution
+/*$journalHoldings = $this->driver->getJournalHoldings();
 
 if (! empty($journalHoldings)) {
 
@@ -114,7 +117,7 @@ if (! empty($journalHoldings)) {
         }
         echo '</table>';
     }
-}
+}*/
 
 // Pausing for some microseconds to avoid errors caused by too many API-Calls at the same time. 500000 microseconds = 0,5 seconds
 usleep(500000);
@@ -531,7 +534,7 @@ elseif (! empty($holdings) ) {
     }
 }
 
-
+# nothing found
 elseif (empty($locations) && empty($journalHoldings) && empty($urls)) {
     echo '<br /><h3>' . $this->transEsc('akNoHoldings') . '</h3><br />';
 }
