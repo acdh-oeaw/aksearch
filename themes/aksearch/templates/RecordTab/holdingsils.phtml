@@ -130,6 +130,7 @@ $locationNames = $this->driver->getHoldingLocationNames();
 $locationInventory = $this->driver->getLocalInventory();
 $locationGaps = $this->driver->getLocalInventoryGaps();
 $callNumbers = $this->driver->getHoldingCallNumbers();
+//print("<pre>".print_r($holdings,true)."</pre>");
 
 # periodicals
 if (! empty($locations)) {
@@ -147,7 +148,8 @@ if (! empty($locations)) {
                 $noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
                 $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
             }
-            echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . '</h3><br />';
+            echo '<a href="https://www.oeaw.ac.at/fileadmin/subsites/BASIS/html/info-'.strtolower($holdingsOfLocation['items'][0]['libraryCode']).'.html" target="_blank">';
+            echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . ' <i class="fa fa-info-circle" aria-hidden="true"></i></h3></a><br />';
 
             echo '<table class="table" style="width: auto;">';
             echo '<tr>';
@@ -380,7 +382,10 @@ elseif (! empty($holdings) ) {
             $noOfTotalItems = ($holdingsOfLocation['totalNoOfItems']) ? $holdingsOfLocation['totalNoOfItems'] : null;
             $showLoadMore = $this->driver->showLoadMore($noOfTotalItems);
         }
-        echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . '</h3><br />';
+        echo '<a href="https://www.oeaw.ac.at/fileadmin/subsites/BASIS/html/info-'.strtolower($holdingsOfLocation['items'][0]['libraryCode']).'.html" target="_blank">';
+        echo '<br /><h3>' . $this->transEsc('itemHoldingsText') . ': ' . $holdingsOfLocation['items'][0]['libraryName'] . ' <i class="fa fa-info-circle" aria-hidden="true"></h3></i></a><br />';
+
+
         // Check for second call number (for label in table heading) and some other values
         $hasSecondCallNo = false;
         $hasDescription = false;
