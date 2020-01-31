@@ -433,7 +433,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		$result = null;
 		$statusCode = null;
 		$returnArray = null;
-		
+
 		try {
 			$client = $this->httpService->createClient($url);
 			$client->setMethod($method);
@@ -443,7 +443,7 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			}
 			
 			if (isset($headers)) {
-				$client->setHeaders($headers);
+                            $client->setHeaders($headers);
 			}
 			
 			$result = $client->send();
@@ -681,15 +681,19 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 			//$temp['college'] = $this->useradm;			
 			return $this->getMyProfile($temp);
 		}
-		
+                /*** quick fix for login zend error ****/
+		$headers = array(
+                    'Accept-encoding' => 'identity',
+                    'X-Powered-By: Zend Framework'
+                );
+                
 		try {
-			$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'GET');
+			$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST', null, $headers);
 		} catch (\Exception $ex) {
 			throw new ILSException($ex->getMessage());
 		}
 		
-		
-		if ($result['status'] == 200) {
+		if ($result['status'] == 204) {
 			$authSuccess = true;
 		} else {
 			return null; // Show message for wrong user credentials
