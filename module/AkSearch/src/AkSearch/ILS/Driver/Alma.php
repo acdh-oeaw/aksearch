@@ -683,13 +683,13 @@ class Alma extends AbstractBase implements \Zend\Log\LoggerAwareInterface, \VuFi
 		}
 		
 		try {
-			$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'POST');
+			$result = $this->doHTTPRequest($this->apiUrl.'users/'.$user.'?user_id_type=all_unique&op=auth&password='.$password.'&apikey='.$this->apiKey, 'GET');
 		} catch (\Exception $ex) {
 			throw new ILSException($ex->getMessage());
 		}
 		
 		
-		if ($result['status'] == 204) {
+		if ($result['status'] == 200) {
 			$authSuccess = true;
 		} else {
 			return null; // Show message for wrong user credentials
