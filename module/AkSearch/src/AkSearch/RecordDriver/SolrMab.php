@@ -1764,6 +1764,15 @@ class SolrMab extends SolrDefault  {
 	}
 
 	/**
+	 * Get Solrfield locationCode_str_mv (e. g. codes of holding libraries)
+	 *
+	 * @return array
+	 */
+	public function getHoldingLibraryCodes() {
+		return isset($this->fields['locationCode_str_mv']) ? $this->fields['locationCode_str_mv'] : array();
+	}
+
+	/**
 	 * Get Solrfield hol852hSignatur_txt_mv (e. g. call numbers)
 	 *
 	 * @return array
