@@ -448,7 +448,7 @@
 
     <lst name="topic">
       <str name="DBpath">${solr.solr.home:./solr}/alphabetical_browse/topic_browse.db</str>
-      <str name="field">topic_browse</str>
+      <str name="field">subjectChainTopic_str_mv</str>
     </lst>
 
     <lst name="author">
@@ -469,9 +469,11 @@
 
     <lst name="dewey">
       <str name="DBpath">${solr.solr.home:./solr}/alphabetical_browse/dewey_browse.db</str>
-      <str name="field">dewey-raw</str>
+      <str name="field">deweyAkNormalized_str_mv</str>
+      <!--
       <str name="ignoreDiacritics">yes</str>
       <str name="normalizer">org.vufind.util.DeweyCallNormalizer</str>
+      -->
     </lst>
 
     <lst name="hierarchy">
