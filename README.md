@@ -1,25 +1,23 @@
-[![Build Status](https://travis-ci.org/vufind-org/vufind.svg?branch=master)](https://travis-ci.org/vufind-org/vufind)
-VuFind
-======
+# AKsearch
 
-Introduction
-------------
-VuFind is an open source discovery environment for searching a collection of
-records.  To learn more, visit https://vufind.org.
+This is the discovery solution for the **AK Bibliothek Wien** (Library of the Chamber of Labour of Vienna). It's based on the open source discovery environment **VuFind**, but is customized to meet the needs of the **AK Bibliothek Wien**.
 
+## Installation
 
-Installation
-------------
-See our [online installation documentation](https://vufind.org/wiki/installation) for step-by-step instructions for installing from packaged releases to popular platforms.
+1. Clone the repository
+   ```
+   git clone --recurse-submodules https://biapps.arbeiterkammer.at/gitlab/open/aksearch/aksearch.git
+   ```
+1. CD into the new directory that was created and run: 
+   ```
+   composer install
+   ```
 
-VuFind's [packaged releases](http://vufind-org.github.io/vufind/downloads.html) have all dependencies included. If you are installing directly from a Git checkout, you will need to load these dependencies manually using the [Composer](https://getcomposer.org) tool by running `composer install` from the VuFind home directory.
+## Upgrade
+From the base directory, run:
+```
+git pull --recurse-submodules
+```
 
-
-Documentation and Support
--------------------------
-The VuFind community maintains a detailed [wiki](http://vufind.org/wiki) containing information on using and customizing the software. The VuFind website also lists [sources of community and commercial support](http://vufind-org.github.io/vufind/support.html).
-
-
-Contributing
-------------
-See our [developers handbook](https://vufind.org/wiki/development) for more information.
+# Wiki
+The general **VuFind** Wiki can be found at [https://vufind.org/wiki](https://vufind.org/wiki)
