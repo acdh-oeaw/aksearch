@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AKsearch
 
 This is the discovery solution for the **AK Bibliothek Wien** (Library of the Chamber of Labour of Vienna). It's based on the open source discovery environment **VuFind**, but is customized to meet the needs of the **AK Bibliothek Wien**.
@@ -24,3 +25,4 @@ git pull --recurse-submodules
 
 # Wiki
 The general **VuFind** Wiki can be found at [https://vufind.org/wiki](https://vufind.org/wiki)
+
