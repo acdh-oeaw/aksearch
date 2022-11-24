@@ -12,4 +12,4 @@
 	url  = https://github.com/acdh-oeaw/aksearch-module-console.git
 [submodule "themes/AkSearch"]
 	path = themes/AkSearch
-	url  = https://biapps.arbeiterkammer.at/gitlab/open/aksearch/theme.git
+	url  = https://github.com/acdh-oeaw/aksearch-theme.git
