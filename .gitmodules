@@ -1,15 +1,15 @@
 [submodule "module/AkSearch"]
 	path = module/AkSearch
-	url  = https://biapps.arbeiterkammer.at/gitlab/open/aksearch/module-core.git
+	url  = https://github.com/acdh-oeaw/aksearch-module-core.git
 [submodule "module/AkSearchSearch"]
 	path = module/AkSearchSearch
-	url  = https://biapps.arbeiterkammer.at/gitlab/open/aksearch/module-search.git
+	url  = https://github.com/acdh-oeaw/aksearch-module-search.git
 [submodule "module/AkSearchApi"]
 	path = module/AkSearchApi
-	url  = https://biapps.arbeiterkammer.at/gitlab/open/aksearch/module-api.git
+	url  = https://github.com/acdh-oeaw/aksearch-module-api.git
 [submodule "module/AkSearchConsole"]
 	path = module/AkSearchConsole
-	url  = https://biapps.arbeiterkammer.at/gitlab/open/aksearch/module-console.git
+	url  = https://github.com/acdh-oeaw/aksearch-module-console.git
 [submodule "themes/AkSearch"]
 	path = themes/AkSearch
 	url  = https://biapps.arbeiterkammer.at/gitlab/open/aksearch/theme.git
