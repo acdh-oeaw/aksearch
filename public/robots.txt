@@ -1,0 +1,19 @@
+User-agent: Googlebot
+Disallow: /AJAX
+Disallow: /Alphabrowse
+Disallow: /Browse
+Disallow: /Combined
+Disallow: /Search/Results
+Disallow: /Summon
+Disallow: /SummonRecord
+Disallow: /AJAX/
+Disallow: /Alphabrowse/
+Disallow: /Browse/
+Disallow: /Combined/
+Disallow: /Search/Results/
+Disallow: /Summon/
+Disallow: /SummonRecord/
+
+User-agent: *
+Disallow: /
+
