@@ -36,7 +36,8 @@ public class ConfigManager
 {
     // Initialize logging category
     static Logger logger = Logger.getLogger(ConfigManager.class.getName());
-    private static ConcurrentHashMap<String, Ini> configCache = new ConcurrentHashMap<String, Ini>();
+    private static Map<String, Ini> configCache = new ConcurrentHashMap<>();
+    private static Map<String, ConcurrentHashMap<String, String>> sanitizedConfigCache = new ConcurrentHashMap<>();
     private Properties vuFindConfigs = null;
     private static ThreadLocal<ConfigManager> managerCache =
         new ThreadLocal<ConfigManager>()
@@ -69,25 +70,28 @@ public class ConfigManager
     private File findConfigFile(String filename) throws IllegalStateException
     {
         // Find VuFind's home directory in the environment; if it's not available,
-        // try using a relative path on the assumption that we are currently in
-        // VuFind's import subdirectory:
+        // we cannot proceed:
         String vufindHome = System.getenv("VUFIND_HOME");
         if (vufindHome == null) {
             // this shouldn't happen since import-marc.sh and .bat always set VUFIND_HOME
             throw new IllegalStateException("VUFIND_HOME must be set");
         }
 
-        // Check for VuFind 2.0's local directory environment variable:
+        // Check for VuFind's local directory environment variable:
         String vufindLocal = System.getenv("VUFIND_LOCAL_DIR");
 
-        // Get the relative VuFind path from the properties file, defaulting to
-        // the 2.0-style config/vufind if necessary.
+        // If VUFIND_LOCAL_DIR is not set, issue a warning and try to derive it from VUFIND_HOME
+        if (vufindLocal == null || vufindLocal.length() == 0) {
+            vufindLocal = vufindHome + "/local";
+            logger.warn("The VUFIND_LOCAL_DIR environment variable is missing. Defaulting to " + vufindLocal);
+        }
+
+        // Get the relative VuFind path from the properties file, defaulting to config/vufind if necessary.
         String relativeConfigPath = PropertyUtils.getProperty(
             vuFindConfigs, "vufind.config.relative_path", "config/vufind"
         );
 
-        // Try several different locations for the file -- VuFind 2 local dir,
-        // VuFind 2 base dir, VuFind 1 base dir.
+        // Try several different locations for the file -- VuFind local dir, VuFind base dir, legacy base dir.
         File file;
         if (vufindLocal != null) {
             file = new File(vufindLocal + "/" + relativeConfigPath + "/" + filename);
@@ -99,7 +103,7 @@ public class ConfigManager
         if (file.exists()) {
             return file;
         }
-        file = new File(vufindHome + "/web/conf/" + filename);
+        file = new File(vufindHome + "/web/conf/" + filename); // legacy from VuFind 1.x
         return file;
     }
 
@@ -109,20 +113,27 @@ public class ConfigManager
      */
     private String sanitizeConfigSetting(String str)
     {
-        // Drop comments if necessary:
-        int pos = str.indexOf(';');
-        if (pos >= 0) {
-            str = str.substring(0, pos).trim();
+        // Work on a copy of the string.
+        // We do not want the sanitizer to update the cache, because it might
+        // cause problems when executing them multiple times, like
+        // e.g. in multithreaded scenarios.
+        String retVal = new String(str);
+
+        // Drop comments if necessary; if the semi-colon is inside quotes, leave
+        // it alone. TODO: handle complex cases with comment AND quoted semi-colon
+        int pos = retVal.indexOf(';');
+        if (pos >= 0 && !retVal.matches("\"[^\"]*;[^\"]*\"")) {
+            retVal = retVal.substring(0, pos).trim();
         }
 
         // Strip wrapping quotes if necessary (the ini reader won't do this for us):
-        if (str.startsWith("\"")) {
-            str = str.substring(1, str.length());
+        if (retVal.startsWith("\"")) {
+            retVal = retVal.substring(1, retVal.length());
         }
-        if (str.endsWith("\"")) {
-            str = str.substring(0, str.length() - 1);
+        if (retVal.endsWith("\"")) {
+            retVal = retVal.substring(0, retVal.length() - 1);
         }
-        return str;
+        return retVal;
     }
 
     /**
@@ -161,11 +172,37 @@ public class ConfigManager
     }
 
     /**
-     * Get a section from a VuFind configuration file.
+     * Get a section from a VuFind configuration file and sanitize all the values.
      * @param filename configuration file name
      * @param section section name within the file
      */
     public Map<String, String> getConfigSection(String filename, String section)
+    {
+        String sanitizedCacheKey = filename + "#" + section;
+        return sanitizedConfigCache.computeIfAbsent(sanitizedCacheKey, retVal -> {
+            Map<String, String> rawSection = getRawConfigSection(filename, section);
+            if (rawSection == null) {
+                return new ConcurrentHashMap<>();
+            }
+
+            // Sanitize a copy of the section.
+            // We do not want the sanitizer to update the cache, because it might
+            // cause problems when executing them multiple times, like
+            // e.g. in multithreaded scenarios.
+            ConcurrentHashMap<String, String> sanitizedSection = new ConcurrentHashMap<>();
+            for (Map.Entry<String, String> entry : rawSection.entrySet()) {
+                sanitizedSection.put(entry.getKey(), sanitizeConfigSetting(entry.getValue()));
+            }
+            return sanitizedSection;
+        });
+    }
+
+    /**
+     * Get a section from a VuFind configuration file.
+     * @param filename configuration file name
+     * @param section section name within the file
+     */
+    public Map<String, String> getRawConfigSection(String filename, String section)
     {
         // Grab the ini file.
         Ini ini = loadConfigFile(filename);
@@ -191,7 +228,30 @@ public class ConfigManager
                 retVal.put(key, overrideSection.get(key));
             }
         }
+
         return retVal;
+    }
+
+    /**
+     * @deprecated Please use getConfigSection instead, or getRawConfigSection
+     *             if you would like to get the non-sanitized values.
+     */
+    @Deprecated
+    public Map<String, String> getSanitizedConfigSection(String filename, String section)
+    {
+        return getConfigSection(filename, section);
+    }
+
+    /**
+     * Get a setting from a VuFind configuration file and sanitize the value.
+     * @param filename configuration file name
+     * @param section section name within the file
+     * @param setting setting name within the section
+     */
+    public String getConfigSetting(String filename, String section, String setting)
+    {
+        String retVal = getRawConfigSetting(filename, section, setting);
+        return retVal == null ? retVal : sanitizeConfigSetting(retVal);
     }
 
     /**
@@ -200,46 +260,42 @@ public class ConfigManager
      * @param section section name within the file
      * @param setting setting name within the section
      */
-    public String getConfigSetting(String filename, String section, String setting)
+    public String getRawConfigSetting(String filename, String section, String setting)
     {
-        String retVal = null;
+        Map<String, String> sectionMap = getRawConfigSection(filename, section);
+        return sectionMap == null ? null : sectionMap.get(setting);
+    }
 
-        // Grab the ini file.
-        Ini ini = loadConfigFile(filename);
+    /**
+     * @deprecated Please use getConfigSetting instead, or getRawConfigSetting
+     *             if you would like to get the non-sanitized value.
+     */
+    @Deprecated
+    public String getSanitizedConfigSetting(String filename, String section, String setting)
+    {
+        return getConfigSetting(filename, section, setting);
+    }
 
-        // Check to see if we need to worry about an override file:
-        String override = ini.get("Extra_Config", "local_overrides");
-        if (override != null) {
-            Ini overrideIni = loadConfigFile(override);
-            retVal = overrideIni.get(section, setting);
-            if (retVal != null) {
-                return sanitizeConfigSetting(retVal);
-            }
+    /**
+     * Get a Boolean setting from a VuFind configuration file; match PHP's string to Boolean logic.
+     * @param filename configuration file name
+     * @param section section name within the file
+     * @param setting setting name within the section
+     * @param default defaultValue value to use if setting is missing
+     */
+    public boolean getBooleanConfigSetting(String filename, String section, String setting, boolean defaultValue)
+    {
+        String config = getConfigSetting(filename, section, setting);
+        if (config == null) {
+            return defaultValue;
         }
-
-        // Try to find the requested setting:
-        retVal = ini.get(section, setting);
-
-        //  No setting?  Check for a parent configuration:
-        while (retVal == null) {
-            String parent = ini.get("Parent_Config", "path");
-            if (parent !=  null) {
-                try {
-                    ini.load(new FileReader(new File(parent)));
-                } catch (Throwable e) {
-                    dieWithError(
-                        "Unable to access " + parent
-                        + " (" + e.getMessage() + ")"
-                    );
-                }
-                retVal = ini.get(section, setting);
-            } else {
-                break;
-            }
+        switch (config.trim().toLowerCase()) {
+        case "false":
+        case "0":
+        case "":
+            return false;
         }
-
-        // Return the processed setting:
-        return retVal == null ? null : sanitizeConfigSetting(retVal);
+        return true;
     }
 
     /**

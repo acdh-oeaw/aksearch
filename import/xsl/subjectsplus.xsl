@@ -1,3 +1,4 @@
+<!-- available fields are defined in solr/biblio/conf/schema.xml -->
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
@@ -6,11 +7,10 @@
     xmlns:xlink="http://www.w3.org/2001/XMLSchema-instance">
     <xsl:output method="xml" indent="yes" encoding="utf-8"/>
     <xsl:param name="institution">My University</xsl:param>
-    <xsl:param name="collection">OJS</xsl:param>
+    <xsl:param name="collection">SubjectsPlus</xsl:param>
     <xsl:param name="id_tag_name">identifier</xsl:param>
     <xsl:param name="change_tracking_core">biblio</xsl:param>
     <xsl:param name="change_tracking_date_tag_name"></xsl:param>
-    <xsl:param name="preferred_lang"></xsl:param>
     <xsl:param name="workKey_include_regEx"></xsl:param>
     <xsl:param name="workKey_exclude_regEx"></xsl:param>
     <xsl:param name="workKey_transliterator_rules">:: NFD; :: lower; :: Latin; :: [^[:letter:] [:number:]] Remove; :: NFKC;</xsl:param>
@@ -38,7 +38,7 @@
                 </field>
 
                 <!-- RECORD FORMAT -->
-                <field name="record_format">ojs</field>
+                <field name="record_format">subjectsplus</field>
 
                 <!-- FULLRECORD -->
                 <!-- disabled for now; records are so large that they cause memory problems!
@@ -70,6 +70,10 @@
                         </field>
                     </xsl:if>
                 </xsl:for-each>
+
+                <!-- FORMAT -->
+                <field name="format">Online</field>
+
                 <!-- SUBJECT -->
                 <xsl:for-each select="dc:subject">
                     <xsl:if test="string-length() > 0">
@@ -78,15 +82,20 @@
                         </field>
                     </xsl:if>
                 </xsl:for-each>
-                <xsl:for-each select="dc:subject">
-                    <xsl:if test="string-length() > 0">
-                        <field name="topic_facet">
-                            <xsl:value-of select="normalize-space()"/>
-                        </field>
-                    </xsl:if>
-                </xsl:for-each>
-                <!-- FORMAT -->
-                <field name="format">Online</field>
+
+                <!-- DESCRIPTION -->
+                <xsl:if test="dc:description">
+                    <field name="description">
+                        <xsl:value-of select="dc:description" />
+                    </field>
+                </xsl:if>
+
+                <!-- ADVISOR / CONTRIBUTOR -->
+                <xsl:if test="dc:contributor[normalize-space()]">
+                    <field name="author2">
+                        <xsl:value-of select="dc:contributor[normalize-space()]" />
+                    </field>
+                </xsl:if>
 
                 <!-- AUTHOR -->
                 <xsl:for-each select="dc:creator">
@@ -104,55 +113,18 @@
                 </xsl:for-each>
 
                 <!-- TITLE -->
-                <xsl:choose>
-                    <xsl:when test="dc:title[@xml:lang=$preferred_lang][normalize-space()]">
-                        <field name="title">
-                            <xsl:value-of select="dc:title[@xml:lang=$preferred_lang][normalize-space()]"/>
-                        </field>
-                        <field name="title_short">
-                            <xsl:value-of select="dc:title[@xml:lang=$preferred_lang][normalize-space()]"/>
-                        </field>
-                        <field name="title_full">
-                            <xsl:value-of select="dc:title[@xml:lang=$preferred_lang][normalize-space()]"/>
-                        </field>
-                        <field name="title_sort">
-                            <xsl:value-of select="php:function('VuFind::titleSortLower', php:function('VuFind::stripArticles', string(dc:title[@xml:lang=$preferred_lang][normalize-space()])))"/>
-                        </field>
-                        <xsl:for-each select="dc:title[@xml:lang!=$preferred_lang][normalize-space()]">
-                            <field name="title_alt">
-                                <xsl:value-of select="."/>
-                            </field>
-                        </xsl:for-each>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:for-each select="dc:title[normalize-space()]">
-                            <xsl:if test="position()=1">
-                                <field name="title">
-                                    <xsl:value-of select="."/>
-                                </field>
-                                <field name="title_short">
-                                    <xsl:value-of select="."/>
-                                </field>
-                                <field name="title_full">
-                                    <xsl:value-of select="."/>
-                                </field>
-                                <field name="title_sort">
-                                    <xsl:value-of select="php:function('VuFind::titleSortLower', php:function('VuFind::stripArticles', string(.)))"/>
-                                </field>
-                            </xsl:if>
-                            <xsl:if test="position()>1">
-                                <field name="title_alt">
-                                    <xsl:value-of select="."/>
-                                </field>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:otherwise>
-                </xsl:choose>
-
-                <!-- DESCRIPTION -->
-                <xsl:if test="dc:description">
-                    <field name="description">
-                        <xsl:value-of select="dc:description" />
+                <xsl:if test="dc:title[normalize-space()]">
+                    <field name="title">
+                        <xsl:value-of select="dc:title[normalize-space()]"/>
+                    </field>
+                    <field name="title_short">
+                        <xsl:value-of select="dc:title[normalize-space()]"/>
+                    </field>
+                    <field name="title_full">
+                        <xsl:value-of select="dc:title[normalize-space()]"/>
+                    </field>
+                    <field name="title_sort">
+                        <xsl:value-of select="php:function('VuFind::titleSortLower', php:function('VuFind::stripArticles', string(dc:title[normalize-space()])))"/>
                     </field>
                 </xsl:if>
 
@@ -174,11 +146,14 @@
                 </xsl:if>
 
                 <!-- URL -->
-                <xsl:if test="dc:identifier">
-                    <field name="url">
-                        <xsl:value-of select="dc:identifier[normalize-space()]"/>
-                    </field>
-                </xsl:if>
+                <xsl:for-each select="dc:identifier">
+                    <!-- SubjectsPlus prefixes URLs with http: so this code strips off that prefix -->
+                    <xsl:if test="substring(., 1, 10) = 'http:http:'">
+                        <field name="url">
+                            <xsl:value-of select="substring-after(., 'http:')" />
+                        </field>
+                    </xsl:if>
+                </xsl:for-each>
 
                 <!-- Work Keys -->
                 <xsl:for-each select="php:function('VuFindWorkKeys::getWorkKeys', '', dc:title[normalize-space()], php:function('VuFind::stripArticles', string(dc:title[normalize-space()])), dc:creator, $workKey_include_regEx, $workKey_exclude_regEx, $workKey_transliterator_rules)/workKey">
